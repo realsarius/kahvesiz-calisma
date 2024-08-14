@@ -1,0 +1,36 @@
+{% extends 'base.html' %} {% block title %}Ana Sayfa{% endblock %} {% block
+content %}
+<div class="">
+  <div class="relative isolate px-6 pt-14 lg:px-8">
+    <div class="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
+      <div class="hidden sm:mb-8 sm:flex sm:justify-center">
+        <!-- <div class="relative rounded-full px-3 py-1 text-sm leading-6 ring-1 ">
+          Heyecanla yeni projelerimizi duyuruyoruz!
+          <a href="#" class="font-semibold text-indigo-600">
+            <span class="absolute inset-0" aria-hidden="true"></span>
+            Detaylar için tıklayın
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div> -->
+      </div>
+      <div class="text-center">
+        <h1 class="text-4xl font-bold tracking-tight sm:text-6xl">
+          Verimli Çalışma Alanları
+        </h1>
+        <p class="mt-6 text-lg leading-8">
+          Günümüzde iş yaparken verimliliği artırmak, doğru çalışma ortamını seçmekle başlar. Kafeler, hem rahat bir atmosfer sunar hem de sosyal etkileşim imkanları sağlar. Ancak, herkes için uygun olmayabilirler.
+        </p>
+        <div class="mt-10 flex items-center justify-center gap-x-6">
+          <a href="{{url_for('login')}}" class="rounded-md dark:text-zinc-900 dark:bg-lavender dark:hover:bg-lavender/90 px-3.5 py-2.5 text-sm font-semibold">
+            Şimdi Başlayın
+          </a>
+          <a href="{{url_for('about')}}" class="text-sm font-semibold leading-6">
+            Daha fazla bilgi <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
