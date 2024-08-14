@@ -4,13 +4,12 @@ Bu proje, kafelerde laptop ile çalışabilirliği değerlendirmek amacıyla gel
 
 ## Ekran Görüntüleri
 
-![ss1]()
-![ss2]()
-![ss3]()
-![ss4]()
-![ss5]()
-![ss6]()
-![ss7]()
+![ss1](https://github.com/realsarius/kahvesiz-calisma/blob/main/static/src/assets/screenshots/ss1.png?raw=true)
+![ss2](https://github.com/realsarius/kahvesiz-calisma/blob/main/static/src/assets/screenshots/ss2.png?raw=true)
+![ss3](https://github.com/realsarius/kahvesiz-calisma/blob/main/static/src/assets/screenshots/ss3.png?raw=true)
+![ss4](https://github.com/realsarius/kahvesiz-calisma/blob/main/static/src/assets/screenshots/ss4.png?raw=true)
+![ss5](https://github.com/realsarius/kahvesiz-calisma/blob/main/static/src/assets/screenshots/ss5.png?raw=true)
+![ss6](https://github.com/realsarius/kahvesiz-calisma/blob/main/static/src/assets/screenshots/ss6.png?raw=true)
 
 ## Teknolojiler
 
@@ -21,6 +20,7 @@ Bu proje, kafelerde laptop ile çalışabilirliği değerlendirmek amacıyla gel
 ## Lisans
 
 Bu proje MIT Lisansı altında lisanslanmıştır.
-İletişim
+
+## İletişim
 
 Herhangi bir soru veya geri bildirim için lütfen berkansariussozer@gmail.com adresi ile iletişime geçin.
