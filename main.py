@@ -3,7 +3,7 @@ from functools import wraps
 from flask import Flask, jsonify, make_response, request, render_template, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, relationship
-from sqlalchemy import Integer, String, select, UniqueConstraint, ForeignKey, Table
+from sqlalchemy import Integer, String, select, UniqueConstraint, ForeignKey, Table, MetaData
 from sqlalchemy.orm import Mapped, mapped_column
 from flask_wtf import FlaskForm
 from wtforms import StringField, BooleanField
@@ -12,9 +12,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from forms import CafeForm, ContactForm, UserForm
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from dotenv import load_dotenv
+from datetime import datetime, timezone
 import os
+from flask_migrate import Migrate
 
 # from flask_ckeditor import CKEditor
+
+naming_convention = {
+    "ix": 'ix_%(column_0_label)s',
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(column_0_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s"
+}
 
 load_dotenv()
 
@@ -22,11 +32,11 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
-
 class Base(DeclarativeBase):
   pass
 
-db = SQLAlchemy(model_class=Base)
+db = SQLAlchemy(model_class=Base, metadata=MetaData(naming_convention=naming_convention))
+migrate = Migrate(app, db, render_as_batch=True)
 db.init_app(app)
 
 login_manager = LoginManager(app)
@@ -44,6 +54,7 @@ class User(db.Model, UserMixin):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     moderated_cafes = db.relationship('Cafe', secondary='user_cafe', back_populates='moderators')
 
@@ -60,6 +71,7 @@ class User(db.Model, UserMixin):
         if self.moderated_cafes:
             return self.moderated_cafes[0].id
         return None
+        
 
 
 class Cafe(db.Model):
@@ -105,6 +117,8 @@ def logout():
 
 with app.app_context():
     db.create_all()
+
+
 
 # def sanitize_html(html_content):
 #     allowed_tags = bleach.sanitizer.ALLOWED_TAGS + ['i', 'b', 'u']
