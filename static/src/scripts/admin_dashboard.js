@@ -39,10 +39,11 @@ function fetchUsers() {
         data.users.forEach((user) => {
           const row = document.createElement("tr");
           row.innerHTML = `
-              <td class="px-6 py-4 whitespace-nowrap">${user.id}</td>
-              <td class="px-6 py-4 whitespace-nowrap">${user.name}</td>
-              <td class="px-6 py-4 whitespace-nowrap">${user.email}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-6 py-2 whitespace-nowrap">${user.id}</td>
+              <td class="px-6 py-2 whitespace-nowrap">${user.name}</td>
+              <td class="px-6 py-2 whitespace-nowrap">${user.email}</td>
+              <td class="px-6 py-2 whitespace-nowrap">${user.created_at}</td>
+              <td class="px-6 py-2 whitespace-nowrap">
                 <button class="px-4 py-2 border rounded">Edit</button>
                 <button class="px-4 py-2 border rounded">Delete</button>
               </td>
@@ -74,14 +75,14 @@ function fetchCafes() {
         data.cafes.forEach((cafe) => {
           const row = document.createElement("tr");
           row.innerHTML = `
-              <td class="px-6 py-2 whitespace-nowrap">${cafe.id}</td>
-              <td class="px-6 py-2 whitespace-nowrap">${cafe.name}</td>
-              <td class="px-6 py-2 whitespace-nowrap">${cafe.map_url}</td>
-              <td class="px-6 py-2 whitespace-nowrap">${cafe.img_url}</td>
-              <td class="px-6 py-2 whitespace-nowrap">${cafe.location}</td>
-              <td class="px-6 py-2 whitespace-nowrap">${cafe.seats}</td>
-              <td class="px-6 py-2 whitespace-nowrap">${cafe.coffee_price}</td>
-              <td class="px-6 py-2 whitespace-nowrap">
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.id}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.name}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.map_url}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.img_url}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.location}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.seats}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.coffee_price}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">
                 <button class="px-4 py-2 border rounded">Edit</button>
                 <button class="px-4 py-2 border rounded">Delete</button>
               </td>
