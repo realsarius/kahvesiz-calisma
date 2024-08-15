@@ -1,7 +1,6 @@
 {% extends 'base.html' %} {% block title %}{{ cafe.name }}{% endblock %} {%
 block content %}
 <main class="container mx-auto p-6">
-  <!-- Modal Background -->
   <div
     id="confirmation-modal"
     class="fixed inset-0 bg-zinc-700 bg-opacity-50 transition-opacity z-50 hidden"
@@ -122,7 +121,6 @@ block content %}
           </svg>
         </a>
 
-        <!-- Conditional buttons -->
         {% if current_user.is_authenticated and (current_user.is_admin() or
         current_user.is_moderator_of(cafe.id)) %}
         <a

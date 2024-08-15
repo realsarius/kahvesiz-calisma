@@ -38,10 +38,7 @@
                 Giriş
             </a> -->
       {% if current_user.is_authenticated %}
-      <!-- Button to open the user dropdown menu -->
-      <!-- Parent container with relative positioning -->
       <div class="relative inline-block text-left">
-        <!-- Button to open the user dropdown menu -->
         <button
           id="dropdownAvatarNameButton"
           data-dropdown-toggle="dropdownAvatarName"
@@ -49,10 +46,10 @@
           type="button"
         >
           <span class="sr-only">Open user menu</span>
-          <!-- Replace this image src with a dynamic user image if available -->
+          <!-- src="https://avatar.iran.liara.run/username?username={{current_user.name}}" -->
           <img
             class="w-8 h-8 me-2 rounded-full"
-            src="https://avatar.iran.liara.run/username?username={{current_user.name}}"
+            src="https://api.dicebear.com/9.x/initials/svg?seed={{current_user.name}}"
             alt="user photo"
           />
           {{ current_user.name }}
