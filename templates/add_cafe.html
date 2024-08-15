@@ -4,10 +4,10 @@
 
 {% block content %}
 
-<div class="container mx-auto p-6">
+<div class="container mx-auto px-0 py-6 sm:p-6">
     <h1 class="text-3xl font-bold mb-6">Kafe ekle</h1>
     
-    <form id="cafe-form" method="POST" action="{{ url_for('add_cafe') }}" class="p-6">
+    <form id="cafe-form" method="POST" action="{{ url_for('add_cafe') }}" class="px-0 py-6 sm:p-6">
         <input type="hidden" name="csrf_token" value="{{ form.hidden_tag().csrf_token }}">
     
         <div class="mb-4">
