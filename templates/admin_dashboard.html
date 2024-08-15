@@ -1,68 +1,219 @@
-{% extends 'base.html' %}
-{% block title %}Admin Dashboard{% endblock %}
-{% block content %}
-
+{% extends 'base.html' %} {% block title %}Admin Dashboard{% endblock %} {%
+block content %}
 <div class="flex flex-col md:flex-row h-screen">
   <aside class="w-full md:w-1/12 shadow-md inset-0 relative z-10">
     <div class="p-4">
       <h1 class="text-xl font-bold">Admin Panel</h1>
     </div>
     <nav class="mt-6">
-      <a href="#" class="block px-4 py-2 hover:bg-lavender/20 rounded">Dashboard</a>
-      <a href="#" id="users-link" class="block px-4 py-2 hover:bg-lavender/20 rounded">Users</a>
-      <a href="#" id="cafes-link" class="block px-4 py-2 hover:bg-lavender/20 rounded">Cafes</a>
-      <a href="#" class="block px-4 py-2 hover:bg-lavender/20 rounded">Products</a>
-      <a href="#" class="block px-4 py-2 hover:bg-lavender/20 rounded">Reports</a>
-      <a href="#" class="block px-4 py-2 hover:bg-lavender/20 rounded">Settings</a>
-      <a href="#" class="block px-4 py-2 hover:bg-lavender/20 rounded">Logout</a>
+      <a href="#" class="block px-4 py-2 hover:bg-lavender/20 rounded"
+        >Dashboard</a
+      >
+      <a
+        href="#"
+        id="users-link"
+        class="block px-4 py-2 hover:bg-lavender/20 rounded"
+        >Users</a
+      >
+      <a
+        href="#"
+        id="cafes-link"
+        class="block px-4 py-2 hover:bg-lavender/20 rounded"
+        >Cafes</a
+      >
+      <a
+        href="#"
+        id="assign-moderator-link"
+        class="block px-4 py-2 hover:bg-lavender/20 rounded"
+        >Assign Moderator</a
+      >
+      <a href="#" class="block px-4 py-2 hover:bg-lavender/20 rounded"
+        >Products</a
+      >
+      <a href="#" class="block px-4 py-2 hover:bg-lavender/20 rounded"
+        >Reports</a
+      >
+      <a href="#" class="block px-4 py-2 hover:bg-lavender/20 rounded"
+        >Settings</a
+      >
+      <a href="#" class="block px-4 py-2 hover:bg-lavender/20 rounded"
+        >Logout</a
+      >
     </nav>
   </aside>
 
   <main class="flex-1 md:ml-1/12 p-6 overflow-auto">
-
-    <div id="users-container" class="shadow-md rounded-lg overflow-x-auto hidden">
+    <!-- Users Management Section -->
+    <div
+      id="users-container"
+      class="shadow-md rounded-lg overflow-x-auto hidden"
+    >
       <header class="flex items-center justify-between mb-6">
         <h2 id="page-title" class="text-2xl font-bold">User Management</h2>
       </header>
-      <table class="min-w-full divide-y divide-gray-200 border border-gray-300 rounded">
+      <table
+        class="min-w-full divide-y divide-gray-200 border border-gray-300 rounded"
+      >
         <thead>
           <tr>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">ID</th>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Name</th>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Email</th>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Actions</th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              ID
+            </th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              Name
+            </th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              Email
+            </th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              Actions
+            </th>
           </tr>
         </thead>
-        <tbody id="users-list" class="divide-y divide-gray-200">
-        </tbody>
+        <tbody id="users-list" class="divide-y divide-gray-200"></tbody>
       </table>
     </div>
 
-    <div id="cafes-container" class="shadow-md rounded-lg overflow-x-auto hidden">
+    <!-- Cafes Management Section -->
+    <div
+      id="cafes-container"
+      class="shadow-md rounded-lg overflow-x-auto hidden"
+    >
       <header class="flex items-center justify-between mb-6">
         <h2 id="page-title" class="text-2xl font-bold">Cafe Management</h2>
       </header>
-      <table class="min-w-full divide-y divide-gray-200 border border-gray-300 rounded">
+      <table
+        class="min-w-full divide-y divide-gray-200 border border-gray-300 rounded"
+      >
         <thead>
           <tr>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">ID</th>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Name</th>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Map URL</th>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Image URL</th>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Location</th>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Seats</th>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Coffee Price</th>
-            <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Actions</th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              ID
+            </th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              Name
+            </th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              Map URL
+            </th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              Image URL
+            </th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              Location
+            </th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              Seats
+            </th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              Coffee Price
+            </th>
+            <th
+              class="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b"
+            >
+              Actions
+            </th>
           </tr>
         </thead>
-        <tbody id="cafes-list" class="divide-y divide-gray-200">
-        </tbody>
+        <tbody id="cafes-list" class="divide-y divide-gray-200"></tbody>
       </table>
     </div>
-    
+
+    <!-- Assign Moderator Section -->
+    <!-- Assign Moderator Section -->
+    <div
+      id="assign-moderator-container"
+      class="shadow-md rounded-lg overflow-x-auto hidden"
+    >
+      <header class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">Assign Moderator</h2>
+      </header>
+      <!-- Form for Assigning Moderators -->
+      <form
+        method="POST"
+        action="{{ url_for('assign_moderator_page') }}"
+        class="space-y-6"
+      >
+        <div class="form-group">
+          <label
+            for="user_id"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-200"
+            >Select User:</label
+          >
+          <select
+            name="user_id"
+            id="user_id"
+            required
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:text-gray-50 dark:border-gray-600"
+          >
+            <option value="">Select User</option>
+            {% for user in users %}
+            <option value="{{ user.id }}">{{ user.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label
+            for="cafe_id"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-200"
+            >Select Cafe:</label
+          >
+          <select
+            name="cafe_id"
+            id="cafe_id"
+            required
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:text-gray-50 dark:border-gray-600"
+          >
+            <option value="">Select Cafe</option>
+            {% for cafe in cafes %}
+            <option value="{{ cafe.id }}">{{ cafe.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-2 px-4 rounded-lg shadow-md bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 dark:bg-blue-500 dark:text-gray-900 dark:hover:bg-blue-600 dark:active:bg-blue-700"
+        >
+          Assign Moderator
+        </button>
+      </form>
+
+      <!-- Moderated Cafes List -->
+      <div id="moderated-cafes-list" class="mt-6"></div>
+    </div>
   </main>
 </div>
 
-<script src="{{ url_for('static', filename='src/scripts/admin_dashboard.js') }}" defer></script>
-
+<script
+  src="{{ url_for('static', filename='src/scripts/admin_dashboard.js') }}"
+  defer
+></script>
+<!-- <script
+  src="{{ url_for('static', filename='src/scripts/assign_moderator.js') }}"
+  defer
+></script> -->
 {% endblock %}

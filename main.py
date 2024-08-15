@@ -158,11 +158,12 @@ def assign_moderator_page():
             flash('Moderator assigned successfully!', 'success')
         except ValueError as e:
             flash(str(e), 'danger')
-        return redirect(url_for('assign_moderator_page'))
+        
 
     users = User.query.all()
     cafes = Cafe.query.all()
-    return render_template('assign_moderator.html', users=users, cafes=cafes)
+    return render_template('admin_dashboard.html', users=users, cafes=cafes)
+
 
 @app.route('/remove_moderator/<int:user_id>/<int:cafe_id>', methods=['DELETE'])
 @login_required
