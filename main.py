@@ -71,8 +71,7 @@ class User(db.Model, UserMixin):
         if self.moderated_cafes:
             return self.moderated_cafes[0].id
         return None
-        
-
+    
 
 class Cafe(db.Model):
     __tablename__ = 'cafe'
@@ -89,6 +88,9 @@ class Cafe(db.Model):
     seats = db.Column(db.String(100), nullable=False)
     coffee_price = db.Column(db.String(100), nullable=False)
     details = db.Column(db.Text, nullable=True)
+    
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
 
     moderators = db.relationship('User', secondary='user_cafe', back_populates='moderated_cafes')
 
@@ -161,6 +163,33 @@ def assign_moderator_page():
     users = User.query.all()
     cafes = Cafe.query.all()
     return render_template('assign_moderator.html', users=users, cafes=cafes)
+
+@app.route('/remove_moderator/<int:user_id>/<int:cafe_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def remove_moderator(user_id, cafe_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+
+    cafe = Cafe.query.get(cafe_id)
+    if not cafe:
+        return jsonify({'success': False, 'message': 'Cafe not found'}), 404
+
+    if cafe in user.moderated_cafes:
+        user.moderated_cafes.remove(cafe)
+        db.session.commit()
+        return jsonify({'success': True}), 200
+    else:
+        return jsonify({'success': False, 'message': 'Cafe is not moderated by this user'}), 400
+
+@app.route('/moderated_cafes/<int:user_id>', methods=['GET'])
+@login_required
+def get_moderated_cafes(user_id):
+    user = User.query.get_or_404(user_id)
+    cafes = user.moderated_cafes
+    cafes_list = [{'id': cafe.id, 'name': cafe.name} for cafe in cafes]
+    return jsonify(cafes=cafes_list)
 
 @app.route('/cafes/update/<int:cafe_id>', methods=['GET', 'POST'])
 @login_required
@@ -269,6 +298,7 @@ def add_cafe():
             print(f'Error: {e}')
     
     return render_template('add_cafe.html', form=form, tinymce_api_key=tinymce_api_key)
+
 
 @app.route('/api/delete_cafe/<int:cafe_id>', methods=['DELETE'])
 def api_delete_cafe(cafe_id):
@@ -554,6 +584,7 @@ def get_all_users():
                     'id': user.id,
                     'name': user.name,
                     'email': user.email,
+                    'created_at': user.created_at,
                 }
                 for user in users
             ]
