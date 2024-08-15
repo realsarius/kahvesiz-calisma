@@ -6,7 +6,19 @@
 <main class="container mx-auto p-6 max-w-md">
   <h1 class="text-3xl font-bold mb-6">Giriş Yap</h1>
 
-  <div id="message-container" class="mb-4"></div>
+  <div id="message-container" class="mb-4">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        <div class="space-y-4">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
 
   <form id="login-form" class="space-y-4" novalidate>
     <div class="form-group">

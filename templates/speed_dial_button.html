@@ -46,7 +46,7 @@
     id="speed-dial-menu-text-outside-button-square"
     class="hidden flex-col items-center mb-4 space-y-2"
   >
-    {% if current_user.is_admin() %}
+    {% if current_user.is_admin %}
     <a
       href="{{ url_for('add_cafe') }}"
       class="relative w-[52px] h-[52px] text-gray-500 bg-white rounded-full border border-gray-200 hover:text-gray-900 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400"

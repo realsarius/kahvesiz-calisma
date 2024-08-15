@@ -15,6 +15,43 @@ from dotenv import load_dotenv
 from datetime import datetime, timezone
 import os
 from flask_migrate import Migrate
+import itsdangerous
+from flask_mail import Mail, Message
+
+load_dotenv()
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT'))
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS') == 'True'
+app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL') == 'True'
+
+mail = Mail(app=app)
+s = itsdangerous.URLSafeTimedSerializer(os.getenv('SECRET_KEY'))
+
+def generate_verification_token(email):
+    return s.dumps(email, salt='email-confirm')
+
+def verify_verification_token(token, expiration=3600):
+    try:
+        email = s.loads(token, salt='email-confirm', max_age=expiration)
+    except itsdangerous.SignatureExpired:
+        return None
+    except itsdangerous.BadSignature:
+        return None
+    return email
+
+def send_confirmation_email(user_email):
+    token = generate_verification_token(user_email)
+    confirm_url = url_for('confirm_email', token=token, _external=True)
+    msg = Message('Please confirm your email', sender=app.config['MAIL_USERNAME'], recipients=[user_email])
+    msg.body = f'Your link is {confirm_url}'
+    with app.app_context():
+        mail.send(msg)
 
 # from flask_ckeditor import CKEditor
 
@@ -26,11 +63,6 @@ naming_convention = {
     "pk": "pk_%(table_name)s"
 }
 
-load_dotenv()
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 class Base(DeclarativeBase):
   pass
@@ -55,14 +87,19 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    is_confirmed = db.Column(db.Boolean, nullable=False, default=False)
+    confirmed_on = db.Column(db.DateTime, nullable=True)
 
     moderated_cafes = db.relationship('Cafe', secondary='user_cafe', back_populates='moderators')
 
     def __repr__(self):
         return f"<User {self.name}>"
     
-    def is_admin(self):
-        return self.id == 1
+    @property
+    def is_admin_status(self):
+        return self.is_admin  # Use property to avoid conflict
 
     def is_moderator_of(self, cafe_id):
         return any(cafe.id == cafe_id for cafe in self.moderated_cafes)
@@ -71,7 +108,7 @@ class User(db.Model, UserMixin):
         if self.moderated_cafes:
             return self.moderated_cafes[0].id
         return None
-    
+
 
 class Cafe(db.Model):
     __tablename__ = 'cafe'
@@ -104,7 +141,7 @@ def load_user(user_id):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_admin():
+        if not current_user.is_authenticated or not current_user.is_admin:
             flash('Admin access required.', 'danger')
             return redirect(url_for('home'))
         return f(*args, **kwargs)
@@ -119,7 +156,6 @@ def logout():
 
 with app.app_context():
     db.create_all()
-
 
 
 # def sanitize_html(html_content):
@@ -463,32 +499,6 @@ def cafe_detail(cafe_id):
         app.logger.error(f"An error occurred: {e}")
         return render_template('cafe_detail.html', error="An error occurred while retrieving the cafe.")
 
-@app.route('/api/signup', methods=['POST'])
-def api_signup():
-    data = request.json
-    name = data.get('name')
-    email = data.get('email')
-    password = data.get('password')
-    
-    if not name:
-        return jsonify({'error': 'İsim gerekli.'}), 400
-    if not email:
-        return jsonify({'error': 'E-posta adresi gerekli.'}), 400
-    if not password:
-        return jsonify({'error': 'Şifre gerekli.'}), 400
-    if len(password) < 8:
-        return jsonify({'error': 'Şifre en az 8 karakter olmalı.'}), 400
-    
-    if User.query.filter_by(email=email).first():
-        return jsonify({'error': 'E-posta adresi zaten kullanımda.'}), 400
-
-    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-    new_user = User(name=name, email=email, password=hashed_password)
-    db.session.add(new_user)
-    db.session.commit()
-    
-    return jsonify({'message': 'Hesabınız başarıyla oluşturuldu!'}), 201
-
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.json
@@ -524,19 +534,52 @@ def login():
         if not password:
             form.password.errors.append('Şifre gerekli.')
 
-        # Proceed if no errors
         if not form.email.errors and not form.password.errors:
-            # Check if the user exists
             user = User.query.filter_by(email=email).first()
-            if user and check_password_hash(user.password, password):
-                # Log the user in
-                login_user(user)
-                flash('Giriş başarılı! Ana sayfaya yönlendiriliyorsunuz.', 'success')
-                return redirect(url_for('home'))
+            
+            if user:
+                if check_password_hash(user.password, password):
+                    if user.is_confirmed:
+                        login_user(user)
+                        flash('Giriş başarılı! Ana sayfaya yönlendiriliyorsunuz.', 'success')
+                        return redirect(url_for('home'))
+                    else:
+                        flash('E-posta adresinizi doğrulamanız gerekiyor. Lütfen e-posta adresinizi kontrol edin.', 'warning')
+                else:
+                    flash('Geçersiz şifre.', 'danger')
             else:
-                flash('Geçersiz e-posta adresi veya şifre.', 'danger')
+                flash('Geçersiz e-posta adresi.', 'danger')
 
     return render_template('login.html', form=form)
+
+@app.route('/api/signup', methods=['POST'])
+def api_signup():
+    data = request.json
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
+
+    if not name:
+        return jsonify({'error': 'İsim gerekli.'}), 400
+    if not email:
+        return jsonify({'error': 'E-posta adresi gerekli.'}), 400
+    if not password:
+        return jsonify({'error': 'Şifre gerekli.'}), 400
+    if len(password) < 8:
+        return jsonify({'error': 'Şifre en az 8 karakter olmalı.'}), 400
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': 'E-posta adresi zaten kullanımda.'}), 400
+
+    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+    new_user = User(name=name, email=email, password=hashed_password, is_admin=False, is_confirmed=False)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    send_confirmation_email(email)  # Send the verification email
+
+    return jsonify({'message': 'Hesabınız başarıyla oluşturuldu! Lütfen e-posta adresinizi doğrulayın.'}), 201
     
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -559,12 +602,36 @@ def signup():
             return redirect(url_for('signup'))
 
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        new_user = User(name=name, email=email, password=hashed_password)
+        new_user = User(name=name, email=email, password=hashed_password, is_admin=False, is_confirmed=False)
         db.session.add(new_user)
         db.session.commit()
-        flash('Hesabınız başarıyla oluşturuldu! Artık giriş yapabilirsiniz.', 'success')
+
+        send_confirmation_email(email)  # Send the confirmation email
+
+        flash('Hesabınız başarıyla oluşturuldu! Lütfen e-posta adresinizi doğrulayın.', 'success')
+        return redirect(url_for('login'))
 
     return render_template('signup.html', form=form)
+
+@app.route('/confirm/<token>')
+def confirm_email(token):
+    email = verify_verification_token(token)
+    if email is None:
+        flash('Onaylama bağlantısı geçersiz veya süresi dolmuş.', 'danger')
+        return redirect(url_for('signup'))
+
+    user = User.query.filter_by(email=email).first_or_404()
+    
+    if user.is_confirmed:
+        flash('Hesap zaten onaylanmış. Lütfen giriş yapın.', 'success')
+    else:
+        user.is_confirmed = True
+        user.confirmed_on = datetime.now(timezone.utc)
+        db.session.commit()
+        flash('Hesabınız onaylandı! Şimdi giriş yapabilirsiniz.', 'success')
+
+    return redirect(url_for('login'))
+
 
 @app.route('/api/users', methods=['GET'])
 def get_all_users():

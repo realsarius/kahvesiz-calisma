@@ -80,7 +80,7 @@
             <div class="truncate">{{ current_user.email }}</div>
           </div>
           <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
-            {% if current_user.is_admin() %}
+            {% if current_user.is_admin %}
             <li>
               <a
                 href="{{ url_for('admin_dashboard') }}"
@@ -98,7 +98,7 @@
               >
             </li>
             {% if current_user.get_default_cafe_id() and not
-            current_user.is_admin() %}
+            current_user.is_admin %}
             <li>
               <a
                 href="{{ url_for('cafe_detail', cafe_id=current_user.get_default_cafe_id()) }}"

@@ -120,7 +120,7 @@ block content %}
             </svg>
           </a>
   
-          {% if current_user.is_authenticated and (current_user.is_admin() or
+          {% if current_user.is_authenticated and (current_user.is_admin or
           current_user.is_moderator_of(cafe.id)) %}
           <a
             href="{{ url_for('update_cafe', cafe_id=cafe.id) }}"
@@ -129,7 +129,7 @@ block content %}
             Kafe'yi güncelle
           </a>
           {% endif %}
-          {% if current_user.is_admin() %}
+          {% if current_user.is_admin %}
           <button
             id="delete-cafe-btn"
             data-cafe-id="{{ cafe.id }}"
