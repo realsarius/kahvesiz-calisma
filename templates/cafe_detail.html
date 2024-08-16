@@ -71,31 +71,237 @@ block content %}
           alt="{{ cafe.name }}"
         />
       </div>
-      <div class="mt-4 md:mt-0 md:px-5 w-full md:w-2/6 flex flex-row md:flex-col">
+      <div
+        class="mt-4 md:mt-0 md:px-5 w-full md:w-2/6 flex flex-row md:flex-col md:gap-2"
+      >
         <div class="w-3/4">
-          <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
-            <strong>Nerede:</strong> {{ cafe.location }}
+          <p
+            class="mb-3 font-normal text-gray-700 dark:text-gray-400 flex align-middle"
+          >
+            <strong class="flex gap-1">
+              <svg
+                version="1.0"
+                id="Layer_1"
+                xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+                width="24px"
+                height="24px"
+                viewBox="0 0 64 64"
+                enable-background="new 0 0 64 64"
+                xml:space="preserve"
+                fill="#000000"
+              >
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g
+                  id="SVGRepo_tracerCarrier"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    fill="rgb(156, 163, 175)"
+                    d="M32,0C18.746,0,8,10.746,8,24c0,5.219,1.711,10.008,4.555,13.93c0.051,0.094,0.059,0.199,0.117,0.289l16,24 C29.414,63.332,30.664,64,32,64s2.586-0.668,3.328-1.781l16-24c0.059-0.09,0.066-0.195,0.117-0.289C54.289,34.008,56,29.219,56,24 C56,10.746,45.254,0,32,0z M32,32c-4.418,0-8-3.582-8-8s3.582-8,8-8s8,3.582,8,8S36.418,32,32,32z"
+                  ></path>
+                </g>
+              </svg>
+              Nerede:&nbsp;</strong
+            >
+            <a href="https://maps.google.com/?q={{cafe.location}}" target="_blank" class="hover:underline">{{ cafe.location }}</a>
           </p>
-          <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
-            <strong>Priz:</strong> {{ 'Evet' if cafe.has_sockets else 'Hayır' }}
+          <p
+            class="mb-3 font-normal text-gray-700 dark:text-gray-400 flex align-middle"
+          >
+            <strong class="flex gap-1">
+              <svg
+                fill="rgb(156, 163, 175)"
+                width="24px"
+                height="24px"
+                viewBox="0 0 32 32"
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g
+                  id="SVGRepo_tracerCarrier"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></g>
+                <g id="SVGRepo_iconCarrier">
+                  <title>cord</title>
+                  <path
+                    d="M26.917 18.518l-13.435-13.435c-0.586-0.586-0.586-1.536 0-2.121s1.535-0.586 2.121 0l3.182 3.182 3.89-3.889c0.586-0.586 1.535-0.586 2.121 0s0.586 1.535 0 2.121l-3.889 3.889 2.828 2.828 3.889-3.889c0.586-0.586 1.536-0.586 2.122 0s0.585 1.535 0 2.121l-3.89 3.89 3.183 3.182c0.585 0.586 0.585 1.535 0 2.121s-1.536 0.586-2.122 0zM20.907 23.821c-1.297 1.296-7.071 1.414-7.071 1.414l-7.071-7.071c0 0 0.118-5.774 1.414-7.071 1.297-1.296 4.95-4.949 4.95-4.949l12.728 12.728c-0.001-0.001-3.654 3.652-4.95 4.949zM6.765 19.578l5.657 5.657c0.391 0.391 0.391 1.023 0 1.414s-1.024 0.391-1.415 0l-5.656-5.657c-0.391-0.391-0.391-1.023 0-1.414s1.023-0.39 1.414 0zM9.593 26.649c0 0-0.475 0.476-1.061 1.061s-1.535 0.586-2.121 0l-0.354-0.354-2.829 2.828-1.414-1.414 2.829-2.828-0.353-0.353c-0.586-0.586-0.586-1.536 0-2.122s1.119-1.001 1.119-1.001l4.184 4.183z"
+                  ></path>
+                </g>
+              </svg>
+              Priz:&nbsp;</strong
+            >
+            {{ 'Evet' if cafe.has_sockets else 'Hayır' }}
           </p>
-          <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
-            <strong>Tuvalet:</strong> {{ 'Evet' if cafe.has_toilet else 'Hayır' }}
+          <p
+            class="mb-3 font-normal text-gray-700 dark:text-gray-400 flex align-middle"
+          >
+            <strong class="flex gap-1">
+              <svg
+                fill="rgb(156, 163, 175)"
+                height="24px"
+                width="24px"
+                version="1.1"
+                id="Layer_1"
+                xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+                viewBox="0 0 512 512"
+                xml:space="preserve"
+              >
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g
+                  id="SVGRepo_tracerCarrier"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></g>
+                <g id="SVGRepo_iconCarrier">
+                  <g>
+                    <g>
+                      <path
+                        d="M146.645,109.31c-54.918,0-55.673,0-101.357,0c-24.466,0-44.468,19.904-44.591,44.367L0,292.109 c-0.052,10.407,8.342,18.885,18.747,18.938c0.032,0,0.065,0,0.098,0c10.363,0,18.787-8.375,18.841-18.747l0.696-138.432 c0-0.016,0-0.031,0-0.047c0.024-2.055,1.704-3.706,3.759-3.694c2.055,0.012,3.715,1.683,3.715,3.738l0.008,316.757 c0,12.488,10.124,22.612,22.612,22.612s22.612-10.124,22.612-22.612V289.888h9.763v180.734c0,12.488,10.123,22.611,22.611,22.611 s22.611-10.123,22.611-22.611c0-298.894-0.4-127.966-0.41-316.481c0-2.121,1.674-3.863,3.794-3.946 c2.12-0.083,3.928,1.521,4.092,3.635c0,0.001,0,0.002,0,0.002l-0.128,138.354c-0.01,10.406,8.419,18.851,18.825,18.861 c0.007,0,0.011,0,0.018,0c10.397,0,18.833-8.426,18.842-18.825l0.128-138.431c0.002-0.039,0.002-0.075,0.001-0.114 C191.112,129.214,171.109,109.31,146.645,109.31z"
+                      ></path>
+                    </g>
+                  </g>
+                  <g>
+                    <g><circle cx="95.966" cy="57.813" r="39.047"></circle></g>
+                  </g>
+                  <g>
+                    <g>
+                      <path
+                        d="M510.941,262.849c-0.346-0.986-34.611-98.717-40.002-114.406c-8.679-25.253-23.23-38.057-43.249-38.057 c-28.025,0-37.18,0-65.153,0c-20.02,0-34.571,12.805-43.249,38.057c-5.391,15.688-39.656,113.421-40.002,114.406 c-3.418,9.748,1.714,20.423,11.464,23.841c9.758,3.42,20.425-1.725,23.84-11.462c1.106-3.154,21.721-60.433,33.222-93.389 c-1.204,9.838,2.264-10.578-26.737,139.154c-1.246,6.431,3.711,12.379,10.201,12.379c4.029,0,8.862,0,14.273,0v135.678 c0,12.396,10.049,22.446,22.446,22.446c12.397,0,22.446-10.049,22.446-22.446v-135.68c3.227,0,6.465,0,9.692,0v135.68 c0,12.396,10.049,22.446,22.446,22.446c12.397,0,22.446-10.049,22.446-22.446v-135.68c5.411,0,10.245,0,14.273,0 c6.522,0,11.446-5.952,10.201-12.379c-28.737-148.369-25.57-131.138-26.55-139.154c11.593,33.211,31.602,90.284,32.691,93.389 c3.421,9.756,14.101,14.878,23.84,11.462C509.227,283.27,514.359,272.597,510.941,262.849z"
+                      ></path>
+                    </g>
+                  </g>
+                  <g>
+                    <g><circle cx="395.283" cy="59.265" r="38.767"></circle></g>
+                  </g>
+                  <g>
+                    <g>
+                      <path
+                        d="M239.761,43.925c-7.969,0-14.43,6.46-14.43,14.43v395.282c0,7.969,6.46,14.429,14.43,14.429 c7.97,0,14.43-6.459,14.43-14.429V58.355C254.191,50.385,247.73,43.925,239.761,43.925z"
+                      ></path>
+                    </g>
+                  </g>
+                </g>
+              </svg>
+              Tuvalet:&nbsp;</strong
+            >
+            {{ 'Evet' if cafe.has_toilet else 'Hayır' }}
           </p>
-          <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
-            <strong>Wifi:</strong> {{ 'Evet' if cafe.has_wifi else 'Hayır' }}
+          <p
+            class="mb-3 font-normal text-gray-700 dark:text-gray-400 flex align-middle"
+          >
+            <strong class="flex gap-1">
+              <svg
+                width="24px"
+                height="24px"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g
+                  id="SVGRepo_tracerCarrier"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></g>
+                <g id="SVGRepo_iconCarrier">
+                  <g id="System / Wifi_High">
+                    <path
+                      id="Vector"
+                      d="M8.34277 14.5899C8.80861 14.0903 9.37187 13.6915 9.9978 13.418C10.6237 13.1446 11.2995 13.0025 11.9826 13.0001C12.6656 12.9977 13.3419 13.1353 13.9697 13.4044C14.5975 13.6735 15.1637 14.0683 15.633 14.5646M6.14941 11.5439C6.89476 10.7446 7.79597 10.1066 8.79745 9.66902C9.79893 9.23148 10.8793 9.00389 11.9721 9.00007C13.065 8.99626 14.1466 9.21651 15.1511 9.64704C16.1556 10.0776 17.0617 10.7094 17.8127 11.5035M3.22363 8.81635C4.34165 7.61742 5.69347 6.66028 7.19569 6.00398C8.69791 5.34768 10.3179 5.0058 11.9572 5.00007C13.5966 4.99435 15.2208 5.32472 16.7276 5.97052C18.2344 6.61632 19.5931 7.56458 20.7195 8.75568M12 19.0001C11.4477 19.0001 11 18.5524 11 18.0001C11 17.4478 11.4477 17.0001 12 17.0001C12.5523 17.0001 13 17.4478 13 18.0001C13 18.5524 12.5523 19.0001 12 19.0001Z"
+                      stroke="rgb(156, 163, 175)"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                  </g>
+                </g>
+              </svg>
+              Wifi:&nbsp;</strong
+            >
+            {{ 'Evet' if cafe.has_wifi else 'Hayır' }}
           </p>
-          <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
-            <strong>Çağrı alıyor mu:</strong> {{ 'Evet' if cafe.can_take_calls else
-            'Hayır' }}
+          <p
+            class="mb-3 font-normal text-gray-700 dark:text-gray-400 flex align-middle"
+          >
+            <strong class="flex gap-1">
+              <svg fill="rgb(156, 163, 175)" width="24px" height="24px" viewBox="0 0 256 256" id="Flat" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M231.55566,175.0791A56.07032,56.07032,0,0,1,176,224C96.59766,224,32,159.40234,32,80A56.07029,56.07029,0,0,1,80.91992,24.44434a16.02839,16.02839,0,0,1,16.65235,9.583l20.09179,46.87793a15.96924,15.96924,0,0,1-1.32031,15.06641L99.709,121.38965l-.00195.00195a76.54083,76.54083,0,0,0,35.20508,35.04981l25.043-16.69336a15.95139,15.95139,0,0,1,15.17871-1.39453l46.83789,20.07324A16.03476,16.03476,0,0,1,231.55566,175.0791ZM157.35156,47.72852a72.12078,72.12078,0,0,1,50.91992,50.91992,7.99975,7.99975,0,0,0,15.457-4.13086,88.16381,88.16381,0,0,0-62.2461-62.2461,7.99975,7.99975,0,0,0-4.13086,15.457Zm-8.28418,30.917a40.06626,40.06626,0,0,1,28.28711,28.28711,7.99975,7.99975,0,0,0,15.457-4.13086,56.10589,56.10589,0,0,0-39.61328-39.61328,7.99975,7.99975,0,0,0-4.13086,15.457Z"></path> </g></svg>
+              Çağrı alıyor mu:&nbsp;</strong
+            >
+            {{ 'Evet' if cafe.can_take_calls else 'Hayır' }}
           </p>
-          <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
-            <strong>Koltuklar:</strong> {{ cafe.seats }}
+          <p
+            class="mb-3 font-normal text-gray-700 dark:text-gray-400 flex align-middle"
+          >
+            <strong class="flex gap-1">
+              <svg
+                width="24px"
+                height="24px"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g
+                  id="SVGRepo_tracerCarrier"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M16.5332 18H6.88633C6.82438 18 6.7934 18 6.76531 17.9996C6.76021 17.9995 6.7551 17.9995 6.75 17.9994V18.9995V20C6.75 20.4143 6.41421 20.75 6 20.75C5.58579 20.75 5.25 20.4143 5.25 20V17.6756C4.42121 17.3138 3.76073 16.6712 3.44197 15.8594C3.43268 15.8357 3.42288 15.8095 3.4033 15.757L2.10028 12.2643C1.68469 11.1504 2.61268 10 3.92689 10C4.7372 10 5.46079 10.4533 5.73699 11.1339L6.83511 13.84C6.93505 14.0863 6.98502 14.2094 7.05744 14.3101C7.22656 14.5452 7.49217 14.7116 7.79716 14.7735C7.92777 14.8 8.07437 14.8 8.36757 14.8H15.3467C15.9158 14.8 16.2004 14.8 16.4383 14.7019C16.5683 14.6484 16.6864 14.5744 16.787 14.4835C16.9713 14.317 17.0683 14.078 17.2623 13.6L18.263 11.1339C18.5392 10.4533 19.2628 10 20.0731 10C21.3873 10 22.3153 11.1504 21.8997 12.2643L20.7803 15.2649C20.5852 15.7879 20.4876 16.0494 20.3588 16.2717C20.0008 16.8892 19.4328 17.3776 18.75 17.6755V20C18.75 20.4143 18.4142 20.75 18 20.75C17.5858 20.75 17.25 20.4143 17.25 20V17.9954C17.0633 18 16.8352 18 16.5332 18Z"
+                    fill="rgb(156, 163, 175)"
+                  ></path>
+                  <path
+                    d="M13.2357 3.5H10.7643C9.66322 3.49999 8.78836 3.49998 8.10305 3.58773C7.39835 3.67797 6.81875 3.86871 6.35812 4.3074C5.89405 4.74937 5.68912 5.31102 5.59278 5.99349C5.49998 6.65087 5.49999 7.48809 5.5 8.53272V9.41279L5.71048 9.56228C6.12613 9.85748 6.46195 10.2607 6.66373 10.7579L7.89815 13.7999L15.3468 13.8C15.4911 13.8 15.6081 13.8 15.7101 13.7986L15.7122 13.7985L16.1 13.7916L16.2263 13.4912C16.2577 13.4164 16.2928 13.33 16.3358 13.224L17.3365 10.7579C17.5383 10.2607 17.874 9.85762 18.2896 9.56243L18.5 9.41294V8.53275C18.5 7.48811 18.5 6.65088 18.4072 5.99349C18.3109 5.31102 18.1059 4.74937 17.6419 4.3074C17.1813 3.86871 16.6017 3.67797 15.897 3.58773C15.2116 3.49998 14.3368 3.49999 13.2357 3.5Z"
+                    fill="rgb(156, 163, 175)"
+                  ></path>
+                </g>
+              </svg>
+              Koltuklar:&nbsp;</strong
+            >
+            {{ cafe.seats }}
           </p>
-          <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
-            <strong>Kahve fiyatı:</strong> {{ cafe.coffee_price }}
+          <p
+            class="mb-3 font-normal text-gray-700 dark:text-gray-400 flex align-middle"
+          >
+            <strong class="flex gap-1">
+              <svg
+                width="24px"
+                height="24px"
+                viewBox="0 0 24 24"
+                fill="rgb(156, 163, 175)"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g
+                  id="SVGRepo_tracerCarrier"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></g>
+                <g id="SVGRepo_iconCarrier">
+                  <g id="Environment / Coffee">
+                    <path
+                      id="Vector"
+                      d="M4 20H10.9433M10.9433 20H11.0567M10.9433 20C10.9622 20.0002 10.9811 20.0002 11 20.0002C11.0189 20.0002 11.0378 20.0002 11.0567 20M10.9433 20C7.1034 19.9695 4 16.8468 4 12.9998V8.92285C4 8.41305 4.41305 8 4.92285 8H17.0767C17.5865 8 18 8.41305 18 8.92285V9M11.0567 20H18M11.0567 20C14.8966 19.9695 18 16.8468 18 12.9998M18 9H19.5C20.8807 9 22 10.1193 22 11.5C22 12.8807 20.8807 14 19.5 14H18V12.9998M18 9V12.9998M15 3L14 5M12 3L11 5M9 3L8 5"
+                      stroke="rgb(156, 163, 175)"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                  </g>
+                </g>
+              </svg>
+              Kahve fiyatı:&nbsp;</strong
+            >
+            {{ cafe.coffee_price }}
           </p>
-        </div>   
+        </div>
         <div class="flex flex-col gap-4 w-1/4">
           <a
             href="{{ cafe.map_url }}"
@@ -119,7 +325,7 @@ block content %}
               />
             </svg>
           </a>
-  
+
           {% if current_user.is_authenticated and (current_user.is_admin or
           current_user.is_moderator_of(cafe.id)) %}
           <a
@@ -128,8 +334,7 @@ block content %}
           >
             Kafe'yi güncelle
           </a>
-          {% endif %}
-          {% if current_user.is_admin %}
+          {% endif %} {% if current_user.is_admin %}
           <button
             id="delete-cafe-btn"
             data-cafe-id="{{ cafe.id }}"
@@ -139,13 +344,12 @@ block content %}
             Kafe'yi sil
           </button>
           {% endif %}
-          
         </div>
       </div>
     </div>
-    
+
     <div class="">
-            <h2 class="text-4xl font-bold my-4 text-center">{{ cafe.name }}</h2>
+      <h2 class="text-4xl font-bold my-4 text-center">{{ cafe.name }}</h2>
       <div class="cafe-details">
         <p>{{ cafe.details | safe }}</p>
       </div>

@@ -181,7 +181,7 @@ def assign_moderator(user_id, cafe_id):
 @login_required
 @admin_required
 def assign_moderator_page():
-    if not current_user.is_admin():
+    if not current_user.is_admin:
         flash('You do not have permission to access this page.', 'danger')
         return redirect(url_for('index'))
 
