@@ -3,21 +3,21 @@
         <div class="sm:flex sm:items-center sm:justify-between">
             <ul class="flex flex-wrap w-full items-center justify-center mb-6 text-sm sm:mb-0">
                 <li>
-                    <a href="{{url_for('about')}}" class="hover:underline me-4 md:me-6">Hakkımızda</a>
+                    <a href="{{ url_for('about') }}" class="hover:underline me-4 md:me-6">Hakkımızda</a>
                 </li>
                 <li>
-                    <a href="{{url_for('privacy')}}" class="hover:underline me-4 md:me-6">Gizlilik</a>
+                    <a href="{{ url_for('privacy') }}" class="hover:underline me-4 md:me-6">Gizlilik</a>
                 </li>
                 <li>
-                    <a href="{{url_for('license')}}" class="hover:underline me-4 md:me-6">Lisans</a>
+                    <a href="{{ url_for('license') }}" class="hover:underline me-4 md:me-6">Lisans</a>
                 </li>
                 <li>
-                    <a href="{{url_for('contact_us')}}" class="hover:underline">Bize Ulaşın</a>
+                    <a href="{{ url_for('contact_us') }}" class="hover:underline">Bize Ulaşın</a>
                 </li>
             </ul>
         </div>
-        <hr class="my-6 w-2/4 mx-auto lg:my-4" />
-        <span class="block text-sm text-center">© 2024 <a href="{{url_for('home')}}" class="hover:underline">Kahvesiz Çalışma™</a>. Tüm hakları saklıdır.</span>
+        <hr class="my-6 w-2/4 mx-auto lg:my-4"/>
+        <span class="block text-sm text-center">© 2024 <a href="{{ url_for('home') }}" class="hover:underline">Kahvesiz Çalışma™</a>. Tüm hakları saklıdır.</span>
     </div>
 </footer>
 

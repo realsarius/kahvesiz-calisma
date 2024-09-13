@@ -1,22 +1,26 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile.flask
-    container_name: flask_app
+  flask:
+    build: .
+    command: flask run --host=0.0.0.0 --port=5000 --debug
+    volumes:
+      - .:/usr/src/app
     ports:
       - "5000:5000"
     environment:
-      FLASK_APP: main.py
-      PYTHONUNBUFFERED: 1
-    volumes:
-      - .:/usr/src/app   # Mount your local project directory to the container
+      FLASK_ENV: development
 
   tailwind:
-    build:
-      context: .
-      dockerfile: Dockerfile.node
-    container_name: tailwind_builder
-    working_dir: /usr/src/app
+    build: .
+    command: npx tailwindcss -i ./static/src/css/styles.css -o ./static/dist/css/output.css --watch
     volumes:
-      - .:/usr/src/app   # Mount the same project directory
+      - .:/usr/src/app
+    working_dir: /usr/src/app
+    tty: true
+
+  webpack:
+    build: .
+    command: npx webpack --watch
+    volumes:
+      - .:/usr/src/app
+    working_dir: /usr/src/app
+    tty: true

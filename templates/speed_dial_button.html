@@ -1,128 +1,128 @@
 {% if current_user.is_authenticated %}
 
-<div
-  id="toast-message-cta"
-  class="hidden fixed bottom-4 right-4 z-50 w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:bg-zinc-900/80 backdrop-blur dark:text-gray-400"
-  role="alert"
->
-  <div class="flex">
-    <!-- <img class="w-8 h-8 rounded-full" src="/docs/images/people/profile-picture-1.jpg" alt="Jese Leos image"/> -->
-    <div class="ms-3 flex flex-col gap-2">
-      <div class="mb-2 font-normal">Kafe eklemek için bize ulaşın.</div>
-      <a
-        href="{{url_for('contact_us')}}"
-        class="inline-flex w-fit px-4 py-2 text-center text-white bg-lavender rounded-lg hover:bg-lavender/90 focus:ring-4 focus:outline-none focus:ring-lavender/30 dark:bg-lavender dark:hover:bg-lavender/90 dark:focus:ring-lavender/20 transition-colors duration-200 border dark:border-lavender/50"
-        >Bize Ulaşın</a
-      >
+    <div
+            id="toast-message-cta"
+            class="hidden fixed bottom-4 right-4 z-50 w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:bg-zinc-900/80 backdrop-blur dark:text-gray-400"
+            role="alert"
+    >
+        <div class="flex">
+            <!-- <img class="w-8 h-8 rounded-full" src="/docs/images/people/profile-picture-1.jpg" alt="Jese Leos image"/> -->
+            <div class="ms-3 flex flex-col gap-2">
+                <div class="mb-2 font-normal">Kafe eklemek için bize ulaşın.</div>
+                <a
+                        href="{{ url_for('contact_us') }}"
+                        class="inline-flex w-fit px-4 py-2 text-center text-white bg-lavender rounded-lg hover:bg-lavender/90 focus:ring-4 focus:outline-none focus:ring-lavender/30 dark:bg-lavender dark:hover:bg-lavender/90 dark:focus:ring-lavender/20 transition-colors duration-200 border dark:border-lavender/50"
+                >Bize Ulaşın</a
+                >
+            </div>
+            <button
+                    type="button"
+                    class="ms-auto -mx-1.5 -my-1.5 bg-white justify-center items-center flex-shrink-0 text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+                    data-dismiss-target="#toast-message-cta"
+                    aria-label="Close"
+            >
+                <span class="sr-only">Close</span>
+                <svg
+                        class="w-3 h-3"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 14 14"
+                >
+                    <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    />
+                </svg>
+            </button>
+        </div>
     </div>
-    <button
-      type="button"
-      class="ms-auto -mx-1.5 -my-1.5 bg-white justify-center items-center flex-shrink-0 text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
-      data-dismiss-target="#toast-message-cta"
-      aria-label="Close"
-    >
-      <span class="sr-only">Close</span>
-      <svg
-        class="w-3 h-3"
-        aria-hidden="true"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 14 14"
-      >
-        <path
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-        />
-      </svg>
-    </button>
-  </div>
-</div>
 
-<div data-dial-init class="fixed bottom-6 end-6 group">
-  <div
-    id="speed-dial-menu-text-outside-button-square"
-    class="hidden flex-col items-center mb-4 space-y-2"
-  >
-    {% if current_user.is_admin %}
-    <a
-      href="{{ url_for('add_cafe') }}"
-      class="relative w-[52px] h-[52px] text-gray-500 bg-white rounded-full border border-gray-200 hover:text-gray-900 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400"
-    >
-      <svg
-        class="w-8 mx-auto my-auto h-full"
-        aria-hidden="true"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M13 3H7C5.89543 3 5 3.89543 5 5V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V9M13 3L19 9M13 3V8C13 8.55228 13.4477 9 14 9H19M12 13V17M14 15H10"
-          stroke="lavender"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+    <div data-dial-init class="fixed bottom-6 end-6 group">
+        <div
+                id="speed-dial-menu-text-outside-button-square"
+                class="hidden flex-col items-center mb-4 space-y-2"
+        >
+            {% if current_user.is_admin %}
+                <a
+                        href="{{ url_for('add_cafe') }}"
+                        class="relative w-[52px] h-[52px] text-gray-500 bg-white rounded-full border border-gray-200 hover:text-gray-900 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400"
+                >
+                    <svg
+                            class="w-8 mx-auto my-auto h-full"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                    >
+                        <path
+                                d="M13 3H7C5.89543 3 5 3.89543 5 5V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V9M13 3L19 9M13 3V8C13 8.55228 13.4477 9 14 9H19M12 13V17M14 15H10"
+                                stroke="lavender"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                        />
+                    </svg>
 
-      <span
-        class="absolute block mb-px text-sm font-medium -translate-y-1/2 -start-20 top-1/2"
-        >Kafe ekle</span
-      >
-    </a>
-    {% else %}
-    <a
-      id="show-add-cafe-toast"
-      class="relative w-[52px] h-[52px] text-gray-500 bg-white rounded-full border border-gray-200 hover:text-gray-900 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400 cursor-pointer"
-    >
-      <svg
-        class="w-8 mx-auto my-auto h-full"
-        aria-hidden="true"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M13 3H7C5.89543 3 5 3.89543 5 5V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V9M13 3L19 9M13 3V8C13 8.55228 13.4477 9 14 9H19M12 13V17M14 15H10"
-          stroke="lavender"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-      <span
-        class="absolute block mb-px text-sm font-medium -translate-y-1/2 -start-20 top-1/2"
-        >Kafe ekle</span
-      >
-    </a>
-    {% endif %}
-  </div>
-  <button
-    type="button"
-    data-dial-toggle="speed-dial-menu-text-outside-button-square"
-    aria-controls="speed-dial-menu-text-outside-button-square"
-    aria-expanded="false"
-    class="flex items-center justify-center text-white bg-lavender rounded-full w-14 h-14 hover:bg-lavender/90 dark:bg-lavender dark:hover:bg-lavender/80 focus:ring-4 focus:ring-lavender/60 focus:outline-none dark:focus:ring-lavender/20"
-  >
-    <svg
-      class="w-5 h-5 transition-transform"
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 18 18"
-      id="plus-svg"
-    >
-      <path
-        stroke="black"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M9 1v16M1 9h16"
-      />
-    </svg>
-    <span class="sr-only">Menü'yü aç</span>
-  </button>
-</div>
+                    <span
+                            class="absolute block mb-px text-sm font-medium -translate-y-1/2 -start-20 top-1/2"
+                    >Kafe ekle</span
+                    >
+                </a>
+            {% else %}
+                <a
+                        id="show-add-cafe-toast"
+                        class="relative w-[52px] h-[52px] text-gray-500 bg-white rounded-full border border-gray-200 hover:text-gray-900 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400 cursor-pointer"
+                >
+                    <svg
+                            class="w-8 mx-auto my-auto h-full"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                    >
+                        <path
+                                d="M13 3H7C5.89543 3 5 3.89543 5 5V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V9M13 3L19 9M13 3V8C13 8.55228 13.4477 9 14 9H19M12 13V17M14 15H10"
+                                stroke="lavender"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                        />
+                    </svg>
+                    <span
+                            class="absolute block mb-px text-sm font-medium -translate-y-1/2 -start-20 top-1/2"
+                    >Kafe ekle</span
+                    >
+                </a>
+            {% endif %}
+        </div>
+        <button
+                type="button"
+                data-dial-toggle="speed-dial-menu-text-outside-button-square"
+                aria-controls="speed-dial-menu-text-outside-button-square"
+                aria-expanded="false"
+                class="flex items-center justify-center text-white bg-lavender rounded-full w-14 h-14 hover:bg-lavender/90 dark:bg-lavender dark:hover:bg-lavender/80 focus:ring-4 focus:ring-lavender/60 focus:outline-none dark:focus:ring-lavender/20"
+        >
+            <svg
+                    class="w-5 h-5 transition-transform"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 18 18"
+                    id="plus-svg"
+            >
+                <path
+                        stroke="black"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 1v16M1 9h16"
+                />
+            </svg>
+            <span class="sr-only">Menü'yü aç</span>
+        </button>
+    </div>
 {% endif %}

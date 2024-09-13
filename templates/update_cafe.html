@@ -4,108 +4,122 @@
 
 {% block content %}
 
-<div class="container mx-auto px-0 py-6 sm:p-6">
-    <div class="flex flex-col sm:flex-row align-middle items-center mb-8 gap-4">
-        <h1 class="text-3xl font-bold">{{ cafe.name }} hakkında</h1>
-        <a
-          href="{{ url_for('cafe_detail', cafe_id=cafe.id) }}"          class="inline-flex items-center px-4 py-2 text-md text-center rounded-lg transition-colors duration-200 dark:hover:text-lavender"
-        >
-          <svg
-            class="rtl:rotate-180 w-3.5 h-3.5 ms-2 mr-2"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 14 10"
-          >
-            <path
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 5H1m0 0l4-4m-4 4l4 4"
-            />
-          </svg>
-          Kafeye geri dön
-        </a>
-      </div>
-      
-    
-    
-    <form id="update-cafe-form" method="POST" action="{{ url_for('api_update_cafe', cafe_id=cafe.id) }}" class="px-0 py-6 sm:p-6">
-        <input type="hidden" name="_method" value="PUT">
-        <input type="hidden" name="csrf_token" value="{{ form.hidden_tag().csrf_token }}">
-        <input type="hidden" id="cafe-id" value="{{ cafe.id }}">
-    
-        <div class="mb-4">
-            <label for="name" class="block text-sm font-medium">Kafe Adı</label>
-            <input type="text" id="name" name="name" value="{{ cafe.name }}" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
-            <div id="name-error" class="mt-2 text-red-600 text-sm"></div>
+    <div class="container mx-auto px-0 py-6 sm:p-6">
+        <div class="flex flex-col sm:flex-row align-middle items-center mb-8 gap-4">
+            <h1 class="text-3xl font-bold">{{ cafe.name }} hakkında</h1>
+            <a
+                    href="{{ url_for('cafe_detail', cafe_id=cafe.id) }}"
+                    class="inline-flex items-center px-4 py-2 text-md text-center rounded-lg transition-colors duration-200 dark:hover:text-lavender"
+            >
+                <svg
+                        class="rtl:rotate-180 w-3.5 h-3.5 ms-2 mr-2"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 14 10"
+                >
+                    <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13 5H1m0 0l4-4m-4 4l4 4"
+                    />
+                </svg>
+                Kafeye geri dön
+            </a>
         </div>
-    
-        <div class="mb-4">
-            <label for="map_url" class="block text-sm font-medium">Harita URL</label>
-            <input type="text" id="map_url" name="map_url" value="{{ cafe.map_url }}" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
-            <div id="map-url-error" class="mt-2 text-red-600 text-sm"></div>
-        </div>
-    
-        <div class="mb-4">
-            <label for="img_url" class="block text-sm font-medium">Fotoğraf URL</label>
-            <input type="text" id="img_url" name="img_url" value="{{ cafe.img_url }}" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
-            <div id="img-url-error" class="mt-2 text-red-600 text-sm"></div>
-        </div>
-    
-        <div class="mb-4">
-            <label for="location" class="block text-sm font-medium">Nerede</label>
-            <input type="text" id="location" name="location" value="{{ cafe.location }}" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
-        </div>
-    
-        <div class="mb-4 flex items-center">
-            <input type="checkbox" id="has_sockets" name="has_sockets" {% if cafe.has_sockets %}checked{% endif %} class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="has_sockets" class="ml-2 block text-sm font-medium">Priz var mı?</label>
-        </div>
-    
-        <div class="mb-4 flex items-center">
-            <input type="checkbox" id="has_toilet" name="has_toilet" {% if cafe.has_toilet %}checked{% endif %} class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="has_toilet" class="ml-2 block text-sm font-medium">Tuvalet var mı?</label>
-        </div>
-    
-        <div class="mb-4 flex items-center">
-            <input type="checkbox" id="has_wifi" name="has_wifi" {% if cafe.has_wifi %}checked{% endif %} class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="has_wifi" class="ml-2 block text-sm font-medium">Wi-Fi var mı?</label>
-        </div>
-    
-        <div class="mb-4 flex items-center">
-            <input type="checkbox" id="can_take_calls" name="can_take_calls" {% if cafe.can_take_calls %}checked{% endif %} class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="can_take_calls" class="ml-2 block text-sm font-medium">Kafe çağrı alıyor mu?</label>
-        </div>
-    
-        <div class="mb-4">
-            <label for="seats" class="block text-sm font-medium">Koltuk sayısı</label>
-            <input type="text" id="seats" name="seats" value="{{ cafe.seats }}" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
-        </div>
-    
-        <div class="mb-4">
-            <label for="coffee_price" class="block text-sm font-medium">Kahve ücreti (ortalama)</label>
-            <input type="text" id="coffee_price" name="coffee_price" value="{{ cafe.coffee_price }}" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
-        </div>
-    
-        <!-- <div class="mb-4">
+
+
+        <form id="update-cafe-form" method="POST" action="{{ url_for('api_update_cafe', cafe_id=cafe.id) }}"
+              class="px-0 py-6 sm:p-6">
+            <input type="hidden" name="_method" value="PUT">
+            <input type="hidden" name="csrf_token" value="{{ form.hidden_tag().csrf_token }}">
+            <input type="hidden" id="cafe-id" value="{{ cafe.id }}">
+
+            <div class="mb-4">
+                <label for="name" class="block text-sm font-medium">Kafe Adı</label>
+                <input type="text" id="name" name="name" value="{{ cafe.name }}"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
+                <div id="name-error" class="mt-2 text-red-600 text-sm"></div>
+            </div>
+
+            <div class="mb-4">
+                <label for="map_url" class="block text-sm font-medium">Harita URL</label>
+                <input type="text" id="map_url" name="map_url" value="{{ cafe.map_url }}"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
+                <div id="map-url-error" class="mt-2 text-red-600 text-sm"></div>
+            </div>
+
+            <div class="mb-4">
+                <label for="img_url" class="block text-sm font-medium">Fotoğraf URL</label>
+                <input type="text" id="img_url" name="img_url" value="{{ cafe.img_url }}"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
+                <div id="img-url-error" class="mt-2 text-red-600 text-sm"></div>
+            </div>
+
+            <div class="mb-4">
+                <label for="location" class="block text-sm font-medium">Nerede</label>
+                <input type="text" id="location" name="location" value="{{ cafe.location }}"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
+            </div>
+
+            <div class="mb-4 flex items-center">
+                <input type="checkbox" id="has_sockets" name="has_sockets" {% if cafe.has_sockets %}checked{% endif %}
+                       class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="has_sockets" class="ml-2 block text-sm font-medium">Priz var mı?</label>
+            </div>
+
+            <div class="mb-4 flex items-center">
+                <input type="checkbox" id="has_toilet" name="has_toilet" {% if cafe.has_toilet %}checked{% endif %}
+                       class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="has_toilet" class="ml-2 block text-sm font-medium">Tuvalet var mı?</label>
+            </div>
+
+            <div class="mb-4 flex items-center">
+                <input type="checkbox" id="has_wifi" name="has_wifi" {% if cafe.has_wifi %}checked{% endif %}
+                       class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="has_wifi" class="ml-2 block text-sm font-medium">Wi-Fi var mı?</label>
+            </div>
+
+            <div class="mb-4 flex items-center">
+                <input type="checkbox" id="can_take_calls" name="can_take_calls"
+                       {% if cafe.can_take_calls %}checked{% endif %}
+                       class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="can_take_calls" class="ml-2 block text-sm font-medium">Kafe çağrı alıyor mu?</label>
+            </div>
+
+            <div class="mb-4">
+                <label for="seats" class="block text-sm font-medium">Koltuk sayısı</label>
+                <input type="text" id="seats" name="seats" value="{{ cafe.seats }}"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
+            </div>
+
+            <div class="mb-4">
+                <label for="coffee_price" class="block text-sm font-medium">Kahve ücreti (ortalama)</label>
+                <input type="text" id="coffee_price" name="coffee_price" value="{{ cafe.coffee_price }}"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur  dark:border-zinc-700">
+            </div>
+
+            <!-- <div class="mb-4">
             <label for="details" class="block text-sm font-medium">Açıklama</label>
             <textarea id="details" name="details" rows="4" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900 dark:border-zinc-700">{{ cafe.details }}</textarea>
         </div> -->
-        <div class="mb-4">
-            <textarea id="details" name="details" value="{{cafe.details}}"></textarea>
-        </div>
-    
-        <button type="submit" class="inline-flex items-center px-4 py-2 transition-colors duration-200 border border-transparent rounded bg-lavender hover:bg-violet-200 active:bg-violet-100 dark:text-zinc-950 dark:hover:bg-violet-200">
-            Kafe'yi Güncelle
-        </button>
+            <div class="mb-4">
+                <textarea id="details" name="details" value="{{ cafe.details }}"></textarea>
+            </div>
 
-    </form>
+            <button type="submit"
+                    class="inline-flex items-center px-4 py-2 transition-colors duration-200 border border-transparent rounded bg-lavender hover:bg-violet-200 active:bg-violet-100 dark:text-zinc-950 dark:hover:bg-violet-200">
+                Kafe'yi Güncelle
+            </button>
 
-    <script src="https://cdn.tiny.cloud/1/{{ tinymce_api_key }}/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="{{ url_for('static', filename='src/scripts/update_cafe.js') }}" defer></script>
-    
-</div>
+        </form>
+
+        <script src="https://cdn.tiny.cloud/1/{{ tinymce_api_key }}/tinymce/7/tinymce.min.js"
+                referrerpolicy="origin"></script>
+        <script src="{{ url_for('static', filename='src/scripts/update_cafe.js') }}" defer></script>
+
+    </div>
 
 {% endblock %}

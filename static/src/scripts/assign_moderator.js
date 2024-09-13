@@ -1,8 +1,8 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const userSelect = document.getElementById('user_id');
     const moderatedCafesDiv = document.getElementById('moderated-cafes-list');
 
-    userSelect.addEventListener('change', function() {
+    userSelect.addEventListener('change', function () {
         const userId = userSelect.value;
 
         if (userId) {
@@ -10,14 +10,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     const cafes = data.cafes;
-                    
+
                     let tableHTML = '<table class="min-w-full divide-y divide-gray-200">';
                     tableHTML += '<thead class=""><tr>';
                     tableHTML += '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cafe ID</th>';
                     tableHTML += '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cafe Name</th>';
                     tableHTML += '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>';
                     tableHTML += '</tr></thead><tbody class=" divide-y divide-gray-200">';
-                    
+
                     cafes.forEach(cafe => {
                         tableHTML += `<tr><td class="px-6 py-4 whitespace-nowrap">${cafe.id}</td>`;
                         tableHTML += `<td class="px-6 py-4 whitespace-nowrap">${cafe.name}</td>`;
@@ -29,11 +29,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
 
                     tableHTML += '</tbody></table>';
-                    
+
                     moderatedCafesDiv.innerHTML = tableHTML;
 
                     document.querySelectorAll('.remove-btn').forEach(button => {
-                        button.addEventListener('click', function() {
+                        button.addEventListener('click', function () {
                             const cafeId = this.getAttribute('data-cafe-id');
                             const confirmation = confirm('Are you sure you want to remove this cafe?');
                             if (confirmation) {
@@ -44,18 +44,18 @@ document.addEventListener('DOMContentLoaded', function() {
                                         'X-Requested-With': 'XMLHttpRequest'
                                     }
                                 })
-                                .then(response => response.json())
-                                .then(result => {
-                                    if (result.success) {
-                                        alert('Cafe removed successfully.');
-                                        this.closest('tr').remove();
-                                    } else {
-                                        alert('Failed to remove cafe.');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error removing cafe:', error);
-                                });
+                                    .then(response => response.json())
+                                    .then(result => {
+                                        if (result.success) {
+                                            alert('Cafe removed successfully.');
+                                            this.closest('tr').remove();
+                                        } else {
+                                            alert('Failed to remove cafe.');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error removing cafe:', error);
+                                    });
                             }
                         });
                     });

@@ -4,95 +4,107 @@
 
 {% block content %}
 
-<div class="container mx-auto px-0 py-6 sm:p-6">
-    <h1 class="text-3xl font-bold mb-6">Kafe ekle</h1>
-    
-    <form id="cafe-form" method="POST" action="{{ url_for('add_cafe') }}" class="px-0 py-6 sm:p-6">
-        <input type="hidden" name="csrf_token" value="{{ form.hidden_tag().csrf_token }}">
-    
-        <div class="mb-4">
-            <label for="name" class="block text-sm font-medium">Kafe Adı</label>
-            <input type="text" id="name" name="name" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none bg-zinc-50/20 dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700">
-            <div id="name-error" class="mt-2 text-red-600 text-sm"></div>
-        </div>
-    
-        <div class="mb-4">
-            <label for="map_url" class="block text-sm font-medium">Harita URL</label>
-            <input type="text" id="map_url" name="map_url" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700 bg-zinc-50/20">
-            <div id="map-url-error" class="mt-2 text-red-600 text-sm"></div>
-        </div>
-    
-        <div class="mb-4">
-            <label for="img_url" class="block text-sm font-medium">Fotoğraf URL</label>
-            <input type="text" id="img_url" name="img_url" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700 bg-zinc-50/20">
-            <div id="img-url-error" class="mt-2 text-red-600 text-sm"></div>
-        </div>
-    
-        <div class="mb-4">
-            <label for="location" class="block text-sm font-medium">Nerede</label>
-            <input type="text" id="location" name="location" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700 bg-zinc-50/20">
-        </div>
-    
-        <div class="mb-4 flex items-center">
-            <input type="checkbox" id="has_sockets" name="has_sockets" class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="has_sockets" class="ml-2 block text-sm font-medium">Priz var mı?</label>
-        </div>
-    
-        <div class="mb-4 flex items-center">
-            <input type="checkbox" id="has_toilet" name="has_toilet" class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="has_toilet" class="ml-2 block text-sm font-medium">Tuvalet var mı?</label>
-        </div>
-    
-        <div class="mb-4 flex items-center">
-            <input type="checkbox" id="has_wifi" name="has_wifi" class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="has_wifi" class="ml-2 block text-sm font-medium">Wi-Fi var mı?</label>
-        </div>
-    
-        <div class="mb-4 flex items-center">
-            <input type="checkbox" id="can_take_calls" name="can_take_calls" class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="can_take_calls" class="ml-2 block text-sm font-medium">Kafe çağrı alıyor mu?</label>
-        </div>
-    
-        <div class="mb-4">
-            <label for="seats" class="block text-sm font-medium">Koltuk sayısı</label>
-            <input type="number" id="seats" name="seats" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700 bg-zinc-50/20">
-        </div>
-    
-        <div class="mb-4">
-            <label for="coffee_price" class="block text-sm font-medium">Kahve ücreti (ortalama)</label>
-            <input type="text" id="coffee_price" name="coffee_price" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700 bg-zinc-50/20">
-        </div>
-    
-        <!-- <div class="mb-4">
-            <label for="details" class="block text-sm font-medium">Açıklama</label>
-            <textarea id="details" name="details" rows="4" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700"></textarea>
-        </div> -->
+    <div class="container mx-auto px-0 py-6 sm:p-6">
+        <h1 class="text-3xl font-bold mb-6">Kafe ekle</h1>
+
+        <form id="cafe-form" method="POST" action="{{ url_for('add_cafe') }}" class="px-0 py-6 sm:p-6">
+            <input type="hidden" name="csrf_token" value="{{ form.hidden_tag().csrf_token }}">
+
+            <div class="mb-4">
+                <label for="name" class="block text-sm font-medium">Kafe Adı</label>
+                <input type="text" id="name" name="name"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none bg-zinc-50/20 dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700">
+                <div id="name-error" class="mt-2 text-red-600 text-sm"></div>
+            </div>
+
+            <div class="mb-4">
+                <label for="map_url" class="block text-sm font-medium">Harita URL</label>
+                <input type="text" id="map_url" name="map_url"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700 bg-zinc-50/20">
+                <div id="map-url-error" class="mt-2 text-red-600 text-sm"></div>
+            </div>
+
+            <div class="mb-4">
+                <label for="img_url" class="block text-sm font-medium">Fotoğraf URL</label>
+                <input type="text" id="img_url" name="img_url"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700 bg-zinc-50/20">
+                <div id="img-url-error" class="mt-2 text-red-600 text-sm"></div>
+            </div>
+
+            <div class="mb-4">
+                <label for="location" class="block text-sm font-medium">Nerede</label>
+                <input type="text" id="location" name="location"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700 bg-zinc-50/20">
+            </div>
+
+            <div class="mb-4 flex items-center">
+                <input type="checkbox" id="has_sockets" name="has_sockets"
+                       class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="has_sockets" class="ml-2 block text-sm font-medium">Priz var mı?</label>
+            </div>
+
+            <div class="mb-4 flex items-center">
+                <input type="checkbox" id="has_toilet" name="has_toilet"
+                       class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="has_toilet" class="ml-2 block text-sm font-medium">Tuvalet var mı?</label>
+            </div>
+
+            <div class="mb-4 flex items-center">
+                <input type="checkbox" id="has_wifi" name="has_wifi"
+                       class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="has_wifi" class="ml-2 block text-sm font-medium">Wi-Fi var mı?</label>
+            </div>
+
+            <div class="mb-4 flex items-center">
+                <input type="checkbox" id="can_take_calls" name="can_take_calls"
+                       class="h-4 w-4 dark:text-zinc-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="can_take_calls" class="ml-2 block text-sm font-medium">Kafe çağrı alıyor mu?</label>
+            </div>
+
+            <div class="mb-4">
+                <label for="seats" class="block text-sm font-medium">Koltuk sayısı</label>
+                <input type="number" id="seats" name="seats"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700 bg-zinc-50/20">
+            </div>
+
+            <div class="mb-4">
+                <label for="coffee_price" class="block text-sm font-medium">Kahve ücreti (ortalama)</label>
+                <input type="text" id="coffee_price" name="coffee_price"
+                       class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700 bg-zinc-50/20">
+            </div>
+
+            <!-- <div class="mb-4">
+                <label for="details" class="block text-sm font-medium">Açıklama</label>
+                <textarea id="details" name="details" rows="4" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none dark:bg-zinc-900/20 backdrop-blur dark:border-zinc-700"></textarea>
+            </div> -->
 
 
-        <div class="mb-4">
-            <textarea id="details" name="details"></textarea>
-        </div>
-    
-        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm transition-colors duration-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 mt-4">
-            Kafe Ekle
-        </button>
-    
-        <div class="mt-4">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <ul class="space-y-2">
-                        {% for category, message in messages %}
-                            <li class="{{ 'text-red-600' if category == 'error' else 'text-green-600' }}">{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
-        </div>
-    </form>
+            <div class="mb-4">
+                <textarea id="details" name="details"></textarea>
+            </div>
 
-    <script src="https://cdn.tiny.cloud/1/{{ tinymce_api_key }}/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="{{ url_for('static', filename='src/scripts/add_cafe.js') }}" defer></script>
-    
-</div>
+            <button type="submit"
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm transition-colors duration-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 mt-4">
+                Kafe Ekle
+            </button>
+
+            <div class="mt-4">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class="space-y-2">
+                            {% for category, message in messages %}
+                                <li class="{{ 'text-red-600' if category == 'error' else 'text-green-600' }}">{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </form>
+
+        <script src="https://cdn.tiny.cloud/1/{{ tinymce_api_key }}/tinymce/7/tinymce.min.js"
+                referrerpolicy="origin"></script>
+        <script src="{{ url_for('static', filename='src/scripts/add_cafe.js') }}" defer></script>
+
+    </div>
 
 {% endblock %}

@@ -1,35 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>{% block title %}Home{% endblock %}</title>
     <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='dist/css/output.css') }}"
+            rel="stylesheet"
+            href="{{ url_for('static', filename='dist/css/output.css') }}"
     />
     <script
-      src="{{ url_for('static', filename='dist/js/bundle.js') }}"
-      defer
+            src="{{ url_for('static', filename='dist/js/bundle.js') }}"
+            defer
     ></script>
     <link
-      rel="icon"
-      href="{{ url_for('static', filename='src/assets/favicon.ico') }}"
-      type="image/x-icon"
+            rel="icon"
+            href="{{ url_for('static', filename='src/assets/favicon.ico') }}"
+            type="image/x-icon"
     />
-  </head>
-  <body
-    class="flex flex-col min-h-screen inter-weight-400 transition-colors duration-200 text-zinc-900 bg-zinc-50 dark:bg-zinc-950 dark:text-zinc-50"
-  >
-    {% include 'navbar.html' %}
-    <div class="relative isolate px-6 pt-14 lg:px-8">
-      <div
-        class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-        aria-hidden="true"
-      >
+</head>
+<body
+        class="flex flex-col min-h-screen inter-weight-400 transition-colors duration-200 text-zinc-900 bg-zinc-50 dark:bg-zinc-950 dark:text-zinc-50"
+>
+{% include 'navbar.html' %}
+<div class="relative isolate px-6 pt-14 lg:px-8">
+    <div
+            class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+            aria-hidden="true"
+    >
         <div
-          class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#f4a460] to-[#d2b48c] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-          style="
+                class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#f4a460] to-[#d2b48c] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+                style="
             clip-path: polygon(
               74.1% 44.1%,
               100% 61.6%,
@@ -50,40 +50,40 @@
             );
           "
         ></div>
-      </div>
-
-      <main class="flex-grow">{% block content %} {% endblock %}</main>
-
-      <div
-        class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
-        aria-hidden="true"
-      >
-        <div
-          class="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#f4a460] to-[#d2b48c] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
-          style="
-            clip-path: polygon(
-              74.1% 44.1%,
-              100% 61.6%,
-              97.5% 26.9%,
-              85.5% 0.1%,
-              80.7% 2%,
-              72.5% 32.5%,
-              60.2% 62.4%,
-              52.4% 68.1%,
-              47.5% 58.3%,
-              45.2% 34.5%,
-              27.5% 76.7%,
-              0.1% 64.9%,
-              17.9% 100%,
-              27.6% 76.8%,
-              76.1% 97.7%,
-              74.1% 44.1%
-            );
-          "
-        ></div>
-      </div>
     </div>
 
-    {% include 'footer.html' %} {% include 'speed_dial_button.html' %}
-  </body>
+    <main class="flex-grow">{% block content %} {% endblock %}</main>
+
+    <div
+            class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
+            aria-hidden="true"
+    >
+        <div
+                class="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#f4a460] to-[#d2b48c] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
+                style="
+            clip-path: polygon(
+              74.1% 44.1%,
+              100% 61.6%,
+              97.5% 26.9%,
+              85.5% 0.1%,
+              80.7% 2%,
+              72.5% 32.5%,
+              60.2% 62.4%,
+              52.4% 68.1%,
+              47.5% 58.3%,
+              45.2% 34.5%,
+              27.5% 76.7%,
+              0.1% 64.9%,
+              17.9% 100%,
+              27.6% 76.8%,
+              76.1% 97.7%,
+              74.1% 44.1%
+            );
+          "
+        ></div>
+    </div>
+</div>
+
+{% include 'footer.html' %} {% include 'speed_dial_button.html' %}
+</body>
 </html>

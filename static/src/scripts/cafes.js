@@ -1,11 +1,11 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search');
     const resultsDiv = document.getElementById('search-results');
     const normalResultsDiv = document.getElementById('cafes-search-results');
     const paginationDiv = document.getElementById('cafes-pagination');
     let timeoutId;
 
-    searchInput.addEventListener('input', function() {
+    searchInput.addEventListener('input', function () {
         const query = searchInput.value.trim();
 
         // Clear previous timeout if input changes before 500ms

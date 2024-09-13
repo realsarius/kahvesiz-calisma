@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, BooleanField, EmailField, TextAreaField, PasswordField
 from wtforms.validators import DataRequired, URL, Email, Length
 
+
 class CafeForm(FlaskForm):
     name = StringField('İsim', validators=[DataRequired()])
     map_url = StringField('Harita URL', validators=[DataRequired(), URL()])
@@ -15,10 +16,12 @@ class CafeForm(FlaskForm):
     coffee_price = StringField('Kahve fiyatı', validators=[DataRequired()])
     details = TextAreaField('Detay')
 
+
 class ContactForm(FlaskForm):
     email = EmailField('Email', validators=[DataRequired(), Email()])
     subject = StringField('Konu', validators=[DataRequired()])
     message = TextAreaField('Mesaj', validators=[DataRequired()])
+
 
 class UserForm(FlaskForm):
     name = StringField('İsim', validators=[DataRequired(), Length(max=100)])
