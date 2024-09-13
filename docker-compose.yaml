@@ -1,0 +1,22 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.flask
+    container_name: flask_app
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_APP: main.py
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - .:/usr/src/app   # Mount your local project directory to the container
+
+  tailwind:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: tailwind_builder
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app   # Mount the same project directory
