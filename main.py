@@ -1,22 +1,19 @@
+import os
+import itsdangerous
 import requests
+
+from datetime import datetime, timezone
 from functools import wraps
-from flask import Flask, jsonify, make_response, request, render_template, redirect, url_for, flash, session
+from dotenv import load_dotenv
+from flask import Flask, jsonify, make_response, request, render_template, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_mail import Mail, Message
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase, relationship
-from sqlalchemy import Integer, String, select, UniqueConstraint, ForeignKey, Table, MetaData
-from sqlalchemy.orm import Mapped, mapped_column
-from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField
-from wtforms.validators import DataRequired, URL
+from sqlalchemy import MetaData
+from sqlalchemy.orm import DeclarativeBase
 from werkzeug.security import generate_password_hash, check_password_hash
 from forms import CafeForm, ContactForm, UserForm
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from dotenv import load_dotenv
-from datetime import datetime, timezone
-import os
-from flask_migrate import Migrate
-import itsdangerous
-from flask_mail import Mail, Message
 
 load_dotenv()
 
@@ -34,8 +31,10 @@ app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL') == 'True'
 mail = Mail(app=app)
 s = itsdangerous.URLSafeTimedSerializer(os.getenv('SECRET_KEY'))
 
+
 def generate_verification_token(email):
     return s.dumps(email, salt='email-confirm')
+
 
 def verify_verification_token(token, expiration=3600):
     try:
@@ -46,6 +45,7 @@ def verify_verification_token(token, expiration=3600):
         return None
     return email
 
+
 def send_confirmation_email(user_email):
     token = generate_verification_token(user_email)
     confirm_url = url_for('confirm_email', token=token, _external=True)
@@ -53,6 +53,7 @@ def send_confirmation_email(user_email):
     msg.body = f'Your link is {confirm_url}'
     with app.app_context():
         mail.send(msg)
+
 
 # from flask_ckeditor import CKEditor
 
@@ -66,7 +67,8 @@ naming_convention = {
 
 
 class Base(DeclarativeBase):
-  pass
+    pass
+
 
 db = SQLAlchemy(model_class=Base, metadata=MetaData(naming_convention=naming_convention))
 migrate = Migrate(app, db, render_as_batch=True)
@@ -76,19 +78,21 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 user_cafe = db.Table('user_cafe',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('cafe_id', db.Integer, db.ForeignKey('cafe.id'), primary_key=True)
-)
+                     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                     db.Column('cafe_id', db.Integer, db.ForeignKey('cafe.id'), primary_key=True)
+                     )
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     is_confirmed = db.Column(db.Boolean, nullable=False, default=False)
     confirmed_on = db.Column(db.DateTime, nullable=True)
@@ -97,7 +101,7 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return f"<User {self.name}>"
-    
+
     @property
     def is_admin_status(self):
         return self.is_admin  # Use property to avoid conflict
@@ -126,18 +130,21 @@ class Cafe(db.Model):
     seats = db.Column(db.String(100), nullable=False)
     coffee_price = db.Column(db.String(100), nullable=False)
     details = db.Column(db.Text, nullable=True)
-    
+
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc),
+                           nullable=False)
 
     moderators = db.relationship('User', secondary='user_cafe', back_populates='moderated_cafes')
 
     def __repr__(self):
         return f"<Cafe {self.name}>"
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 def admin_required(f):
     @wraps(f)
@@ -146,7 +153,9 @@ def admin_required(f):
             flash('Admin access required.', 'danger')
             return redirect(url_for('home'))
         return f(*args, **kwargs)
+
     return decorated_function
+
 
 @app.route('/logout')
 @login_required
@@ -154,6 +163,7 @@ def logout():
     logout_user()
     flash('Çıkış yaptınız.', 'info')
     return redirect(url_for('home'))
+
 
 with app.app_context():
     db.create_all()
@@ -166,7 +176,7 @@ with app.app_context():
 def assign_moderator(user_id, cafe_id):
     user = User.query.get(user_id)
     cafe = Cafe.query.get(cafe_id)
-    
+
     if not user or not cafe:
         raise ValueError("User or Cafe not found")
 
@@ -177,6 +187,7 @@ def assign_moderator(user_id, cafe_id):
     if user not in cafe.moderators:
         cafe.moderators.append(user)
         db.session.commit()
+
 
 @app.route('/admin/assign_moderator', methods=['GET', 'POST'])
 @login_required
@@ -189,13 +200,12 @@ def assign_moderator_page():
     if request.method == 'POST':
         user_id = request.form.get('user_id')
         cafe_id = request.form.get('cafe_id')
-        
+
         try:
             assign_moderator(user_id, cafe_id)
             flash('Moderator assigned successfully!', 'success')
         except ValueError as e:
             flash(str(e), 'danger')
-        
 
     users = User.query.all()
     cafes = Cafe.query.all()
@@ -221,6 +231,7 @@ def remove_moderator(user_id, cafe_id):
     else:
         return jsonify({'success': False, 'message': 'Cafe is not moderated by this user'}), 400
 
+
 @app.route('/moderated_cafes/<int:user_id>', methods=['GET'])
 @login_required
 def get_moderated_cafes(user_id):
@@ -229,12 +240,13 @@ def get_moderated_cafes(user_id):
     cafes_list = [{'id': cafe.id, 'name': cafe.name} for cafe in cafes]
     return jsonify(cafes=cafes_list)
 
+
 @app.route('/cafes/update/<int:cafe_id>', methods=['GET', 'POST'])
 @login_required
 def update_cafe(cafe_id):
     cafe = Cafe.query.get(cafe_id)
     tinymce_api_key = os.getenv('TINYMCE_API_KEY')
-    
+
     if not cafe:
         return redirect(url_for('cafes'))
 
@@ -252,14 +264,16 @@ def update_cafe(cafe_id):
 
     return render_template('update_cafe.html', form=form, cafe=cafe, tinymce_api_key=tinymce_api_key)
 
+
 @app.route('/api/update_cafe/<int:cafe_id>', methods=['PUT'])
 def api_update_cafe(cafe_id):
     data = request.get_json()
 
     if not data:
         return jsonify({'error': 'No JSON data provided'}), 400
-    
-    required_fields = ['name', 'map_url', 'img_url', 'location', 'has_sockets', 'has_toilet', 'has_wifi', 'can_take_calls', 'seats', 'coffee_price']
+
+    required_fields = ['name', 'map_url', 'img_url', 'location', 'has_sockets', 'has_toilet', 'has_wifi',
+                       'can_take_calls', 'seats', 'coffee_price']
     for field in required_fields:
         if field not in data:
             return jsonify({'error': f'Missing field: {field}'}), 400
@@ -290,6 +304,7 @@ def api_update_cafe(cafe_id):
         return jsonify({'error': str(e)}), 500
 
     return jsonify({'message': 'Cafe updated successfully!'}), 200
+
 
 @app.route('/add_cafe', methods=['GET', 'POST'])
 @login_required
@@ -334,7 +349,7 @@ def add_cafe():
             db.session.rollback()
             flash(f'An error occurred while adding the cafe: {e}', 'error')
             print(f'Error: {e}')
-    
+
     return render_template('add_cafe.html', form=form, tinymce_api_key=tinymce_api_key)
 
 
@@ -354,6 +369,7 @@ def api_delete_cafe(cafe_id):
 
     return jsonify({'message': 'Cafe deleted successfully!'}), 200
 
+
 @app.route('/api/add_cafe', methods=['POST'])
 def api_add_cafe():
     data = request.get_json()
@@ -361,7 +377,8 @@ def api_add_cafe():
     if not data:
         return jsonify({'error': 'No JSON data provided'}), 400
 
-    required_fields = ['name', 'map_url', 'img_url', 'location', 'has_sockets', 'has_toilet', 'has_wifi', 'can_take_calls', 'seats', 'coffee_price']
+    required_fields = ['name', 'map_url', 'img_url', 'location', 'has_sockets', 'has_toilet', 'has_wifi',
+                       'can_take_calls', 'seats', 'coffee_price']
     for field in required_fields:
         if field not in data:
             return jsonify({'error': f'Missing field: {field}'}), 400
@@ -416,12 +433,12 @@ def get_cafe(id):
     except Exception as e:
         print(f"An error occurred: {e}")
         return make_response(jsonify({'error': 'An error occurred while retrieving the cafe'}), 500)
-    
+
 
 @app.route('/api/cafes', methods=['GET'])
 def get_all_cafes():
     search_query = request.args.get('search', '').strip()
-    
+
     try:
         if search_query:
             cafes = Cafe.query.filter(
@@ -457,7 +474,6 @@ def get_all_cafes():
         return make_response(jsonify({'error': 'An error occurred while retrieving cafes'}), 500)
 
 
-        
 @app.route('/cafes', methods=['GET'])
 def cafes():
     try:
@@ -484,8 +500,9 @@ def contact_us():
     if form.validate_on_submit():
         flash('Your message has been sent successfully!', 'success')
         return redirect(url_for('contact_us'))
-    
+
     return render_template('contact_us.html', form=form)
+
 
 @app.route('/cafes/<int:cafe_id>')
 def cafe_detail(cafe_id):
@@ -499,6 +516,7 @@ def cafe_detail(cafe_id):
     except requests.RequestException as e:
         app.logger.error(f"An error occurred: {e}")
         return render_template('cafe_detail.html', error="An error occurred while retrieving the cafe.")
+
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
@@ -517,19 +535,19 @@ def api_login():
         return jsonify({'message': 'Giriş başarılı!'}), 200
     else:
         return jsonify({'error': 'Geçersiz e-posta adresi veya şifre.'}), 400
-    
-    
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
-    
+
     form = UserForm()
 
     if form.validate_on_submit():
         email = form.email.data
         password = form.password.data
-        
+
         if not email:
             form.email.errors.append('E-posta adresi gerekli.')
         if not password:
@@ -537,7 +555,7 @@ def login():
 
         if not form.email.errors and not form.password.errors:
             user = User.query.filter_by(email=email).first()
-            
+
             if user:
                 if check_password_hash(user.password, password):
                     if user.is_confirmed:
@@ -545,13 +563,15 @@ def login():
                         flash('Giriş başarılı! Ana sayfaya yönlendiriliyorsunuz.', 'success')
                         return redirect(url_for('home'))
                     else:
-                        flash('E-posta adresinizi doğrulamanız gerekiyor. Lütfen e-posta adresinizi kontrol edin.', 'warning')
+                        flash('E-posta adresinizi doğrulamanız gerekiyor. Lütfen e-posta adresinizi kontrol edin.',
+                              'warning')
                 else:
                     flash('Geçersiz şifre.', 'danger')
             else:
                 flash('Geçersiz e-posta adresi.', 'danger')
 
     return render_template('login.html', form=form)
+
 
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
@@ -581,12 +601,13 @@ def api_signup():
     send_confirmation_email(email)  # Send the verification email
 
     return jsonify({'message': 'Hesabınız başarıyla oluşturuldu! Lütfen e-posta adresinizi doğrulayın.'}), 201
-    
+
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
-    
+
     form = UserForm()
 
     if form.validate_on_submit():
@@ -614,6 +635,7 @@ def signup():
 
     return render_template('signup.html', form=form)
 
+
 @app.route('/confirm/<token>')
 def confirm_email(token):
     email = verify_verification_token(token)
@@ -622,7 +644,7 @@ def confirm_email(token):
         return redirect(url_for('signup'))
 
     user = User.query.filter_by(email=email).first_or_404()
-    
+
     if user.is_confirmed:
         flash('Hesap zaten onaylanmış. Lütfen giriş yapın.', 'success')
     else:
@@ -637,7 +659,7 @@ def confirm_email(token):
 @app.route('/api/users', methods=['GET'])
 def get_all_users():
     search_query = request.args.get('search', '').strip()
-    
+
     try:
         if search_query:
             users = User.query.filter(
@@ -664,22 +686,27 @@ def get_all_users():
         app.logger.error(f"An error occurred: {e}")
         return make_response(jsonify({'error': 'An error occurred while retrieving users'}), 500)
 
+
 @app.route("/about")
 def about():
     return render_template("about.html")
+
 
 @app.route("/privacy")
 def privacy():
     return render_template("privacy.html")
 
+
 @app.route("/license")
 def license():
     return render_template("license.html")
+
 
 @app.route("/index")
 @app.route("/")
 def home():
     return render_template("index.html")
+
 
 @app.route('/admin')
 @login_required
@@ -687,6 +714,6 @@ def home():
 def admin_dashboard():
     return render_template('admin_dashboard.html')
 
+
 if __name__ == "__main__":
-    
     app.run(debug=False)
