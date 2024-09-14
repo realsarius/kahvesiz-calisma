@@ -5,47 +5,33 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f37324cd-e769-479a-9320-9d751c53ab14" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/kahvesiz-calisma.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/kahvesiz-calisma.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile.backup" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile.flask" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile.node" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/src/scripts/add_cafe.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/src/scripts/add_cafe.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/src/scripts/admin_dashboard.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/src/scripts/admin_dashboard.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/src/scripts/assign_moderator.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/src/scripts/assign_moderator.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/src/scripts/cafes.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/src/scripts/cafes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/src/scripts/delete_cafe.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/src/scripts/delete_cafe.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/src/scripts/login.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/src/scripts/login.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/src/scripts/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/src/scripts/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/src/scripts/signup.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/src/scripts/signup.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/src/scripts/update_cafe.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/src/scripts/update_cafe.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/about.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/about.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/add_cafe.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/add_cafe.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin_dashboard.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/assign_moderator.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/assign_moderator.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/cafe_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/cafe_detail.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/cafes.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/cafes.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/contact_us.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/contact_us.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/footer.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/footer.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/license.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/license.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/navbar.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/navbar.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/privacy.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/privacy.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/signup.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/signup.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/speed_dial_button.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/speed_dial_button.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/update_cafe.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/update_cafe.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="CSS File" />
+        <option value="TypeScript JSX File" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -58,15 +44,20 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Docker.docker-compose.yaml.flask: Compose Deployment.executor&quot;: &quot;Run&quot;,
     &quot;Docker.docker-compose.yaml: Compose Deployment.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;switch-frontend-to-react&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/realsarius/pythonProjects/kahvesiz-calisma/frontend/src/assets&quot;,
+    &quot;list.type.of.created.stylesheet&quot;: &quot;CSS&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_interpreter_path&quot;: &quot;/home/realsarius/.nvm/versions/node/v20.17.0/bin/node&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.nodejs&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/home/realsarius/pythonProjects/kahvesiz-calisma/frontend/node_modules/typescript/lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -77,8 +68,8 @@
       <window_info id="Commit_Guest" show_stripe_button="false" />
       <window_info id="Pull Requests" show_stripe_button="false" />
       <window_info id="Learn" show_stripe_button="false" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.17304912" />
-      <window_info id="Commit" order="1" weight="0.25" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21681097" />
+      <window_info id="Commit" order="1" weight="0.17304912" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Database Changes" show_stripe_button="false" />
       <window_info anchor="bottom" id="TypeScript" show_stripe_button="false" />
@@ -88,24 +79,32 @@
       <window_info anchor="bottom" id="Run" />
       <window_info anchor="bottom" id="Version Control" order="0" />
       <window_info anchor="bottom" id="Problems" order="1" />
-      <window_info anchor="bottom" id="Problems View" order="2" />
-      <window_info anchor="bottom" id="Terminal" order="3" weight="0.27340958" />
-      <window_info active="true" anchor="bottom" id="Services" order="4" visible="true" weight="0.27340958" />
-      <window_info anchor="bottom" id="Python Packages" order="5" weight="0.27340958" />
+      <window_info anchor="bottom" id="Problems View" order="2" weight="0.34274483" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="3" visible="true" weight="0.30018002" />
+      <window_info anchor="bottom" x="653" y="940" width="1320" height="380" id="Services" order="4" weight="0.30018002" />
+      <window_info anchor="bottom" id="Python Packages" order="5" weight="0.2736895" />
       <window_info anchor="bottom" id="Python Console" order="6" weight="0.1" />
-      <window_info anchor="bottom" id="Find" order="7" weight="0.3300745" />
+      <window_info anchor="bottom" id="Find" order="7" weight="0.32987848" />
       <window_info anchor="right" id="Endpoints" show_stripe_button="false" />
       <window_info anchor="right" id="Coverage" show_stripe_button="false" side_tool="true" />
       <window_info anchor="right" id="SciView" show_stripe_button="false" />
-      <window_info anchor="right" content_ui="combo" id="Notifications" order="0" weight="0.25" />
+      <window_info anchor="right" id="Notifications" order="0" weight="0.32984102" />
       <window_info anchor="right" id="AIAssistant" order="1" weight="0.25" />
-      <window_info anchor="right" id="Database" order="2" weight="0.25" />
+      <window_info anchor="right" id="Database" order="2" weight="0.3300866" />
       <window_info anchor="right" id="Gradle" order="3" weight="0.25" />
       <window_info anchor="right" id="Maven" order="4" weight="0.25" />
       <window_info anchor="right" id="Plots" order="5" weight="0.1" />
     </layout>
   </component>
-  <component name="RunManager">
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/frontend/src/assets" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/frontend/src" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Docker.docker-compose.yaml.flask: Compose Deployment">
     <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
       <deployment type="docker-compose.yml">
         <settings />
@@ -120,8 +119,22 @@
       </deployment>
       <method v="2" />
     </configuration>
+    <configuration name="docker-compose.yaml.flask: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="services">
+            <list>
+              <option value="flask" />
+            </list>
+          </option>
+          <option name="sourceFilePath" value="docker-compose.yaml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Docker.docker-compose.yaml.flask: Compose Deployment" />
         <item itemvalue="Docker.docker-compose.yaml: Compose Deployment" />
       </list>
     </recent_temporary>
@@ -145,6 +158,13 @@
       <workItem from="1726239141519" duration="776000" />
       <workItem from="1726239971115" duration="5893000" />
       <workItem from="1726248724922" duration="266000" />
+      <workItem from="1726250505025" duration="2680000" />
+      <workItem from="1726254887515" duration="5075000" />
+      <workItem from="1726294789212" duration="1059000" />
+      <workItem from="1726296088850" duration="1038000" />
+      <workItem from="1726297414673" duration="1376000" />
+      <workItem from="1726299129346" duration="3009000" />
+      <workItem from="1726307216934" duration="6000" />
     </task>
     <servers />
   </component>

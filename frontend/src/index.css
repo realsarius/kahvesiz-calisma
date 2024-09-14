@@ -1,0 +1,269 @@
+/* --------------------- FONT --------------------- */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Caveat&display=swap");
+
+/* From 100 to 900 */
+
+.caveat-400 {
+  font-family: "Caveat", cursive;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.inter-weight-100 {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 100;
+  font-style: normal;
+}
+
+.inter-weight-200 {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 200;
+  font-style: normal;
+}
+
+.inter-weight-300 {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.inter-weight-400 {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.inter-weight-500 {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.inter-weight-600 {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.inter-weight-700 {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.inter-weight-800 {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+}
+
+.inter-weight-900 {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-style: normal;
+}
+
+/* --------------------- FONT END --------------------- */
+
+/*
+  1. Use a more-intuitive box-sizing model.
+*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+/*
+    2. Remove default margin
+  */
+* {
+  margin: 0;
+}
+/*
+    Typographic tweaks!
+    3. Add accessible line-height
+    4. Improve text rendering
+  */
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+/*
+    5. Improve media defaults
+  */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+/*
+    6. Remove built-in form typography styles
+  */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+/*
+    7. Avoid text overflows
+  */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+/*
+    8. Create a root stacking context
+  */
+#root,
+#__next {
+  isolation: isolate;
+}
+
+.cafe-details h1, .cafe-details h2,.cafe-details h3,.cafe-details h4,.cafe-details h5,.cafe-details h6 {
+  margin-bottom: 1rem;
+}
+
+.cafe-details h1 {
+  font-size: 2rem;
+}
+
+.cafe-details h2 {
+  font-size: 1.75rem; /* slightly smaller than h1 */
+}
+
+.cafe-details h3 {
+  font-size: 1.5rem; /* slightly smaller than h2 */
+}
+
+.cafe-details h4 {
+  font-size: 1.25rem; /* slightly smaller than h3 */
+}
+
+.cafe-details h5 {
+  font-size: 1rem; /* slightly smaller than h4 */
+}
+
+.cafe-details h6 {
+  font-size: 0.875rem; /* slightly smaller than h5 */
+}
+
+.cafe-details blockquote {
+  margin: 1rem 2rem;
+  padding-left: 2rem;
+  border-left: 2.5px gray solid;
+  font-style: italic;
+  font-size: 1.125rem;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.navbar-links {
+  position: relative;
+}
+
+.navbar-links:after {
+  background: none repeat scroll 0 0 transparent;
+  bottom: 0;
+  content: "";
+  display: block;
+  height: 2px;
+  left: 50%;
+  position: absolute;
+  background: rgb(200, 172, 214);
+  transition: width 0.3s ease 0s, left 0.3s ease 0s;
+  width: 0;
+}
+
+.navbar-links:hover:after {
+  width: 100%;
+  left: 0;
+}
+
+.dropdown-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.dropdown-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+.dropdown-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+.dropdown-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.cke_notifications_area {
+  display: none !important;
+}
+
+/* dark-mode.css */
+.cke_editable {
+  background-color: #2e2e2e !important;
+  color: #f1f1f1;
+}
+.cke_toolbox {
+  background-color: #3c3c3c !important;
+}
+/* Add more styles as needed */
+
+/* .tox-tinymce > *,
+.tox-editor-container > *,
+.tox-editor-header > *,
+.tox-menubar > *,
+.tox-toolbar-overlord,
+.tox-toolbar__primary,
+.tox-toolbar__group,
+.tox-tbtn,
+#mytextarea_ifr *,
+.tox-icon * {
+  background-color: rgb(24 24 27 / 0.2) !important;
+  backdrop-filter: blur(8px) !important;
+  color: white !important;
+  fill: white !important;
+}
+
+.tox .tox-collection--list .tox-collection__item--active {
+  background-color: lavender !important;
+  color: rgb(24 24 27) !important;
+}
+
+.tox-tinymce {
+  border: 2px solid rgb(63 63 70) !important;
+}
+
+.tox-statusbar__path > * {
+  color: white !important;
+}*/
+
+.tox-statusbar__right-container {
+  display: none !important;
+}
