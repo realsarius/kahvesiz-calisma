@@ -109,6 +109,8 @@ class UserService:
             "id": user.id,
             "name": user.name,
             "email": user.email,
+            "is_admin": bool(user.is_admin),
+            "is_confirmed": bool(user.is_confirmed),
             "created_at": user.created_at.isoformat() if user.created_at else None,
         }
 
@@ -119,4 +121,3 @@ def parse_positive_int(value, default):
     except (TypeError, ValueError):
         return default
     return parsed if parsed > 0 else default
-

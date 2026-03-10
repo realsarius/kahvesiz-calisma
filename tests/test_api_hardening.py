@@ -174,6 +174,63 @@ class ApiHardeningTests(unittest.TestCase):
         self.assertEqual(payload["data"]["user"]["name"], "User")
         self.assertEqual(payload["data"]["user"]["is_admin"], False)
 
+    def test_admin_can_assign_and_remove_moderator_via_api(self):
+        with self.app.app_context():
+            cafe = Cafe(**self._cafe_payload(name="Moderator Cafe"))
+            db.session.add(cafe)
+            db.session.commit()
+            cafe_id = cafe.id
+
+        self._login_as(self.admin_id)
+        csrf_token = self._csrf_token()
+
+        assign_response = self.client.post(
+            "/api/moderators",
+            json={"user_id": self.user_id, "cafe_id": cafe_id},
+            headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(assign_response.status_code, 201)
+        self.assertEqual(assign_response.get_json()["data"]["assigned"], True)
+
+        list_response = self.client.get(f"/api/moderators/{self.user_id}")
+        self.assertEqual(list_response.status_code, 200)
+        list_payload = list_response.get_json()
+        self.assertEqual(list_payload["error"], None)
+        self.assertEqual(len(list_payload["data"]["cafes"]), 1)
+        self.assertEqual(list_payload["data"]["cafes"][0]["id"], cafe_id)
+
+        delete_response = self.client.delete(
+            f"/api/moderators/{self.user_id}/{cafe_id}",
+            headers={"X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(delete_response.get_json()["data"]["success"], True)
+
+    def test_assign_moderator_duplicate_request_is_idempotent(self):
+        with self.app.app_context():
+            cafe = Cafe(**self._cafe_payload(name="Duplicate Moderator Cafe"))
+            db.session.add(cafe)
+            db.session.commit()
+            cafe_id = cafe.id
+
+        self._login_as(self.admin_id)
+        csrf_token = self._csrf_token()
+
+        first = self.client.post(
+            "/api/moderators",
+            json={"user_id": self.user_id, "cafe_id": cafe_id},
+            headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(first.status_code, 201)
+
+        second = self.client.post(
+            "/api/moderators",
+            json={"user_id": self.user_id, "cafe_id": cafe_id},
+            headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.get_json()["data"]["assigned"], False)
+
 
 if __name__ == "__main__":
     unittest.main()

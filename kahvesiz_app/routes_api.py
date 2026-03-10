@@ -13,9 +13,10 @@ from kahvesiz_app.services import CafeService, UserService
 
 
 def register_api_routes(app):
-    @app.route("/remove_moderator/<int:user_id>/<int:cafe_id>", methods=["DELETE"])
-    @api_admin_required
-    def remove_moderator(user_id, cafe_id):
+    def _build_moderated_cafes_payload(user):
+        return {"cafes": [{"id": cafe.id, "name": cafe.name} for cafe in user.moderated_cafes]}
+
+    def _remove_moderator(user_id, cafe_id):
         user = UserRepository.get_by_id(user_id)
         if not user:
             return error_response("User not found", status=404, code="USER_NOT_FOUND")
@@ -33,6 +34,51 @@ def register_api_routes(app):
             )
         return success_response({"success": True}, status=200)
 
+    @app.route("/remove_moderator/<int:user_id>/<int:cafe_id>", methods=["DELETE"])
+    @api_admin_required
+    def remove_moderator(user_id, cafe_id):
+        return _remove_moderator(user_id, cafe_id)
+
+    @app.route("/api/moderators", methods=["POST"])
+    @api_admin_required
+    def api_assign_moderator():
+        data = request.get_json(silent=True) or {}
+        user_id = data.get("user_id")
+        cafe_id = data.get("cafe_id")
+
+        if not user_id or not cafe_id:
+            return error_response(
+                "user_id and cafe_id are required",
+                status=422,
+                code="MISSING_FIELDS",
+                details=["user_id", "cafe_id"],
+            )
+
+        try:
+            user_id = int(user_id)
+            cafe_id = int(cafe_id)
+        except (TypeError, ValueError):
+            return error_response("Invalid moderator assignment payload", status=422, code="INVALID_BODY")
+
+        user = UserRepository.get_by_id(user_id)
+        if not user:
+            return error_response("User not found", status=404, code="USER_NOT_FOUND")
+
+        cafe = CafeRepository.get_by_id(cafe_id)
+        if not cafe:
+            return error_response("Cafe not found", status=404, code="CAFE_NOT_FOUND")
+
+        assigned = ModeratorRepository.assign(user, cafe)
+        if not assigned:
+            return success_response({"assigned": False, "message": "User is already a moderator."}, status=200)
+
+        return success_response({"assigned": True, "message": "Moderator assigned successfully."}, status=201)
+
+    @app.route("/api/moderators/<int:user_id>/<int:cafe_id>", methods=["DELETE"])
+    @api_admin_required
+    def api_remove_moderator(user_id, cafe_id):
+        return _remove_moderator(user_id, cafe_id)
+
     @app.route("/moderated_cafes/<int:user_id>", methods=["GET"])
     @api_login_required
     def get_moderated_cafes(user_id):
@@ -47,8 +93,23 @@ def register_api_routes(app):
         if not user:
             return error_response("User not found", status=404, code="USER_NOT_FOUND")
 
-        cafes = [{"id": cafe.id, "name": cafe.name} for cafe in user.moderated_cafes]
-        return success_response({"cafes": cafes}, status=200)
+        return success_response(_build_moderated_cafes_payload(user), status=200)
+
+    @app.route("/api/moderators/<int:user_id>", methods=["GET"])
+    @api_login_required
+    def api_get_moderated_cafes(user_id):
+        if not current_user.is_admin and current_user.id != user_id:
+            return error_response(
+                "You do not have permission to access this data.",
+                status=403,
+                code="FORBIDDEN",
+            )
+
+        user = UserRepository.get_by_id(user_id)
+        if not user:
+            return error_response("User not found", status=404, code="USER_NOT_FOUND")
+
+        return success_response(_build_moderated_cafes_payload(user), status=200)
 
     @app.route("/api/cafes/<int:cafe_id>", methods=["PUT"])
     @api_login_required

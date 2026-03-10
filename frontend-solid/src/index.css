@@ -173,6 +173,12 @@ code {
   gap: 16px;
 }
 
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
 .ui-card {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -298,6 +304,10 @@ code {
   padding: 0 12px;
 }
 
+.ui-select {
+  appearance: none;
+}
+
 .ui-textarea {
   min-height: 140px;
   padding: 10px 12px;
@@ -398,6 +408,25 @@ code {
   gap: 10px;
 }
 
+.flag-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.flag-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.flag-item input {
+  inline-size: 15px;
+  block-size: 15px;
+}
+
 .row-actions {
   display: inline-flex;
   gap: 8px;
@@ -484,6 +513,36 @@ code {
   padding-left: 18px;
   display: grid;
   gap: 6px;
+}
+
+.admin-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.admin-list__row {
+  border: 1px solid #dfcfc1;
+  border-radius: 9px;
+  background: #fef8f2;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-list__title {
+  margin: 0;
+  font-weight: 620;
+}
+
+.admin-list__meta {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
 }
 
 .stack-links {
@@ -615,6 +674,7 @@ code {
 
   .grid-two-columns,
   .grid-three-columns,
+  .admin-grid,
   .cafe-detail-grid {
     grid-template-columns: 1fr;
   }

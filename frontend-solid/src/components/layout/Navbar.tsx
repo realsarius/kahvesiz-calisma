@@ -50,6 +50,13 @@ export function Navbar() {
                 </li>
               )}
             </For>
+            <Show when={auth.state.user?.isAdmin}>
+              <li>
+                <A classList={{ "nav-link": true, active: isActive(location.pathname, "/admin") }} href="/admin">
+                  Admin
+                </A>
+              </li>
+            </Show>
           </ul>
         </nav>
 
