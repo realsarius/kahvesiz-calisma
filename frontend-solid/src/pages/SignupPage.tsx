@@ -1,8 +1,15 @@
+import { Card } from "../components/ui/Card";
+import { PageContainer } from "../components/ui/PageContainer";
+
 export default function SignupPage() {
   return (
-    <section class="panel single-panel">
-      <p class="panel-title">Signup Rota Iskeleti</p>
-      <p>Signup akisi Faz 4&apos;te API sozlesmesine sadik sekilde tasinacak.</p>
-    </section>
+    <PageContainer title="Signup" subtitle="Signup formu API sozlesmesine uygun sekilde buraya alinacak.">
+      <Card>
+        <p class="paragraph paragraph--compact">
+          Bu rota su an Faz 2 kapsaminda yer tutucu olarak aciktir. Form dogrulama ve hata akislari
+          sonraki adimda eklenecek.
+        </p>
+      </Card>
+    </PageContainer>
   );
 }

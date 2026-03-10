@@ -1,13 +1,15 @@
 import { A } from "@solidjs/router";
+import { Card } from "../components/ui/Card";
+import { PageContainer } from "../components/ui/PageContainer";
 
 export default function NotFoundPage() {
   return (
-    <section class="state-panel">
-      <p class="state-title">Rota bulunamadi.</p>
-      <p class="state-description">Bu adres frontend-solid router icinde tanimli degil.</p>
-      <A class="btn" href="/">
-        Ana sayfaya don
-      </A>
-    </section>
+    <PageContainer title="Rota bulunamadi" subtitle="Bu adres frontend-solid icinde tanimli degil.">
+      <Card>
+        <A class="ui-link" href="/">
+          Ana sayfaya don
+        </A>
+      </Card>
+    </PageContainer>
   );
 }

@@ -1,11 +1,15 @@
+import { Card } from "../components/ui/Card";
+import { PageContainer } from "../components/ui/PageContainer";
+
 export default function LoginPage() {
   return (
-    <section class="panel single-panel">
-      <p class="panel-title">Login Rota Iskeleti</p>
-      <p>
-        Gercek login formu ve API entegrasyonu Faz 4&apos;te session + CSRF davranisi ile birlikte
-        tasinacak.
-      </p>
-    </section>
+    <PageContainer title="Login" subtitle="Session + CSRF uyumlu login formu bu rotaya tasinacak.">
+      <Card>
+        <p class="paragraph paragraph--compact">
+          Bu rota su an Faz 2 kapsaminda yer tutucu olarak aciktir. Form ve API entegrasyonu sonraki
+          adimda eklenecek.
+        </p>
+      </Card>
+    </PageContainer>
   );
 }
