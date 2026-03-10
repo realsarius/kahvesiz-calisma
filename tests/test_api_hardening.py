@@ -157,6 +157,15 @@ class ApiHardeningTests(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.get_json()["error"]["code"], "INVALID_CREDENTIALS")
 
+    def test_csrf_token_endpoint_returns_token(self):
+        response = self.client.get("/api/csrf-token")
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(payload["error"], None)
+        token = payload["data"]["csrf_token"]
+        self.assertIsInstance(token, str)
+        self.assertGreater(len(token), 10)
+
     def test_auth_session_requires_authentication(self):
         response = self.client.get("/api/auth/session")
         self.assertEqual(response.status_code, 401)

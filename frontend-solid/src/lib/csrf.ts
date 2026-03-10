@@ -1,5 +1,6 @@
 const CSRF_META_SELECTOR = 'meta[name="csrf-token"]';
 const CSRF_SOURCE_PATHS = ["/login", "/signup"];
+const CSRF_ENDPOINT = "/api/csrf-token";
 
 let cachedToken: string | null = null;
 
@@ -21,6 +22,31 @@ function extractTokenFromHtml(html: string) {
   }
 
   return null;
+}
+
+async function fetchTokenFromEndpoint() {
+  try {
+    const response = await fetch(CSRF_ENDPOINT, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as {
+      data?: { csrf_token?: string };
+    };
+
+    const token = payload?.data?.csrf_token?.trim();
+    return token || null;
+  } catch {
+    return null;
+  }
 }
 
 async function fetchTokenFromBackendPages() {
@@ -66,6 +92,12 @@ export async function getCsrfToken(options: { forceRefresh?: boolean } = {}) {
   if (metaToken) {
     cachedToken = metaToken;
     return metaToken;
+  }
+
+  const endpointToken = await fetchTokenFromEndpoint();
+  if (endpointToken) {
+    cachedToken = endpointToken;
+    return endpointToken;
   }
 
   const fetchedToken = await fetchTokenFromBackendPages();

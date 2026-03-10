@@ -1,4 +1,6 @@
-from flask import current_app, flash, redirect, render_template, request, url_for
+from pathlib import Path
+
+from flask import abort, current_app, flash, redirect, render_template, request, send_from_directory, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from forms import CafeForm, ContactForm, UserForm
@@ -10,6 +12,61 @@ from kahvesiz_app.services import CafeService, parse_positive_int
 
 
 def register_web_routes(app):
+    solid_exact_paths = {
+        "/",
+        "/index",
+        "/about",
+        "/privacy",
+        "/license",
+        "/contact",
+        "/login",
+        "/signup",
+        "/admin",
+        "/cafes",
+    }
+
+    def _is_solid_mode_enabled():
+        return current_app.config.get("FRONTEND_RENDER_MODE") == "solid"
+
+    def _solid_dist_dir():
+        configured_dist_dir = current_app.config.get("SOLID_DIST_DIR", "frontend-solid/dist")
+        dist_dir = Path(configured_dist_dir)
+        if not dist_dir.is_absolute():
+            dist_dir = Path(current_app.root_path) / dist_dir
+        return dist_dir
+
+    def _should_serve_solid_for_path(path):
+        normalized = path.rstrip("/") or "/"
+        if normalized in solid_exact_paths:
+            return True
+        return normalized.startswith("/cafes/")
+
+    def _maybe_render_solid_entry():
+        if request.method != "GET" or not _is_solid_mode_enabled():
+            return None
+
+        if not _should_serve_solid_for_path(request.path):
+            return None
+
+        dist_dir = _solid_dist_dir()
+        index_file = dist_dir / "index.html"
+        if not index_file.exists() or not index_file.is_file():
+            return None
+
+        return send_from_directory(str(dist_dir), "index.html")
+
+    @app.route("/solid/<path:filename>")
+    def solid_asset(filename):
+        if not _is_solid_mode_enabled():
+            abort(404)
+
+        dist_dir = _solid_dist_dir()
+        target_file = dist_dir / filename
+        if not target_file.exists() or not target_file.is_file():
+            abort(404)
+
+        return send_from_directory(str(dist_dir), filename)
+
     @app.route("/logout")
     @login_required
     def logout():
@@ -120,6 +177,10 @@ def register_web_routes(app):
 
     @app.route("/cafes", methods=["GET"])
     def cafes():
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
+
         try:
             page = parse_positive_int(request.args.get("page", 1), 1)
             per_page = current_app.config["CAFES_PER_PAGE"]
@@ -141,8 +202,19 @@ def register_web_routes(app):
             return redirect(url_for("contact_us"))
         return render_template("contact_us.html", form=form)
 
+    @app.route("/contact", methods=["GET"])
+    def contact():
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
+        return redirect(url_for("contact_us"))
+
     @app.route("/cafes/<int:cafe_id>")
     def cafe_detail(cafe_id):
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
+
         cafe = CafeRepository.get_by_id(cafe_id)
         if not cafe:
             return render_template("cafe_detail.html", cafe=None, error="Cafe not found.")
@@ -152,6 +224,10 @@ def register_web_routes(app):
     def login():
         if current_user.is_authenticated:
             return redirect(url_for("home"))
+
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
 
         form = UserForm()
         if form.validate_on_submit():
@@ -174,6 +250,10 @@ def register_web_routes(app):
     def signup():
         if current_user.is_authenticated:
             return redirect(url_for("home"))
+
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
 
         form = UserForm()
         if form.validate_on_submit():
@@ -202,23 +282,38 @@ def register_web_routes(app):
 
     @app.route("/about")
     def about():
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
         return render_template("about.html")
 
     @app.route("/privacy")
     def privacy():
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
         return render_template("privacy.html")
 
     @app.route("/license")
     def license():
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
         return render_template("license.html")
 
     @app.route("/index")
     @app.route("/")
     def home():
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
         return render_template("index.html")
 
     @app.route("/admin")
     @login_required
     @admin_required
     def admin_dashboard():
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
         return render_template("admin_dashboard.html")

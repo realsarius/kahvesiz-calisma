@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from flask import request
 from flask_login import current_user, login_user
+from flask_wtf.csrf import generate_csrf
 
 from kahvesiz_app.api_response import error_response, success_response
 from kahvesiz_app.auth import hash_password, send_confirmation_email, verify_password
@@ -246,6 +247,10 @@ def register_api_routes(app):
 
         login_user(user)
         return success_response({"message": "Giriş başarılı!"}, status=200)
+
+    @app.route("/api/csrf-token", methods=["GET"])
+    def api_csrf_token():
+        return success_response({"csrf_token": generate_csrf()}, status=200)
 
     @app.route("/api/auth/session", methods=["GET"])
     @api_login_required

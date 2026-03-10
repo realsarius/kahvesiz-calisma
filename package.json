@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "python3 -m unittest discover -s tests -p \"test_*.py\" -v"
+    "test": "python3 -m unittest discover -s tests -p \"test_*.py\" -v",
+    "solid:build": "npm --prefix frontend-solid run build",
+    "solid:smoke": "bash ./scripts/smoke-solid-cutover.sh",
+    "solid:rollback": "echo \"FRONTEND_RENDER_MODE=jinja ayariyla geri donus yapip deploy edin.\""
   },
   "keywords": [],
   "author": "",
