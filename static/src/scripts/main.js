@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("DOMContentLoaded", function () {
     const toggles = document.querySelectorAll("[data-dial-toggle]");
-    const plusSvg = document.getElementById('plus-svg')
+    const plusSvg = document.getElementById("plus-svg");
 
     toggles.forEach((toggle) => {
         toggle.addEventListener("click", function () {
@@ -29,29 +29,36 @@ document.addEventListener("DOMContentLoaded", function () {
             const target = document.getElementById(targetId);
             if (target) {
                 target.classList.toggle("flex");
-                plusSvg.classList.toggle('rotate-45');
+                if (plusSvg) {
+                    plusSvg.classList.toggle("rotate-45");
+                }
                 target.classList.toggle("hidden");
             }
         });
     });
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    const toast = document.getElementById('toast-message-cta');
-    const toastLink = document.getElementById('show-add-cafe-toast')
+document.addEventListener("DOMContentLoaded", function () {
+    const toast = document.getElementById("toast-message-cta");
+    const toastLink = document.getElementById("show-add-cafe-toast");
+    if (!toast || !toastLink) {
+        return;
+    }
 
     const closeButton = toast.querySelector('[data-dismiss-target="#toast-message-cta"]');
 
-    toastLink.addEventListener('click', function (event) {
-        event.preventDefault(); // Prevent the default link action
-        toast.classList.remove('hidden'); // Show the toast
+    toastLink.addEventListener("click", function (event) {
+        event.preventDefault();
+        toast.classList.remove("hidden");
 
         setTimeout(function () {
-            toast.classList.add('hidden');
+            toast.classList.add("hidden");
         }, 10000);
     });
 
-    closeButton.addEventListener('click', function () {
-        toast.classList.add('hidden'); // Hide the toast when close button is clicked
-    });
+    if (closeButton) {
+        closeButton.addEventListener("click", function () {
+            toast.classList.add("hidden");
+        });
+    }
 });
