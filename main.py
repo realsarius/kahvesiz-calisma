@@ -49,6 +49,7 @@ app.config['WTF_CSRF_TIME_LIMIT'] = get_env_int('WTF_CSRF_TIME_LIMIT', 3600)
 app.config['TINYMCE_API_KEY'] = os.getenv('TINYMCE_API_KEY', '')
 app.config['CAFES_PER_PAGE'] = get_env_int('CAFES_PER_PAGE', 20)
 app.config['COFFEE_CURRENCY_SYMBOL'] = os.getenv('COFFEE_CURRENCY_SYMBOL', '£')
+app.config['AUTO_CREATE_SCHEMA'] = get_env_bool('AUTO_CREATE_SCHEMA', False)
 
 mail = Mail(app=app)
 csrf = CSRFProtect(app)
@@ -167,8 +168,9 @@ class Cafe(db.Model):
     coffee_price = db.Column(db.String(100), nullable=False)
     details = db.Column(db.Text, nullable=True)
 
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc),
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc),
                            nullable=False)
 
     moderators = db.relationship('User', secondary='user_cafe', back_populates='moderated_cafes')
@@ -179,7 +181,7 @@ class Cafe(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 def admin_required(f):
@@ -262,8 +264,9 @@ def logout():
     return redirect(url_for('home'))
 
 
-with app.app_context():
-    db.create_all()
+if app.config['AUTO_CREATE_SCHEMA']:
+    with app.app_context():
+        db.create_all()
 
 
 # def sanitize_html(html_content):
@@ -271,18 +274,14 @@ with app.app_context():
 #     return bleach.clean(html_content, tags=allowed_tags, strip=True)
 
 def assign_moderator(user_id, cafe_id):
-    user = User.query.get(user_id)
-    cafe = Cafe.query.get(cafe_id)
+    user = db.session.get(User, int(user_id))
+    cafe = db.session.get(Cafe, int(cafe_id))
 
     if not user or not cafe:
         raise ValueError("User or Cafe not found")
 
     if cafe not in user.moderated_cafes:
         user.moderated_cafes.append(cafe)
-        db.session.commit()
-
-    if user not in cafe.moderators:
-        cafe.moderators.append(user)
         db.session.commit()
 
 
@@ -313,11 +312,11 @@ def assign_moderator_page():
 @login_required
 @admin_required
 def remove_moderator(user_id, cafe_id):
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({'success': False, 'message': 'User not found'}), 404
 
-    cafe = Cafe.query.get(cafe_id)
+    cafe = db.session.get(Cafe, cafe_id)
     if not cafe:
         return jsonify({'success': False, 'message': 'Cafe not found'}), 404
 
@@ -344,7 +343,7 @@ def get_moderated_cafes(user_id):
 @app.route('/cafes/update/<int:cafe_id>', methods=['GET', 'POST'])
 @login_required
 def update_cafe(cafe_id):
-    cafe = Cafe.query.get(cafe_id)
+    cafe = db.session.get(Cafe, cafe_id)
     tinymce_api_key = app.config['TINYMCE_API_KEY']
 
     if not cafe:
@@ -384,7 +383,7 @@ def api_update_cafe(cafe_id):
         if field not in data:
             return jsonify({'error': f'Missing field: {field}'}), 400
 
-    cafe = Cafe.query.get(cafe_id)
+    cafe = db.session.get(Cafe, cafe_id)
     if not cafe:
         return jsonify({'error': 'Cafe not found'}), 404
     if not user_can_edit_cafe(current_user, cafe):
@@ -467,7 +466,7 @@ def add_cafe():
 @app.route('/api/delete_cafe/<int:cafe_id>', methods=['DELETE'])
 @api_admin_required
 def api_delete_cafe(cafe_id):
-    cafe = Cafe.query.get(cafe_id)
+    cafe = db.session.get(Cafe, cafe_id)
 
     if not cafe:
         return jsonify({'error': 'Cafe not found'}), 404
@@ -527,7 +526,7 @@ def api_add_cafe():
 
 @app.route('/api/cafes/<int:id>', methods=['GET'])
 def get_cafe(id):
-    cafe = Cafe.query.get(id)
+    cafe = db.session.get(Cafe, id)
     if not cafe:
         return make_response(jsonify({'error': 'Cafe not found'}), 404)
     return make_response(jsonify(serialize_cafe(cafe)), 200)
@@ -582,7 +581,7 @@ def contact_us():
 
 @app.route('/cafes/<int:cafe_id>')
 def cafe_detail(cafe_id):
-    cafe = Cafe.query.get(cafe_id)
+    cafe = db.session.get(Cafe, cafe_id)
     if not cafe:
         return render_template('cafe_detail.html', cafe=None, error="Cafe not found.")
     return render_template('cafe_detail.html', cafe=cafe)
