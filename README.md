@@ -67,7 +67,7 @@ npx webpack --watch
 4. Flask uygulamasini baslatin:
 
 ```bash
-flask --app main run --host=0.0.0.0 --port=5000 --debug
+flask --app main run --host=0.0.0.0 --port=5040 --debug
 ```
 
 ## Docker ile Calistirma
