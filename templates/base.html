@@ -23,13 +23,13 @@
         class="flex flex-col min-h-screen inter-weight-400 transition-colors duration-200 text-zinc-900 bg-zinc-50 dark:bg-zinc-950 dark:text-zinc-50"
 >
 {% include 'navbar.html' %}
-<div class="relative isolate px-6 pt-14 lg:px-8">
+<div class="relative isolate z-0 px-6 pt-14 lg:px-8">
     <div
-            class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+            class="pointer-events-none absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
             aria-hidden="true"
     >
         <div
-                class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#f4a460] to-[#d2b48c] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+                class="pointer-events-none relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#f4a460] to-[#d2b48c] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
                 style="
             clip-path: polygon(
               74.1% 44.1%,
@@ -56,11 +56,11 @@
     <main class="flex-grow">{% block content %} {% endblock %}</main>
 
     <div
-            class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
+            class="pointer-events-none absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
             aria-hidden="true"
     >
         <div
-                class="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#f4a460] to-[#d2b48c] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
+                class="pointer-events-none relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#f4a460] to-[#d2b48c] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
                 style="
             clip-path: polygon(
               74.1% 44.1%,
