@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { For, Show, createResource, createSignal } from "solid-js";
+import { For, Show, createResource } from "solid-js";
 import { useAuth } from "../auth/AuthContext";
 import { EmptyState } from "../components/states/EmptyState";
 import { ErrorState } from "../components/states/ErrorState";
@@ -7,21 +7,15 @@ import { LoadingState } from "../components/states/LoadingState";
 import { Alert } from "../components/ui/Alert";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
-import { Input } from "../components/ui/Input";
 import { PageContainer } from "../components/ui/PageContainer";
-import { ApiRequestError, apiGet } from "../lib/api";
+import { ApiRequestError } from "../lib/api";
+import { getCafes } from "../lib/cafes";
 
-interface CafeSummary {
-  id: number;
-  name: string;
-  location: string;
-  has_wifi: boolean;
-  has_sockets: boolean;
-}
-
-interface CafesPayload {
-  cafes: CafeSummary[];
-}
+const highlights = [
+  "Session/cookie tabanli auth davranisi korunur",
+  "CSRF korumali write endpoint semantigi bozulmaz",
+  "Public ekranlar API envelope sozlesmesine sadik kalir",
+];
 
 function readErrorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
@@ -35,108 +29,59 @@ function readErrorMessage(error: unknown) {
   return "Bilinmeyen hata";
 }
 
-async function fetchCafes(search: string) {
-  const query = search.trim();
-  const suffix = query ? `?search=${encodeURIComponent(query)}` : "";
-  const payload = await apiGet<CafesPayload | null>(`/api/cafes${suffix}`);
-  return payload?.cafes ?? [];
-}
-
 export default function HomePage() {
   const auth = useAuth();
-  const [searchDraft, setSearchDraft] = createSignal("");
-  const [search, setSearch] = createSignal("");
-  const [cafes, { refetch }] = createResource(search, fetchCafes);
-
-  const onSearchSubmit = (event: SubmitEvent) => {
-    event.preventDefault();
-    setSearch(searchDraft());
-  };
-
-  const clearSearch = () => {
-    setSearchDraft("");
-    setSearch("");
-    void refetch();
-  };
+  const [previewCafes, { refetch }] = createResource(() => "", getCafes);
 
   return (
     <PageContainer
-      title="Kafe rehberi"
-      subtitle="Liste verisi Flask API uzerinden yuklenir. Session ve CSRF davranisi merkezi API katmanindan yonetilir."
+      title="Kahvesiz Calisma"
+      subtitle="SolidJS public yuzeyi Flask API ile uyumlu sekilde kademeli tasiniyor."
+      actions={
+        <>
+          <Button variant="secondary" onClick={() => void refetch()}>
+            Listeyi yenile
+          </Button>
+          <A class="ui-button ui-button--primary ui-button--md" href="/cafes">
+            Kafelere git
+          </A>
+        </>
+      }
     >
       <Show when={auth.state.sessionExpired}>
         <Alert variant="warning" title="Oturum kapandi">
-          Oturumunuz sonlandi. Write islemleri icin yeniden <A href="/login">login</A> olmaniz gerekir.
+          Oturum suresi doldu. Yetkili islemler icin yeniden <A class="ui-link" href="/login">login</A> olabilirsiniz.
         </Alert>
       </Show>
 
-      <div class="grid-two-columns">
-        <Card title="Kafe listesi" description="Public endpoint: GET /api/cafes">
-          <form class="search-form" onSubmit={onSearchSubmit}>
-            <Input
-              id="search-cafe"
-              label="Kafe ara"
-              value={searchDraft()}
-              onInput={(event) => setSearchDraft(event.currentTarget.value)}
-              placeholder="Ornek: Kadikoy"
-              hint="Arama backend search parametresine gonderilir."
-            />
-            <div class="row-actions">
-              <Button type="submit">Ara</Button>
-              <Button type="button" variant="secondary" onClick={clearSearch}>
-                Temizle
-              </Button>
-            </div>
-          </form>
-
-          <Show
-            when={!cafes.loading}
-            fallback={<LoadingState title="Kafeler yukleniyor" description="Liste aliniyor..." />}
-          >
-            <Show
-              when={!cafes.error}
-              fallback={
-                <ErrorState
-                  title="Kafe listesi yuklenemedi"
-                  description={readErrorMessage(cafes.error)}
-                  actionLabel="Tekrar dene"
-                  onAction={() => void refetch()}
-                />
-              }
-            >
-              <Show
-                when={(cafes() ?? []).length > 0}
-                fallback={
-                  <EmptyState
-                    title="Kafe bulunamadi"
-                    description="Filtreyi temizleyip tekrar deneyebilirsiniz."
-                    actionLabel="Filtreyi sifirla"
-                    onAction={clearSearch}
-                  />
-                }
-              >
-                <ul class="cafe-list">
-                  <For each={cafes() ?? []}>
-                    {(cafe) => (
-                      <li class="cafe-list__item">
-                        <div>
-                          <p class="cafe-list__name">{cafe.name}</p>
-                          <p class="cafe-list__meta">{cafe.location}</p>
-                        </div>
-                        <div class="chip-row">
-                          <span class="ui-chip">wifi: {cafe.has_wifi ? "var" : "yok"}</span>
-                          <span class="ui-chip">priz: {cafe.has_sockets ? "var" : "yok"}</span>
-                        </div>
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </Show>
-            </Show>
-          </Show>
+      <div class="grid-three-columns">
+        <Card title="Yol haritasi" description="Frontend gecisi temel ilkeler">
+          <ul class="simple-list">
+            <For each={highlights}>{(item) => <li>{item}</li>}</For>
+          </ul>
         </Card>
 
-        <Card title="Auth bootstrap" description="Context state anlik gorunum">
+        <Card title="Hizli baglantilar" description="Public sayfalar">
+          <div class="stack-links">
+            <A class="ui-link" href="/cafes">
+              Cafes listesi
+            </A>
+            <A class="ui-link" href="/about">
+              Hakkinda
+            </A>
+            <A class="ui-link" href="/privacy">
+              Gizlilik politikasi
+            </A>
+            <A class="ui-link" href="/license">
+              Lisans
+            </A>
+            <A class="ui-link" href="/contact">
+              Iletisim
+            </A>
+          </div>
+        </Card>
+
+        <Card title="Auth durumu" description="Bootstrap context durumu">
           <dl class="meta-list">
             <div>
               <dt>loading</dt>
@@ -157,6 +102,43 @@ export default function HomePage() {
           </dl>
         </Card>
       </div>
+
+      <Card title="One cikan kafeler" description="/api/cafes endpointinden ilk 4 kayit">
+        <Show when={!previewCafes.loading} fallback={<LoadingState title="Kafe onizlemesi yukleniyor" />}>
+          <Show
+            when={!previewCafes.error}
+            fallback={
+              <ErrorState
+                title="Kafe onizlemesi alinamadi"
+                description={readErrorMessage(previewCafes.error)}
+                actionLabel="Tekrar dene"
+                onAction={() => void refetch()}
+              />
+            }
+          >
+            <Show
+              when={(previewCafes() ?? []).length > 0}
+              fallback={<EmptyState title="Henuz kafe bulunmuyor" description="Veri eklendiginde burada listelenecek." />}
+            >
+              <ul class="cafe-list">
+                <For each={(previewCafes() ?? []).slice(0, 4)}>
+                  {(cafe) => (
+                    <li class="cafe-list__item">
+                      <div>
+                        <A class="cafe-list__name-link" href={`/cafes/${cafe.id}`}>
+                          {cafe.name}
+                        </A>
+                        <p class="cafe-list__meta">{cafe.location}</p>
+                      </div>
+                      <span class="ui-chip">{cafe.coffee_price || "fiyat yok"}</span>
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </Show>
+          </Show>
+        </Show>
+      </Card>
     </PageContainer>
   );
 }

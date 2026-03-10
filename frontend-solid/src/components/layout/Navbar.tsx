@@ -1,12 +1,28 @@
 import { A, useLocation } from "@solidjs/router";
+import { For } from "solid-js";
 import { useAuth } from "../../auth/AuthContext";
 
-const navItems = [
+interface NavItem {
+  href: string;
+  label: string;
+}
+
+const navItems: NavItem[] = [
   { href: "/", label: "Ana Sayfa" },
+  { href: "/cafes", label: "Cafes" },
   { href: "/about", label: "Hakkinda" },
+  { href: "/contact", label: "Iletisim" },
   { href: "/login", label: "Login" },
   { href: "/signup", label: "Signup" },
 ];
+
+function isActive(pathname: string, href: string) {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function Navbar() {
   const location = useLocation();
@@ -21,13 +37,21 @@ export function Navbar() {
 
         <nav aria-label="Ana menu">
           <ul class="nav-list">
-            {navItems.map((item) => (
-              <li>
-                <A classList={{ "nav-link": true, active: location.pathname === item.href }} href={item.href}>
-                  {item.label}
-                </A>
-              </li>
-            ))}
+            <For each={navItems}>
+              {(item) => (
+                <li>
+                  <A
+                    classList={{
+                      "nav-link": true,
+                      active: isActive(location.pathname, item.href),
+                    }}
+                    href={item.href}
+                  >
+                    {item.label}
+                  </A>
+                </li>
+              )}
+            </For>
           </ul>
         </nav>
 
