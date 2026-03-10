@@ -157,6 +157,32 @@ def admin_required(f):
     return decorated_function
 
 
+def api_login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return jsonify({'error': 'Authentication required.'}), 401
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+def api_admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return jsonify({'error': 'Authentication required.'}), 401
+        if not current_user.is_admin:
+            return jsonify({'error': 'Admin access required.'}), 403
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+def user_can_edit_cafe(user, cafe):
+    return user.is_authenticated and (user.is_admin or user.is_moderator_of(cafe.id))
+
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -235,6 +261,9 @@ def remove_moderator(user_id, cafe_id):
 @app.route('/moderated_cafes/<int:user_id>', methods=['GET'])
 @login_required
 def get_moderated_cafes(user_id):
+    if not current_user.is_admin and current_user.id != user_id:
+        return jsonify({'error': 'You do not have permission to access this data.'}), 403
+
     user = User.query.get_or_404(user_id)
     cafes = user.moderated_cafes
     cafes_list = [{'id': cafe.id, 'name': cafe.name} for cafe in cafes]
@@ -249,6 +278,9 @@ def update_cafe(cafe_id):
 
     if not cafe:
         return redirect(url_for('cafes'))
+    if not user_can_edit_cafe(current_user, cafe):
+        flash('Bu kafe için düzenleme yetkiniz yok.', 'danger')
+        return redirect(url_for('cafe_detail', cafe_id=cafe.id))
 
     form = CafeForm(obj=cafe)
 
@@ -266,8 +298,9 @@ def update_cafe(cafe_id):
 
 
 @app.route('/api/update_cafe/<int:cafe_id>', methods=['PUT'])
+@api_login_required
 def api_update_cafe(cafe_id):
-    data = request.get_json()
+    data = request.get_json(silent=True)
 
     if not data:
         return jsonify({'error': 'No JSON data provided'}), 400
@@ -281,6 +314,8 @@ def api_update_cafe(cafe_id):
     cafe = Cafe.query.get(cafe_id)
     if not cafe:
         return jsonify({'error': 'Cafe not found'}), 404
+    if not user_can_edit_cafe(current_user, cafe):
+        return jsonify({'error': 'You do not have permission to update this cafe.'}), 403
 
     if Cafe.query.filter(Cafe.name == data['name'], Cafe.id != cafe_id).first():
         return jsonify({'error': 'A cafe with this name already exists. Please choose a different name.'}), 400
@@ -295,7 +330,7 @@ def api_update_cafe(cafe_id):
     cafe.can_take_calls = data['can_take_calls']
     cafe.seats = data['seats']
     cafe.coffee_price = data['coffee_price']
-    cafe.details = data['details']
+    cafe.details = data.get('details')
 
     try:
         db.session.commit()
@@ -354,6 +389,7 @@ def add_cafe():
 
 
 @app.route('/api/delete_cafe/<int:cafe_id>', methods=['DELETE'])
+@api_admin_required
 def api_delete_cafe(cafe_id):
     cafe = Cafe.query.get(cafe_id)
 
@@ -371,8 +407,9 @@ def api_delete_cafe(cafe_id):
 
 
 @app.route('/api/add_cafe', methods=['POST'])
+@api_admin_required
 def api_add_cafe():
-    data = request.get_json()
+    data = request.get_json(silent=True)
 
     if not data:
         return jsonify({'error': 'No JSON data provided'}), 400
@@ -398,7 +435,7 @@ def api_add_cafe():
         can_take_calls=data['can_take_calls'],
         seats=data['seats'],
         coffee_price="£" + data['coffee_price'],
-        details=data['details']
+        details=data.get('details')
     )
 
     try:

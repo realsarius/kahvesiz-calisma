@@ -9,6 +9,15 @@ document.addEventListener("DOMContentLoaded", function () {
         "assign-moderator-container"
     );
 
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
     // Function to show the appropriate container based on the clicked link
     function showContainer(container) {
         usersContainer.classList.add("hidden");
@@ -47,13 +56,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     data.users.forEach((user) => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
-              <td class="px-6 py-2 whitespace-nowrap">${user.id}</td>
-              <td class="px-6 py-2 whitespace-nowrap">${user.name}</td>
-              <td class="px-6 py-2 whitespace-nowrap">${user.email}</td>
-              <td class="px-6 py-2 whitespace-nowrap">${user.created_at}</td>
+              <td class="px-6 py-2 whitespace-nowrap">${escapeHtml(user.id)}</td>
+              <td class="px-6 py-2 whitespace-nowrap">${escapeHtml(user.name)}</td>
+              <td class="px-6 py-2 whitespace-nowrap">${escapeHtml(user.email)}</td>
+              <td class="px-6 py-2 whitespace-nowrap">${escapeHtml(user.created_at)}</td>
               <td class="px-6 py-2 whitespace-nowrap">
-                <button class="px-4 py-2 border rounded" onclick="editUser(${user.id})">Edit</button>
-                <button class="px-4 py-2 border rounded" onclick="deleteUser(${user.id})">Delete</button>
+                <span class="text-xs text-zinc-500">N/A</span>
               </td>
             `;
                         usersList.appendChild(row);
@@ -79,16 +87,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     data.cafes.forEach((cafe) => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
-              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.id}</td>
-              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.name}</td>
-              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.map_url}</td>
-              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.img_url}</td>
-              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.location}</td>
-              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.seats}</td>
-              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${cafe.coffee_price}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${escapeHtml(cafe.id)}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${escapeHtml(cafe.name)}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${escapeHtml(cafe.map_url)}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${escapeHtml(cafe.img_url)}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${escapeHtml(cafe.location)}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${escapeHtml(cafe.seats)}</td>
+              <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${escapeHtml(cafe.coffee_price)}</td>
               <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">
-                <button class="px-4 py-2 border rounded" onclick="editCafe(${cafe.id})">Edit</button>
-                <button class="px-4 py-2 border rounded" onclick="deleteCafe(${cafe.id})">Delete</button>
+                <span class="text-xs text-zinc-500">N/A</span>
               </td>
             `;
                         cafesList.appendChild(row);
@@ -109,9 +116,16 @@ document.addEventListener("DOMContentLoaded", function () {
             .then((response) => response.json())
             .then((data) => {
                 const users = data.users;
-                userSelect.innerHTML = '<option value="">Select User</option>';
+                userSelect.innerHTML = "";
+                const defaultOption = document.createElement("option");
+                defaultOption.value = "";
+                defaultOption.textContent = "Select User";
+                userSelect.appendChild(defaultOption);
                 users.forEach((user) => {
-                    userSelect.innerHTML += `<option value="${user.id}">${user.name}</option>`;
+                    const option = document.createElement("option");
+                    option.value = String(user.id);
+                    option.textContent = user.name;
+                    userSelect.appendChild(option);
                 });
             })
             .catch((error) => {
@@ -123,9 +137,16 @@ document.addEventListener("DOMContentLoaded", function () {
             .then((response) => response.json())
             .then((data) => {
                 const cafes = data.cafes;
-                cafeSelect.innerHTML = '<option value="">Select Cafe</option>';
+                cafeSelect.innerHTML = "";
+                const defaultOption = document.createElement("option");
+                defaultOption.value = "";
+                defaultOption.textContent = "Select Cafe";
+                cafeSelect.appendChild(defaultOption);
                 cafes.forEach((cafe) => {
-                    cafeSelect.innerHTML += `<option value="${cafe.id}">${cafe.name}</option>`;
+                    const option = document.createElement("option");
+                    option.value = String(cafe.id);
+                    option.textContent = cafe.name;
+                    cafeSelect.appendChild(option);
                 });
             })
             .catch((error) => {
@@ -160,14 +181,28 @@ document.addEventListener("DOMContentLoaded", function () {
                         tableHTML += "</tr></thead><tbody>";
 
                         cafes.forEach((cafe) => {
-                            tableHTML += `<tr><td class="px-6 py-4 whitespace-nowrap">${cafe.id}</td>`;
-                            tableHTML += `<td class="px-6 py-4 whitespace-nowrap">${cafe.name}</td>`;
-                            tableHTML += `<td class="px-6 py-4 whitespace-nowrap"><button class="px-4 py-2 border rounded" onclick="removeModerator(${userId}, ${cafe.id})">Remove</button></td></tr>`;
+                            tableHTML += `<tr><td class="px-6 py-4 whitespace-nowrap">${escapeHtml(cafe.id)}</td>`;
+                            tableHTML += `<td class="px-6 py-4 whitespace-nowrap">${escapeHtml(cafe.name)}</td>`;
+                            tableHTML += `<td class="px-6 py-4 whitespace-nowrap"><button class="px-4 py-2 border rounded remove-moderator-btn" data-user-id="${escapeHtml(userId)}" data-cafe-id="${escapeHtml(cafe.id)}">Remove</button></td></tr>`;
                         });
 
                         tableHTML += "</tbody></table>";
 
                         moderatedCafesDiv.innerHTML = tableHTML;
+                        moderatedCafesDiv
+                            .querySelectorAll(".remove-moderator-btn")
+                            .forEach((button) => {
+                                button.addEventListener("click", () => {
+                                    const selectedUserId =
+                                        button.getAttribute("data-user-id");
+                                    const selectedCafeId =
+                                        button.getAttribute("data-cafe-id");
+                                    window.removeModerator(
+                                        selectedUserId,
+                                        selectedCafeId
+                                    );
+                                });
+                            });
                     })
                     .catch((error) => {
                         console.error("Error fetching cafes:", error);
