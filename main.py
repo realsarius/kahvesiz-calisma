@@ -1,6 +1,5 @@
 import os
 import itsdangerous
-import requests
 
 from datetime import datetime, timezone
 from functools import wraps
@@ -18,22 +17,42 @@ from forms import CafeForm, ContactForm, UserForm
 
 load_dotenv()
 
+
+def get_env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def get_env_int(name, default):
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    try:
+        return int(raw_value)
+    except ValueError:
+        return default
+
+
 app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///cafes.db"
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:///cafes.db')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-me')
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
-app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT'))
+app.config['MAIL_PORT'] = get_env_int('MAIL_PORT', 587)
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS') == 'True'
-app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL') == 'True'
-app.config['WTF_CSRF_ENABLED'] = True
-app.config['WTF_CSRF_TIME_LIMIT'] = 3600
+app.config['MAIL_USE_TLS'] = get_env_bool('MAIL_USE_TLS', True)
+app.config['MAIL_USE_SSL'] = get_env_bool('MAIL_USE_SSL', False)
+app.config['WTF_CSRF_ENABLED'] = get_env_bool('WTF_CSRF_ENABLED', True)
+app.config['WTF_CSRF_TIME_LIMIT'] = get_env_int('WTF_CSRF_TIME_LIMIT', 3600)
+app.config['TINYMCE_API_KEY'] = os.getenv('TINYMCE_API_KEY', '')
+app.config['CAFES_PER_PAGE'] = get_env_int('CAFES_PER_PAGE', 20)
+app.config['COFFEE_CURRENCY_SYMBOL'] = os.getenv('COFFEE_CURRENCY_SYMBOL', '£')
 
 mail = Mail(app=app)
 csrf = CSRFProtect(app)
-s = itsdangerous.URLSafeTimedSerializer(os.getenv('SECRET_KEY'))
+s = itsdangerous.URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 
 @app.context_processor
@@ -200,6 +219,41 @@ def user_can_edit_cafe(user, cafe):
     return user.is_authenticated and (user.is_admin or user.is_moderator_of(cafe.id))
 
 
+def normalize_coffee_price(raw_price):
+    symbol = app.config['COFFEE_CURRENCY_SYMBOL']
+    value = str(raw_price or '').strip()
+    if not value:
+        return value
+    if value.startswith(symbol):
+        return value
+    return f'{symbol}{value}'
+
+
+def serialize_cafe(cafe):
+    return {
+        'id': cafe.id,
+        'name': cafe.name,
+        'map_url': cafe.map_url,
+        'img_url': cafe.img_url,
+        'location': cafe.location,
+        'has_sockets': cafe.has_sockets,
+        'has_toilet': cafe.has_toilet,
+        'has_wifi': cafe.has_wifi,
+        'can_take_calls': cafe.can_take_calls,
+        'seats': cafe.seats,
+        'coffee_price': cafe.coffee_price,
+        'details': cafe.details
+    }
+
+
+def parse_positive_int(value, default):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+    return parsed if parsed > 0 else default
+
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -291,7 +345,7 @@ def get_moderated_cafes(user_id):
 @login_required
 def update_cafe(cafe_id):
     cafe = Cafe.query.get(cafe_id)
-    tinymce_api_key = os.getenv('TINYMCE_API_KEY')
+    tinymce_api_key = app.config['TINYMCE_API_KEY']
 
     if not cafe:
         return redirect(url_for('cafes'))
@@ -303,6 +357,7 @@ def update_cafe(cafe_id):
 
     if form.validate_on_submit():
         form.populate_obj(cafe)
+        cafe.coffee_price = normalize_coffee_price(form.coffee_price.data)
         try:
             db.session.commit()
             flash('Cafe updated successfully!', 'success')
@@ -347,7 +402,7 @@ def api_update_cafe(cafe_id):
     cafe.has_wifi = data['has_wifi']
     cafe.can_take_calls = data['can_take_calls']
     cafe.seats = data['seats']
-    cafe.coffee_price = data['coffee_price']
+    cafe.coffee_price = normalize_coffee_price(data['coffee_price'])
     cafe.details = data.get('details')
 
     try:
@@ -364,9 +419,9 @@ def api_update_cafe(cafe_id):
 @admin_required
 def add_cafe():
     form = CafeForm()
-    tinymce_api_key = os.getenv('TINYMCE_API_KEY')
+    tinymce_api_key = app.config['TINYMCE_API_KEY']
 
-    if request.method == 'POST':
+    if form.validate_on_submit():
         name = form.name.data
         map_url = form.map_url.data
         img_url = form.img_url.data
@@ -389,7 +444,7 @@ def add_cafe():
             has_wifi=has_wifi,
             can_take_calls=can_take_calls,
             seats=seats,
-            coffee_price="£" + coffee_price,
+            coffee_price=normalize_coffee_price(coffee_price),
             details=details
         )
 
@@ -402,6 +457,8 @@ def add_cafe():
             db.session.rollback()
             flash(f'An error occurred while adding the cafe: {e}', 'error')
             print(f'Error: {e}')
+    elif request.method == 'POST':
+        flash('Form doğrulaması başarısız. Lütfen alanları kontrol edin.', 'error')
 
     return render_template('add_cafe.html', form=form, tinymce_api_key=tinymce_api_key)
 
@@ -454,7 +511,7 @@ def api_add_cafe():
         has_wifi=data['has_wifi'],
         can_take_calls=data['can_take_calls'],
         seats=data['seats'],
-        coffee_price="£" + data['coffee_price'],
+        coffee_price=normalize_coffee_price(data['coffee_price']),
         details=data.get('details')
     )
 
@@ -473,22 +530,7 @@ def get_cafe(id):
     cafe = Cafe.query.get(id)
     if not cafe:
         return make_response(jsonify({'error': 'Cafe not found'}), 404)
-
-    cafe_data = {
-        'id': cafe.id,
-        'name': cafe.name,
-        'map_url': cafe.map_url,
-        'img_url': cafe.img_url,
-        'location': cafe.location,
-        'has_sockets': cafe.has_sockets,
-        'has_toilet': cafe.has_toilet,
-        'has_wifi': cafe.has_wifi,
-        'can_take_calls': cafe.can_take_calls,
-        'seats': cafe.seats,
-        'coffee_price': cafe.coffee_price,
-        'details': cafe.details
-    }
-    return make_response(jsonify(cafe_data), 200)
+    return make_response(jsonify(serialize_cafe(cafe)), 200)
 
 
 @app.route('/api/cafes', methods=['GET'])
@@ -504,23 +546,7 @@ def get_all_cafes():
         else:
             cafes = Cafe.query.all()
 
-        cafes_list = [
-            {
-                'id': cafe.id,
-                'name': cafe.name,
-                'map_url': cafe.map_url,
-                'img_url': cafe.img_url,
-                'location': cafe.location,
-                'has_sockets': cafe.has_sockets,
-                'has_toilet': cafe.has_toilet,
-                'has_wifi': cafe.has_wifi,
-                'can_take_calls': cafe.can_take_calls,
-                'seats': cafe.seats,
-                'coffee_price': cafe.coffee_price,
-                'details': cafe.details
-            }
-            for cafe in cafes
-        ]
+        cafes_list = [serialize_cafe(cafe) for cafe in cafes]
         return make_response(jsonify({'cafes': cafes_list}), 200)
     except Exception as e:
         app.logger.error(f"An error occurred: {e}")
@@ -530,19 +556,16 @@ def get_all_cafes():
 @app.route('/cafes', methods=['GET'])
 def cafes():
     try:
-        page = int(request.args.get('page', 1))
-        per_page = 20
-        response = requests.get('http://localhost:5000/api/cafes')
-        if response.status_code == 200:
-            cafes_data = response.json().get('cafes', [])
-            start = (page - 1) * per_page
-            end = start + per_page
-            paginated_cafes = cafes_data[start:end]
-            total_pages = (len(cafes_data) + per_page - 1) // per_page
-            return render_template('cafes.html', cafes=paginated_cafes, total_pages=total_pages, current_page=page)
-        else:
-            return render_template('cafes.html', cafes=[], error="No cafes found.")
-    except requests.RequestException as e:
+        page = parse_positive_int(request.args.get('page', 1), 1)
+        per_page = app.config['CAFES_PER_PAGE']
+        pagination = Cafe.query.order_by(Cafe.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+        return render_template(
+            'cafes.html',
+            cafes=pagination.items,
+            total_pages=pagination.pages,
+            current_page=page
+        )
+    except Exception as e:
         app.logger.error(f"An error occurred: {e}")
         return render_template('cafes.html', cafes=[], error="An error occurred while retrieving cafes.")
 
@@ -559,16 +582,10 @@ def contact_us():
 
 @app.route('/cafes/<int:cafe_id>')
 def cafe_detail(cafe_id):
-    try:
-        response = requests.get(f'http://localhost:5000/api/cafes/{cafe_id}')
-        if response.status_code == 200:
-            cafe_data = response.json()
-            return render_template('cafe_detail.html', cafe=cafe_data)
-        else:
-            return render_template('cafe_detail.html', error="Cafe not found.")
-    except requests.RequestException as e:
-        app.logger.error(f"An error occurred: {e}")
-        return render_template('cafe_detail.html', error="An error occurred while retrieving the cafe.")
+    cafe = Cafe.query.get(cafe_id)
+    if not cafe:
+        return render_template('cafe_detail.html', cafe=None, error="Cafe not found.")
+    return render_template('cafe_detail.html', cafe=cafe)
 
 
 @app.route('/api/login', methods=['POST'])
@@ -729,7 +746,7 @@ def get_all_users():
                 'id': user.id,
                 'name': user.name,
                 'email': user.email,
-                'created_at': user.created_at,
+                'created_at': user.created_at.isoformat() if user.created_at else None,
             }
             for user in users
         ]
