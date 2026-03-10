@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
     const userSelect = document.getElementById('user_id');
     const moderatedCafesDiv = document.getElementById('moderated-cafes-list');
+    const csrfToken = document
+        .querySelector('meta[name="csrf-token"]')
+        ?.getAttribute("content");
 
     userSelect.addEventListener('change', function () {
         const userId = userSelect.value;
@@ -8,8 +11,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (userId) {
             fetch(`/moderated_cafes/${userId}`)
                 .then(response => response.json())
-                .then(data => {
-                    const cafes = data.cafes;
+                .then(result => {
+                    const cafes = result.data?.cafes || [];
 
                     let tableHTML = '<table class="min-w-full divide-y divide-gray-200">';
                     tableHTML += '<thead class=""><tr>';
@@ -41,16 +44,17 @@ document.addEventListener('DOMContentLoaded', function () {
                                     method: 'DELETE',
                                     headers: {
                                         'Content-Type': 'application/json',
+                                        'X-CSRFToken': csrfToken,
                                         'X-Requested-With': 'XMLHttpRequest'
                                     }
                                 })
                                     .then(response => response.json())
                                     .then(result => {
-                                        if (result.success) {
+                                        if (result.data?.success) {
                                             alert('Cafe removed successfully.');
                                             this.closest('tr').remove();
                                         } else {
-                                            alert('Failed to remove cafe.');
+                                            alert(result.error?.message || 'Failed to remove cafe.');
                                         }
                                     })
                                     .catch(error => {

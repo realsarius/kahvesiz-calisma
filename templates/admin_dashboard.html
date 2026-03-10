@@ -155,6 +155,7 @@
                         action="{{ url_for('assign_moderator_page') }}"
                         class="space-y-6"
                 >
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="form-group">
                         <label
                                 for="user_id"

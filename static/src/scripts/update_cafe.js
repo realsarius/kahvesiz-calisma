@@ -2,6 +2,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("update-cafe-form");
     const cafeId = document.getElementById("cafe-id").value;
 
+    function getCsrfToken() {
+        const tokenFromForm = form.querySelector('input[name="csrf_token"]')?.value;
+        if (tokenFromForm) {
+            return tokenFromForm;
+        }
+        return document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
+    }
+
     form.addEventListener("submit", function (event) {
         event.preventDefault(); // Prevent the default form submission
 
@@ -23,22 +33,24 @@ document.addEventListener("DOMContentLoaded", function () {
             details: formData.get("details"),
         };
 
-        fetch(`/api/update_cafe/${cafeId}`, {
+        fetch(`/api/cafes/${cafeId}`, {
             method: "PUT", // Use PUT method as defined in your route
             body: JSON.stringify(data),
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": formData.get("csrf_token"), // Include CSRF token if needed
+                "X-CSRFToken": getCsrfToken(),
             },
         })
             .then((response) => response.json())
             .then((result) => {
-                if (result.error) {
+                const apiData = result.data || {};
+                const apiError = result.error?.message;
+                if (apiError) {
                     // Display errors
-                    alert(result.error);
+                    alert(apiError);
                 } else {
                     // Success message
-                    alert(result.message);
+                    alert(apiData.message || "Kafe güncellendi.");
                     window.location.href = `/cafes/${cafeId}`; // Redirect or update the page
                 }
             })
@@ -79,7 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Fetch cafe details
                 fetch(`/api/cafes/${cafeId}`)
                     .then((response) => response.json())
-                    .then((data) => {
+                    .then((result) => {
+                        const data = result.data || {};
                         if (data.details) {
                             editor.setContent(data.details);
                         } else {

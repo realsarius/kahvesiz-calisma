@@ -5,6 +5,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const cancelDeleteBtn = document.getElementById("cancel-delete");
     let cafeId = null; // To store cafe ID
 
+    function getCsrfToken() {
+        return document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
+    }
+
     // Show modal and set cafe ID
     deleteBtn.addEventListener("click", function () {
         cafeId = this.getAttribute("data-cafe-id");
@@ -14,19 +20,22 @@ document.addEventListener("DOMContentLoaded", function () {
     // Confirm delete
     confirmDeleteBtn.addEventListener("click", function () {
         if (cafeId) {
-            fetch(`/api/delete_cafe/${cafeId}`, {
+            fetch(`/api/cafes/${cafeId}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken(),
                 },
             })
                 .then((response) => response.json())
                 .then((result) => {
+                    const apiData = result.data || {};
+                    const apiError = result.error?.message;
                     modal.classList.add("hidden");
-                    if (result.error) {
-                        alert(result.error);
+                    if (apiError) {
+                        alert(apiError);
                     } else {
-                        alert(result.message);
+                        alert(apiData.message || "Kafe silindi.");
                         window.location.href = "/cafes"; // Redirect or update the page
                     }
                 })

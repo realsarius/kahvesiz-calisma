@@ -12,10 +12,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || "Error fetching cafes.");
+                throw new Error(data.error?.message || "Error fetching cafes.");
             }
 
-            const cafes = data.cafes;
+            const cafes = data.data?.cafes || [];
             return !cafes.some((cafe) => cafe[field] === value);
         } catch (error) {
             console.error("API error:", error);

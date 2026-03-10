@@ -5,6 +5,27 @@ document.addEventListener('DOMContentLoaded', function () {
     const paginationDiv = document.getElementById('cafes-pagination');
     let timeoutId;
 
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function safeUrl(url) {
+        try {
+            const parsed = new URL(String(url), window.location.origin);
+            if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                return parsed.toString();
+            }
+            return '#';
+        } catch {
+            return '#';
+        }
+    }
+
     searchInput.addEventListener('input', function () {
         const query = searchInput.value.trim();
 
@@ -19,9 +40,10 @@ document.addEventListener('DOMContentLoaded', function () {
             timeoutId = setTimeout(() => {
                 fetch(`/api/cafes?search=${encodeURIComponent(query)}`)
                     .then(response => response.json())
-                    .then(data => {
-                        if (data.cafes) {
-                            renderResults(data.cafes);
+                    .then(result => {
+                        const cafes = result.data?.cafes || [];
+                        if (cafes.length > 0) {
+                            renderResults(cafes);
                         } else {
                             resultsDiv.innerHTML = '<p>Hiçbir kafe bulunamadı.</p>';
                         }
@@ -42,25 +64,25 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderResults(cafes) {
         resultsDiv.innerHTML = cafes.map(cafe => `
             <div class="bg-white/20 border border-gray-200 rounded-lg shadow dark:bg-zinc-900/20 dark:border-zinc-800 overflow-hidden backdrop-blur-sm">
-                <a href="/cafes/${cafe.id}">
+                <a href="/cafes/${encodeURIComponent(cafe.id)}">
                     <img
                         class="rounded-t-lg w-full h-44 object-cover hover:scale-105 transition-transform duration-200"
-                        src="${cafe.img_url}"
-                        alt="${cafe.name}"
+                        src="${safeUrl(cafe.img_url)}"
+                        alt="${escapeHtml(cafe.name)}"
                     />
                 </a>
                 <div class="p-5">
-                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white drop-shadow">${cafe.name}</h5>
-                    <p class="mb-3 font-normal dark:text-zinc-200 text-zinc-700"><strong>Nerede:</strong> ${cafe.location}</p>
+                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white drop-shadow">${escapeHtml(cafe.name)}</h5>
+                    <p class="mb-3 font-normal dark:text-zinc-200 text-zinc-700"><strong>Nerede:</strong> ${escapeHtml(cafe.location)}</p>
                     <p class="mb-3 font-normal dark:text-zinc-200 text-zinc-700"><strong>Priz:</strong> ${cafe.has_sockets ? 'Evet' : 'Hayır'}</p>
                     <p class="mb-3 font-normal dark:text-zinc-200 text-zinc-700"><strong>Tuvalet:</strong> ${cafe.has_toilet ? 'Evet' : 'Hayır'}</p>
                     <p class="mb-3 font-normal dark:text-zinc-200 text-zinc-700"><strong>Wifi:</strong> ${cafe.has_wifi ? 'Evet' : 'Hayır'}</p>
                     <p class="mb-3 font-normal dark:text-zinc-200 text-zinc-700"><strong>Çağrı alıyor mu:</strong> ${cafe.can_take_calls ? 'Evet' : 'Hayır'}</p>
-                    <p class="mb-3 font-normal dark:text-zinc-200 text-zinc-700"><strong>Koltuklar:</strong> ${cafe.seats}</p>
-                    <p class="mb-3 font-normal dark:text-zinc-200 text-zinc-700"><strong>Kahve fiyatı:</strong> ${cafe.coffee_price}</p>
+                    <p class="mb-3 font-normal dark:text-zinc-200 text-zinc-700"><strong>Koltuklar:</strong> ${escapeHtml(cafe.seats)}</p>
+                    <p class="mb-3 font-normal dark:text-zinc-200 text-zinc-700"><strong>Kahve fiyatı:</strong> ${escapeHtml(cafe.coffee_price)}</p>
                     <div class="flex align-middle gap-4">
-                        <a href="/cafes/${cafe.id}" class="inline-flex items-center px-3 py-2 rounded transition-colors duration-200 bg-lavender dark:text-zinc-950 dark:hover:bg-violet-200">Daha Fazla</a>
-                        <a href="${cafe.map_url}" class="inline-flex items-center py-2 text-center transition-colors duration-200 drop-shadow-md hover:text-dark-purple dark:hover:text-lavender" target="_blank">Haritada Gör
+                        <a href="/cafes/${encodeURIComponent(cafe.id)}" class="inline-flex items-center px-3 py-2 rounded transition-colors duration-200 bg-lavender dark:text-zinc-950 dark:hover:bg-violet-200">Daha Fazla</a>
+                        <a href="${safeUrl(cafe.map_url)}" class="inline-flex items-center py-2 text-center transition-colors duration-200 drop-shadow-md hover:text-dark-purple dark:hover:text-lavender" target="_blank" rel="noopener noreferrer">Haritada Gör
                             <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
                             </svg>
