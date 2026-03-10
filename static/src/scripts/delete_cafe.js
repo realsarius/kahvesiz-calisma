@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Confirm delete
     confirmDeleteBtn.addEventListener("click", function () {
         if (cafeId) {
-            fetch(`/api/delete_cafe/${cafeId}`, {
+            fetch(`/api/cafes/${cafeId}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",

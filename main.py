@@ -297,6 +297,7 @@ def update_cafe(cafe_id):
     return render_template('update_cafe.html', form=form, cafe=cafe, tinymce_api_key=tinymce_api_key)
 
 
+@app.route('/api/cafes/<int:cafe_id>', methods=['PUT'])
 @app.route('/api/update_cafe/<int:cafe_id>', methods=['PUT'])
 @api_login_required
 def api_update_cafe(cafe_id):
@@ -318,7 +319,7 @@ def api_update_cafe(cafe_id):
         return jsonify({'error': 'You do not have permission to update this cafe.'}), 403
 
     if Cafe.query.filter(Cafe.name == data['name'], Cafe.id != cafe_id).first():
-        return jsonify({'error': 'A cafe with this name already exists. Please choose a different name.'}), 400
+        return jsonify({'error': 'A cafe with this name already exists. Please choose a different name.'}), 409
 
     cafe.name = data['name']
     cafe.map_url = data['map_url']
@@ -388,6 +389,7 @@ def add_cafe():
     return render_template('add_cafe.html', form=form, tinymce_api_key=tinymce_api_key)
 
 
+@app.route('/api/cafes/<int:cafe_id>', methods=['DELETE'])
 @app.route('/api/delete_cafe/<int:cafe_id>', methods=['DELETE'])
 @api_admin_required
 def api_delete_cafe(cafe_id):
@@ -406,6 +408,7 @@ def api_delete_cafe(cafe_id):
     return jsonify({'message': 'Cafe deleted successfully!'}), 200
 
 
+@app.route('/api/cafes', methods=['POST'])
 @app.route('/api/add_cafe', methods=['POST'])
 @api_admin_required
 def api_add_cafe():
@@ -422,7 +425,7 @@ def api_add_cafe():
 
     existing_cafe = Cafe.query.filter_by(name=data['name']).first()
     if existing_cafe:
-        return jsonify({'error': 'A cafe with this name already exists. Please choose a different name.'}), 400
+        return jsonify({'error': 'A cafe with this name already exists. Please choose a different name.'}), 409
 
     new_cafe = Cafe(
         name=data['name'],
@@ -450,26 +453,25 @@ def api_add_cafe():
 
 @app.route('/api/cafes/<int:id>', methods=['GET'])
 def get_cafe(id):
-    try:
-        cafe = Cafe.query.get_or_404(id)
-        cafe_data = {
-            'id': cafe.id,
-            'name': cafe.name,
-            'map_url': cafe.map_url,
-            'img_url': cafe.img_url,
-            'location': cafe.location,
-            'has_sockets': cafe.has_sockets,
-            'has_toilet': cafe.has_toilet,
-            'has_wifi': cafe.has_wifi,
-            'can_take_calls': cafe.can_take_calls,
-            'seats': cafe.seats,
-            'coffee_price': cafe.coffee_price,
-            'details': cafe.details
-        }
-        return make_response(jsonify(cafe_data), 200)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return make_response(jsonify({'error': 'An error occurred while retrieving the cafe'}), 500)
+    cafe = Cafe.query.get(id)
+    if not cafe:
+        return make_response(jsonify({'error': 'Cafe not found'}), 404)
+
+    cafe_data = {
+        'id': cafe.id,
+        'name': cafe.name,
+        'map_url': cafe.map_url,
+        'img_url': cafe.img_url,
+        'location': cafe.location,
+        'has_sockets': cafe.has_sockets,
+        'has_toilet': cafe.has_toilet,
+        'has_wifi': cafe.has_wifi,
+        'can_take_calls': cafe.can_take_calls,
+        'seats': cafe.seats,
+        'coffee_price': cafe.coffee_price,
+        'details': cafe.details
+    }
+    return make_response(jsonify(cafe_data), 200)
 
 
 @app.route('/api/cafes', methods=['GET'])
@@ -485,27 +487,24 @@ def get_all_cafes():
         else:
             cafes = Cafe.query.all()
 
-        if cafes:
-            cafes_list = [
-                {
-                    'id': cafe.id,
-                    'name': cafe.name,
-                    'map_url': cafe.map_url,
-                    'img_url': cafe.img_url,
-                    'location': cafe.location,
-                    'has_sockets': cafe.has_sockets,
-                    'has_toilet': cafe.has_toilet,
-                    'has_wifi': cafe.has_wifi,
-                    'can_take_calls': cafe.can_take_calls,
-                    'seats': cafe.seats,
-                    'coffee_price': cafe.coffee_price,
-                    'details': cafe.details
-                }
-                for cafe in cafes
-            ]
-            return make_response(jsonify({'cafes': cafes_list}), 200)
-        else:
-            return make_response(jsonify({'error': 'No cafes found'}), 404)
+        cafes_list = [
+            {
+                'id': cafe.id,
+                'name': cafe.name,
+                'map_url': cafe.map_url,
+                'img_url': cafe.img_url,
+                'location': cafe.location,
+                'has_sockets': cafe.has_sockets,
+                'has_toilet': cafe.has_toilet,
+                'has_wifi': cafe.has_wifi,
+                'can_take_calls': cafe.can_take_calls,
+                'seats': cafe.seats,
+                'coffee_price': cafe.coffee_price,
+                'details': cafe.details
+            }
+            for cafe in cafes
+        ]
+        return make_response(jsonify({'cafes': cafes_list}), 200)
     except Exception as e:
         app.logger.error(f"An error occurred: {e}")
         return make_response(jsonify({'error': 'An error occurred while retrieving cafes'}), 500)
@@ -557,21 +556,23 @@ def cafe_detail(cafe_id):
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
-    data = request.json
+    data = request.get_json(silent=True) or {}
     email = data.get('email')
     password = data.get('password')
 
     if not email:
-        return jsonify({'error': 'E-posta adresi gerekli.'}), 400
+        return jsonify({'error': 'E-posta adresi gerekli.'}), 422
     if not password:
-        return jsonify({'error': 'Şifre gerekli.'}), 400
+        return jsonify({'error': 'Şifre gerekli.'}), 422
 
     user = User.query.filter_by(email=email).first()
-    if user and check_password_hash(user.password, password):
-        login_user(user)
-        return jsonify({'message': 'Giriş başarılı!'}), 200
-    else:
-        return jsonify({'error': 'Geçersiz e-posta adresi veya şifre.'}), 400
+    if not user or not check_password_hash(user.password, password):
+        return jsonify({'error': 'Geçersiz e-posta adresi veya şifre.'}), 401
+    if not user.is_confirmed:
+        return jsonify({'error': 'Hesabınızı doğrulamanız gerekiyor.'}), 403
+
+    login_user(user)
+    return jsonify({'message': 'Giriş başarılı!'}), 200
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -612,22 +613,22 @@ def login():
 
 @app.route('/api/signup', methods=['POST'])
 def api_signup():
-    data = request.json
+    data = request.get_json(silent=True) or {}
     name = data.get('name')
     email = data.get('email')
     password = data.get('password')
 
     if not name:
-        return jsonify({'error': 'İsim gerekli.'}), 400
+        return jsonify({'error': 'İsim gerekli.'}), 422
     if not email:
-        return jsonify({'error': 'E-posta adresi gerekli.'}), 400
+        return jsonify({'error': 'E-posta adresi gerekli.'}), 422
     if not password:
-        return jsonify({'error': 'Şifre gerekli.'}), 400
+        return jsonify({'error': 'Şifre gerekli.'}), 422
     if len(password) < 8:
-        return jsonify({'error': 'Şifre en az 8 karakter olmalı.'}), 400
+        return jsonify({'error': 'Şifre en az 8 karakter olmalı.'}), 422
 
     if User.query.filter_by(email=email).first():
-        return jsonify({'error': 'E-posta adresi zaten kullanımda.'}), 400
+        return jsonify({'error': 'E-posta adresi zaten kullanımda.'}), 409
 
     hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
     new_user = User(name=name, email=email, password=hashed_password, is_admin=False, is_confirmed=False)
@@ -706,19 +707,16 @@ def get_all_users():
         else:
             users = User.query.all()
 
-        if users:
-            users_list = [
-                {
-                    'id': user.id,
-                    'name': user.name,
-                    'email': user.email,
-                    'created_at': user.created_at,
-                }
-                for user in users
-            ]
-            return make_response(jsonify({'users': users_list}), 200)
-        else:
-            return make_response(jsonify({'error': 'No users found'}), 404)
+        users_list = [
+            {
+                'id': user.id,
+                'name': user.name,
+                'email': user.email,
+                'created_at': user.created_at,
+            }
+            for user in users
+        ]
+        return make_response(jsonify({'users': users_list}), 200)
     except Exception as e:
         app.logger.error(f"An error occurred: {e}")
         return make_response(jsonify({'error': 'An error occurred while retrieving users'}), 500)

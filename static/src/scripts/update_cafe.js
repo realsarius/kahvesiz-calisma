@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
             details: formData.get("details"),
         };
 
-        fetch(`/api/update_cafe/${cafeId}`, {
+        fetch(`/api/cafes/${cafeId}`, {
             method: "PUT", // Use PUT method as defined in your route
             body: JSON.stringify(data),
             headers: {
