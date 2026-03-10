@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (userId) {
             fetch(`/moderated_cafes/${userId}`)
                 .then(response => response.json())
-                .then(data => {
-                    const cafes = data.cafes;
+                .then(result => {
+                    const cafes = result.data?.cafes || [];
 
                     let tableHTML = '<table class="min-w-full divide-y divide-gray-200">';
                     tableHTML += '<thead class=""><tr>';
@@ -50,11 +50,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                 })
                                     .then(response => response.json())
                                     .then(result => {
-                                        if (result.success) {
+                                        if (result.data?.success) {
                                             alert('Cafe removed successfully.');
                                             this.closest('tr').remove();
                                         } else {
-                                            alert('Failed to remove cafe.');
+                                            alert(result.error?.message || 'Failed to remove cafe.');
                                         }
                                     })
                                     .catch(error => {

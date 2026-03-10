@@ -1,0 +1,2 @@
+"""Kahvesiz Calisma application package."""
+

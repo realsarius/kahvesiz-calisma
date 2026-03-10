@@ -29,11 +29,13 @@ document.addEventListener("DOMContentLoaded", function () {
             })
                 .then((response) => response.json())
                 .then((result) => {
+                    const apiData = result.data || {};
+                    const apiError = result.error?.message;
                     modal.classList.add("hidden");
-                    if (result.error) {
-                        alert(result.error);
+                    if (apiError) {
+                        alert(apiError);
                     } else {
-                        alert(result.message);
+                        alert(apiData.message || "Kafe silindi.");
                         window.location.href = "/cafes"; // Redirect or update the page
                     }
                 })

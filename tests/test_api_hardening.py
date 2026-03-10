@@ -11,6 +11,8 @@ os.environ["WTF_CSRF_ENABLED"] = "True"
 os.environ["AUTO_CREATE_SCHEMA"] = "False"
 
 import main  # noqa: E402
+from kahvesiz_app.extensions import db  # noqa: E402
+from kahvesiz_app.models import Cafe, User  # noqa: E402
 
 
 class ApiHardeningTests(unittest.TestCase):
@@ -24,33 +26,33 @@ class ApiHardeningTests(unittest.TestCase):
         self.client = self.app.test_client()
 
         with self.app.app_context():
-            main.db.drop_all()
-            main.db.create_all()
+            db.drop_all()
+            db.create_all()
 
-            admin_user = main.User(
+            admin_user = User(
                 name="Admin",
                 email="admin@example.com",
                 password="hashed-password",
                 is_admin=True,
                 is_confirmed=True,
             )
-            regular_user = main.User(
+            regular_user = User(
                 name="User",
                 email="user@example.com",
                 password="hashed-password",
                 is_admin=False,
                 is_confirmed=True,
             )
-            main.db.session.add_all([admin_user, regular_user])
-            main.db.session.commit()
+            db.session.add_all([admin_user, regular_user])
+            db.session.commit()
 
             self.admin_id = admin_user.id
             self.user_id = regular_user.id
 
     def tearDown(self):
         with self.app.app_context():
-            main.db.session.remove()
-            main.db.drop_all()
+            db.session.remove()
+            db.drop_all()
 
     def _login_as(self, user_id):
         with self.client.session_transaction() as session:
@@ -83,7 +85,9 @@ class ApiHardeningTests(unittest.TestCase):
     def test_get_cafes_empty_returns_200_and_empty_list(self):
         response = self.client.get("/api/cafes")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json(), {"cafes": []})
+        payload = response.get_json()
+        self.assertEqual(payload["error"], None)
+        self.assertEqual(payload["data"], {"cafes": []})
 
     def test_legacy_write_endpoints_are_removed(self):
         self.assertEqual(self.client.post("/api/add_cafe").status_code, 404)
@@ -98,7 +102,8 @@ class ApiHardeningTests(unittest.TestCase):
             headers={"Content-Type": "application/json"},
         )
         self.assertEqual(response.status_code, 400)
-        self.assertIn("CSRF", response.get_json().get("error", ""))
+        payload = response.get_json()
+        self.assertIn("CSRF", payload["error"]["message"])
 
     def test_non_admin_cannot_create_cafe(self):
         self._login_as(self.user_id)
@@ -109,6 +114,7 @@ class ApiHardeningTests(unittest.TestCase):
             headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
         )
         self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.get_json()["error"]["code"], "ADMIN_REQUIRED")
 
     def test_rich_text_is_sanitized_on_api_create(self):
         self._login_as(self.admin_id)
@@ -122,9 +128,10 @@ class ApiHardeningTests(unittest.TestCase):
             headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
         )
         self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.get_json()["error"], None)
 
         with self.app.app_context():
-            cafe = main.Cafe.query.filter_by(name="Sanitize Cafe").first()
+            cafe = Cafe.query.filter_by(name="Sanitize Cafe").first()
             self.assertIsNotNone(cafe)
             self.assertNotIn("<script", (cafe.details or "").lower())
             self.assertNotIn("javascript:", (cafe.details or "").lower())
@@ -138,6 +145,7 @@ class ApiHardeningTests(unittest.TestCase):
             headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
         )
         self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.get_json()["error"]["code"], "EMAIL_ALREADY_EXISTS")
 
     def test_login_invalid_credentials_returns_401(self):
         csrf_token = self._csrf_token()
@@ -147,6 +155,7 @@ class ApiHardeningTests(unittest.TestCase):
             headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
         )
         self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.get_json()["error"]["code"], "INVALID_CREDENTIALS")
 
 
 if __name__ == "__main__":

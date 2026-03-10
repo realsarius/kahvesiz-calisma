@@ -52,14 +52,15 @@ document.addEventListener("DOMContentLoaded", function () {
     function fetchUsers() {
         fetch("/api/users")
             .then((response) => response.json())
-            .then((data) => {
+            .then((result) => {
                 const usersList = document.getElementById("users-list");
+                const users = result.data?.users || [];
 
                 // Clear existing content
                 usersList.innerHTML = "";
 
-                if (data.users) {
-                    data.users.forEach((user) => {
+                if (users.length > 0) {
+                    users.forEach((user) => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
               <td class="px-6 py-2 whitespace-nowrap">${escapeHtml(user.id)}</td>
@@ -83,14 +84,15 @@ document.addEventListener("DOMContentLoaded", function () {
     function fetchCafes() {
         fetch("/api/cafes")
             .then((response) => response.json())
-            .then((data) => {
+            .then((result) => {
                 const cafesList = document.getElementById("cafes-list");
+                const cafes = result.data?.cafes || [];
 
                 // Clear existing content
                 cafesList.innerHTML = "";
 
-                if (data.cafes) {
-                    data.cafes.forEach((cafe) => {
+                if (cafes.length > 0) {
+                    cafes.forEach((cafe) => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
               <td class="px-6 py-2 whitespace-nowrap max-w-xs truncate">${escapeHtml(cafe.id)}</td>
@@ -118,10 +120,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const cafeSelect = document.getElementById("cafe_id");
 
         // Fetch users
-        fetch("api/users")
+        fetch("/api/users")
             .then((response) => response.json())
-            .then((data) => {
-                const users = data.users;
+            .then((result) => {
+                const users = result.data?.users || [];
                 userSelect.innerHTML = "";
                 const defaultOption = document.createElement("option");
                 defaultOption.value = "";
@@ -139,10 +141,10 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
         // Fetch cafes
-        fetch("api/cafes")
+        fetch("/api/cafes")
             .then((response) => response.json())
-            .then((data) => {
-                const cafes = data.cafes;
+            .then((result) => {
+                const cafes = result.data?.cafes || [];
                 cafeSelect.innerHTML = "";
                 const defaultOption = document.createElement("option");
                 defaultOption.value = "";
@@ -171,8 +173,8 @@ document.addEventListener("DOMContentLoaded", function () {
             if (userId) {
                 fetch(`/moderated_cafes/${userId}`)
                     .then((response) => response.json())
-                    .then((data) => {
-                        const cafes = data.cafes;
+                    .then((result) => {
+                        const cafes = result.data?.cafes || [];
 
                         // Create the table structure
                         let tableHTML =
@@ -229,13 +231,15 @@ document.addEventListener("DOMContentLoaded", function () {
             },
         })
             .then((response) => response.json())
-            .then((data) => {
-                if (data.success) {
+            .then((result) => {
+                const success = result.data?.success === true;
+                const errorMessage = result.error?.message;
+                if (success) {
                     alert("Moderator removed successfully.");
                     // Refresh the moderated cafes list
                     document.getElementById("user_id").dispatchEvent(new Event("change"));
                 } else {
-                    alert("Failed to remove moderator: " + data.message);
+                    alert("Failed to remove moderator: " + (errorMessage || "Unknown error"));
                 }
             })
             .catch((error) => {

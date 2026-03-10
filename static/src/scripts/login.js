@@ -19,12 +19,14 @@ document
         });
 
         const result = await response.json();
+        const apiData = result.data || {};
+        const apiError = result.error?.message;
         const messageContainer = document.getElementById("message-container");
 
         if (response.ok) {
-            messageContainer.innerHTML = `<div class="  text-green-300">${result.message}</div>`;
+            messageContainer.innerHTML = `<div class="  text-green-300">${apiData.message || "Giriş başarılı!"}</div>`;
             setTimeout(() => (window.location.href = "/"), 2000);
         } else {
-            messageContainer.innerHTML = `<div class=" text-red-300">${result.error}</div>`;
+            messageContainer.innerHTML = `<div class=" text-red-300">${apiError || "Bir hata oluştu."}</div>`;
         }
     });

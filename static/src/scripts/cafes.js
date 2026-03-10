@@ -40,9 +40,10 @@ document.addEventListener('DOMContentLoaded', function () {
             timeoutId = setTimeout(() => {
                 fetch(`/api/cafes?search=${encodeURIComponent(query)}`)
                     .then(response => response.json())
-                    .then(data => {
-                        if (data.cafes) {
-                            renderResults(data.cafes);
+                    .then(result => {
+                        const cafes = result.data?.cafes || [];
+                        if (cafes.length > 0) {
+                            renderResults(cafes);
                         } else {
                             resultsDiv.innerHTML = '<p>Hiçbir kafe bulunamadı.</p>';
                         }

@@ -43,12 +43,14 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then((response) => response.json())
             .then((result) => {
-                if (result.error) {
+                const apiData = result.data || {};
+                const apiError = result.error?.message;
+                if (apiError) {
                     // Display errors
-                    alert(result.error);
+                    alert(apiError);
                 } else {
                     // Success message
-                    alert(result.message);
+                    alert(apiData.message || "Kafe güncellendi.");
                     window.location.href = `/cafes/${cafeId}`; // Redirect or update the page
                 }
             })
@@ -89,7 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Fetch cafe details
                 fetch(`/api/cafes/${cafeId}`)
                     .then((response) => response.json())
-                    .then((data) => {
+                    .then((result) => {
+                        const data = result.data || {};
                         if (data.details) {
                             editor.setContent(data.details);
                         } else {
