@@ -186,6 +186,21 @@ def register_api_routes(app):
         login_user(user)
         return success_response({"message": "Giriş başarılı!"}, status=200)
 
+    @app.route("/api/auth/session", methods=["GET"])
+    @api_login_required
+    def api_auth_session():
+        return success_response(
+            {
+                "user": {
+                    "id": current_user.id,
+                    "name": current_user.name,
+                    "email": current_user.email,
+                    "is_admin": bool(current_user.is_admin),
+                }
+            },
+            status=200,
+        )
+
     @app.route("/api/signup", methods=["POST"])
     def api_signup():
         data = request.get_json(silent=True) or {}
@@ -256,4 +271,3 @@ def register_api_routes(app):
             flash("Hesabınız onaylandı! Şimdi giriş yapabilirsiniz.", "success")
 
         return redirect(url_for("login"))
-

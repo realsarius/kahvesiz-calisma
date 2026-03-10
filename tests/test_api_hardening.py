@@ -157,6 +157,23 @@ class ApiHardeningTests(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.get_json()["error"]["code"], "INVALID_CREDENTIALS")
 
+    def test_auth_session_requires_authentication(self):
+        response = self.client.get("/api/auth/session")
+        self.assertEqual(response.status_code, 401)
+        payload = response.get_json()
+        self.assertEqual(payload["error"]["code"], "AUTH_REQUIRED")
+
+    def test_auth_session_returns_current_user_payload(self):
+        self._login_as(self.user_id)
+        response = self.client.get("/api/auth/session")
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+
+        self.assertEqual(payload["error"], None)
+        self.assertEqual(payload["data"]["user"]["email"], "user@example.com")
+        self.assertEqual(payload["data"]["user"]["name"], "User")
+        self.assertEqual(payload["data"]["user"]["is_admin"], False)
+
 
 if __name__ == "__main__":
     unittest.main()

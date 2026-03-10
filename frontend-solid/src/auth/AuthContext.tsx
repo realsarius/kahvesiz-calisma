@@ -2,8 +2,16 @@ import { createContext, onCleanup, onMount, useContext, type JSX } from "solid-j
 import { createStore } from "solid-js/store";
 import { AUTH_REQUIRED_EVENT, ApiRequestError, apiGet } from "../lib/api";
 
+interface AuthBootstrapUser {
+  id: number;
+  name: string;
+  email: string;
+  isAdmin?: boolean;
+  is_admin?: boolean;
+}
+
 interface AuthBootstrapResponse {
-  user: AuthUser | null;
+  user: AuthBootstrapUser | null;
 }
 
 export interface AuthUser {
@@ -28,7 +36,7 @@ interface AuthContextValue {
 }
 
 interface WindowAuthBootstrap {
-  user?: AuthUser | null;
+  user?: AuthBootstrapUser | null;
   isAuthenticated?: boolean;
 }
 
@@ -44,18 +52,29 @@ declare global {
 
 const AuthContext = createContext<AuthContextValue>();
 
-function isAuthUser(value: unknown): value is AuthUser {
+function normalizeAuthUser(value: unknown): AuthUser | null {
   if (!value || typeof value !== "object") {
-    return false;
+    return null;
   }
 
   const user = value as Record<string, unknown>;
-  return (
-    typeof user.id === "number" &&
-    typeof user.name === "string" &&
-    typeof user.email === "string" &&
+  if (typeof user.id !== "number" || typeof user.name !== "string" || typeof user.email !== "string") {
+    return null;
+  }
+
+  const isAdmin =
     typeof user.isAdmin === "boolean"
-  );
+      ? user.isAdmin
+      : typeof user.is_admin === "boolean"
+        ? user.is_admin
+        : false;
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    isAdmin,
+  };
 }
 
 function readWindowBootstrap() {
@@ -64,7 +83,7 @@ function readWindowBootstrap() {
     return null;
   }
 
-  const user = isAuthUser(payload.user) ? payload.user : null;
+  const user = normalizeAuthUser(payload.user);
   const isAuthenticated = typeof payload.isAuthenticated === "boolean" ? payload.isAuthenticated : Boolean(user);
 
   return {
@@ -74,19 +93,16 @@ function readWindowBootstrap() {
 }
 
 async function readEndpointBootstrap() {
-  const endpoint = import.meta.env.VITE_AUTH_BOOTSTRAP_ENDPOINT?.trim();
-  if (!endpoint) {
-    return null;
-  }
+  const endpoint = import.meta.env.VITE_AUTH_BOOTSTRAP_ENDPOINT?.trim() || "/api/auth/session";
 
   try {
-    const response = await apiGet<AuthBootstrapResponse>(endpoint, {
+    const response = await apiGet<AuthBootstrapResponse | null>(endpoint, {
       retries: 0,
       emitAuthEvent: false,
       timeoutMs: 8_000,
     });
 
-    const user = response && isAuthUser(response.user) ? response.user : null;
+    const user = normalizeAuthUser(response?.user);
 
     return {
       user,
@@ -144,17 +160,12 @@ export function AuthProvider(props: { children: JSX.Element }) {
       }
 
       const endpointBootstrap = await readEndpointBootstrap();
-      if (endpointBootstrap) {
-        setState({
-          user: endpointBootstrap.user,
-          isAuthenticated: endpointBootstrap.isAuthenticated,
-          sessionExpired: false,
-          loading: false,
-        });
-        return;
-      }
-
-      clearSession(false);
+      setState({
+        user: endpointBootstrap.user,
+        isAuthenticated: endpointBootstrap.isAuthenticated,
+        sessionExpired: false,
+        loading: false,
+      });
     } catch {
       clearSession(false);
     } finally {

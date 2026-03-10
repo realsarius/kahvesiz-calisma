@@ -1,5 +1,5 @@
 import { A, useLocation } from "@solidjs/router";
-import { For } from "solid-js";
+import { For, Show } from "solid-js";
 import { useAuth } from "../../auth/AuthContext";
 
 interface NavItem {
@@ -12,8 +12,6 @@ const navItems: NavItem[] = [
   { href: "/cafes", label: "Cafes" },
   { href: "/about", label: "Hakkinda" },
   { href: "/contact", label: "Iletisim" },
-  { href: "/login", label: "Login" },
-  { href: "/signup", label: "Signup" },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -55,12 +53,32 @@ export function Navbar() {
           </ul>
         </nav>
 
-        <div class="session-chip" role="status" aria-live="polite">
-          {auth.state.loading
-            ? "Oturum kontrol ediliyor"
-            : auth.state.isAuthenticated
-              ? "Oturum acik"
-              : "Misafir"}
+        <div class="session-area">
+          <div class="session-chip" role="status" aria-live="polite">
+            {auth.state.loading
+              ? "Oturum kontrol ediliyor"
+              : auth.state.isAuthenticated
+                ? "Oturum acik"
+                : "Misafir"}
+          </div>
+
+          <Show
+            when={auth.state.isAuthenticated}
+            fallback={
+              <>
+                <A class="nav-link" href="/login">
+                  Login
+                </A>
+                <A class="nav-link" href="/signup">
+                  Signup
+                </A>
+              </>
+            }
+          >
+            <a class="nav-link" href="/logout">
+              Logout
+            </a>
+          </Show>
         </div>
       </div>
     </header>

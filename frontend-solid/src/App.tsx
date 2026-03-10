@@ -1,5 +1,6 @@
-import { ErrorBoundary, Suspense, lazy, type JSX } from "solid-js";
-import { Route, type RouteSectionProps } from "@solidjs/router";
+import { createEffect, ErrorBoundary, Suspense, lazy, type JSX } from "solid-js";
+import { Route, type RouteSectionProps, useLocation, useNavigate } from "@solidjs/router";
+import { useAuth } from "./auth/AuthContext";
 import { AppLayout } from "./components/layout/AppLayout";
 import { GlobalErrorFallback } from "./components/GlobalErrorFallback";
 import { RouteLoader } from "./components/RouteLoader";
@@ -16,6 +17,26 @@ const SignupPage = lazy(() => import("./pages/SignupPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 export function AppRoot(props: RouteSectionProps): JSX.Element {
+  const auth = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  createEffect(() => {
+    if (!auth.state.sessionExpired) {
+      return;
+    }
+
+    if (location.pathname === "/login") {
+      return;
+    }
+
+    const returnTo = `${location.pathname}${location.search}`;
+    auth.clearSession(false);
+    void navigate(`/login?reason=session_expired&redirect=${encodeURIComponent(returnTo)}`, {
+      replace: true,
+    });
+  });
+
   return (
     <ErrorBoundary fallback={(error, reset) => <GlobalErrorFallback error={error} reset={reset} />}>
       <AppLayout>
