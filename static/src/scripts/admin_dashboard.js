@@ -18,6 +18,12 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/'/g, "&#39;");
     }
 
+    function getCsrfToken() {
+        return document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
+    }
+
     // Function to show the appropriate container based on the clicked link
     function showContainer(container) {
         usersContainer.classList.add("hidden");
@@ -218,6 +224,9 @@ document.addEventListener("DOMContentLoaded", function () {
     window.removeModerator = function (userId, cafeId) {
         fetch(`/remove_moderator/${userId}/${cafeId}`, {
             method: "DELETE",
+            headers: {
+                "X-CSRFToken": getCsrfToken(),
+            },
         })
             .then((response) => response.json())
             .then((data) => {

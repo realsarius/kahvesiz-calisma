@@ -4,6 +4,9 @@ document.getElementById("signup-form").addEventListener("submit", async function
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+    const csrfToken = document
+        .querySelector('meta[name="csrf-token"]')
+        ?.getAttribute("content");
 
     const messageContainer = document.getElementById("message-container");
 
@@ -12,6 +15,7 @@ document.getElementById("signup-form").addEventListener("submit", async function
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken,
             },
             body: JSON.stringify({name, email, password}),
         });

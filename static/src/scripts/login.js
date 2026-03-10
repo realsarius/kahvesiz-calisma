@@ -5,11 +5,15 @@ document
 
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
+        const csrfToken = document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
 
         const response = await fetch("/api/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken,
             },
             body: JSON.stringify({email, password}),
         });

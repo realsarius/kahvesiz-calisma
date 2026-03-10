@@ -2,6 +2,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("update-cafe-form");
     const cafeId = document.getElementById("cafe-id").value;
 
+    function getCsrfToken() {
+        const tokenFromForm = form.querySelector('input[name="csrf_token"]')?.value;
+        if (tokenFromForm) {
+            return tokenFromForm;
+        }
+        return document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
+    }
+
     form.addEventListener("submit", function (event) {
         event.preventDefault(); // Prevent the default form submission
 
@@ -28,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
             body: JSON.stringify(data),
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": formData.get("csrf_token"), // Include CSRF token if needed
+                "X-CSRFToken": getCsrfToken(),
             },
         })
             .then((response) => response.json())

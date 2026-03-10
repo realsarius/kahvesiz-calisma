@@ -34,7 +34,7 @@
         <form id="update-cafe-form" method="POST" action="{{ url_for('api_update_cafe', cafe_id=cafe.id) }}"
               class="px-0 py-6 sm:p-6">
             <input type="hidden" name="_method" value="PUT">
-            <input type="hidden" name="csrf_token" value="{{ form.hidden_tag().csrf_token }}">
+            {{ form.csrf_token }}
             <input type="hidden" id="cafe-id" value="{{ cafe.id }}">
 
             <div class="mb-4">

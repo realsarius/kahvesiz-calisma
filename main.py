@@ -10,6 +10,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from flask_mail import Mail, Message
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect, CSRFError, generate_csrf
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -27,9 +28,25 @@ app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS') == 'True'
 app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL') == 'True'
+app.config['WTF_CSRF_ENABLED'] = True
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600
 
 mail = Mail(app=app)
+csrf = CSRFProtect(app)
 s = itsdangerous.URLSafeTimedSerializer(os.getenv('SECRET_KEY'))
+
+
+@app.context_processor
+def inject_csrf_token():
+    return {'csrf_token': generate_csrf}
+
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'CSRF token missing or invalid.'}), 400
+    flash('CSRF doğrulaması başarısız. Lütfen tekrar deneyin.', 'danger')
+    return redirect(request.referrer or url_for('home'))
 
 
 def generate_verification_token(email):

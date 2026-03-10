@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
     const userSelect = document.getElementById('user_id');
     const moderatedCafesDiv = document.getElementById('moderated-cafes-list');
+    const csrfToken = document
+        .querySelector('meta[name="csrf-token"]')
+        ?.getAttribute("content");
 
     userSelect.addEventListener('change', function () {
         const userId = userSelect.value;
@@ -41,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     method: 'DELETE',
                                     headers: {
                                         'Content-Type': 'application/json',
+                                        'X-CSRFToken': csrfToken,
                                         'X-Requested-With': 'XMLHttpRequest'
                                     }
                                 })

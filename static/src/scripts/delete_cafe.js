@@ -5,6 +5,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const cancelDeleteBtn = document.getElementById("cancel-delete");
     let cafeId = null; // To store cafe ID
 
+    function getCsrfToken() {
+        return document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
+    }
+
     // Show modal and set cafe ID
     deleteBtn.addEventListener("click", function () {
         cafeId = this.getAttribute("data-cafe-id");
@@ -18,6 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
+                    "X-CSRFToken": getCsrfToken(),
                 },
             })
                 .then((response) => response.json())
