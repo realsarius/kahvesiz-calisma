@@ -8,7 +8,7 @@ check_contains() {
   local needle="$2"
   local label="$3"
 
-  if ! printf '%s' "$haystack" | rg -q "$needle"; then
+  if ! rg -q -- "$needle" <<<"$haystack"; then
     echo "[FAIL] ${label}: expected pattern '${needle}' not found"
     exit 1
   fi
