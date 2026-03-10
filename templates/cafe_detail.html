@@ -358,7 +358,7 @@
             <div class="">
                 <h2 class="text-4xl font-bold my-4 text-center">{{ cafe.name }}</h2>
                 <div class="cafe-details">
-                    <p class="whitespace-pre-line">{{ cafe.details }}</p>
+                    <div class="whitespace-pre-line">{{ cafe.details | safe }}</div>
                 </div>
             </div>
         </div>

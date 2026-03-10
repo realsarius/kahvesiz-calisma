@@ -1,5 +1,6 @@
 import os
 import itsdangerous
+import bleach
 
 from datetime import datetime, timezone
 from functools import wraps
@@ -231,6 +232,28 @@ def normalize_coffee_price(raw_price):
     return f'{symbol}{value}'
 
 
+def sanitize_rich_text(value):
+    if not value:
+        return None
+
+    allowed_tags = [
+        'p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'blockquote',
+        'code', 'pre', 'a', 'h1', 'h2', 'h3', 'h4'
+    ]
+    allowed_attributes = {
+        'a': ['href', 'title', 'target', 'rel']
+    }
+    allowed_protocols = ['http', 'https', 'mailto']
+
+    return bleach.clean(
+        str(value),
+        tags=allowed_tags,
+        attributes=allowed_attributes,
+        protocols=allowed_protocols,
+        strip=True
+    )
+
+
 def serialize_cafe(cafe):
     return {
         'id': cafe.id,
@@ -244,7 +267,7 @@ def serialize_cafe(cafe):
         'can_take_calls': cafe.can_take_calls,
         'seats': cafe.seats,
         'coffee_price': cafe.coffee_price,
-        'details': cafe.details
+        'details': sanitize_rich_text(cafe.details)
     }
 
 
@@ -357,6 +380,7 @@ def update_cafe(cafe_id):
     if form.validate_on_submit():
         form.populate_obj(cafe)
         cafe.coffee_price = normalize_coffee_price(form.coffee_price.data)
+        cafe.details = sanitize_rich_text(form.details.data)
         try:
             db.session.commit()
             flash('Cafe updated successfully!', 'success')
@@ -369,7 +393,6 @@ def update_cafe(cafe_id):
 
 
 @app.route('/api/cafes/<int:cafe_id>', methods=['PUT'])
-@app.route('/api/update_cafe/<int:cafe_id>', methods=['PUT'])
 @api_login_required
 def api_update_cafe(cafe_id):
     data = request.get_json(silent=True)
@@ -402,7 +425,7 @@ def api_update_cafe(cafe_id):
     cafe.can_take_calls = data['can_take_calls']
     cafe.seats = data['seats']
     cafe.coffee_price = normalize_coffee_price(data['coffee_price'])
-    cafe.details = data.get('details')
+    cafe.details = sanitize_rich_text(data.get('details'))
 
     try:
         db.session.commit()
@@ -444,7 +467,7 @@ def add_cafe():
             can_take_calls=can_take_calls,
             seats=seats,
             coffee_price=normalize_coffee_price(coffee_price),
-            details=details
+            details=sanitize_rich_text(details)
         )
 
         try:
@@ -463,7 +486,6 @@ def add_cafe():
 
 
 @app.route('/api/cafes/<int:cafe_id>', methods=['DELETE'])
-@app.route('/api/delete_cafe/<int:cafe_id>', methods=['DELETE'])
 @api_admin_required
 def api_delete_cafe(cafe_id):
     cafe = db.session.get(Cafe, cafe_id)
@@ -482,7 +504,6 @@ def api_delete_cafe(cafe_id):
 
 
 @app.route('/api/cafes', methods=['POST'])
-@app.route('/api/add_cafe', methods=['POST'])
 @api_admin_required
 def api_add_cafe():
     data = request.get_json(silent=True)
@@ -511,7 +532,7 @@ def api_add_cafe():
         can_take_calls=data['can_take_calls'],
         seats=data['seats'],
         coffee_price=normalize_coffee_price(data['coffee_price']),
-        details=data.get('details')
+        details=sanitize_rich_text(data.get('details'))
     )
 
     try:

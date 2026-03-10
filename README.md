@@ -32,7 +32,14 @@ MAIL_PASSWORD=your-password
 MAIL_USE_TLS=True
 MAIL_USE_SSL=False
 TINYMCE_API_KEY=your-tinymce-key
+WTF_CSRF_ENABLED=True
+WTF_CSRF_TIME_LIMIT=3600
+CAFES_PER_PAGE=20
+COFFEE_CURRENCY_SYMBOL=£
+AUTO_CREATE_SCHEMA=False
 ```
+
+Not: `AUTO_CREATE_SCHEMA=False` ile migration tabanli akış tavsiye edilir.
 
 ## Lokal Gelistirme Kurulumu
 
