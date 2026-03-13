@@ -5,7 +5,7 @@ import { AppLayout } from "./components/layout/AppLayout";
 import { GlobalErrorFallback } from "./components/GlobalErrorFallback";
 import { RouteLoader } from "./components/RouteLoader";
 
-const HomePage = lazy(() => import("./pages/HomePage"));
+const HomePage = lazy(() => import("./pages/Home"));
 const CafesPage = lazy(() => import("./pages/CafesPage"));
 const CafeDetailPage = lazy(() => import("./pages/CafeDetailPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
