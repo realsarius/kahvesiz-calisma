@@ -67,8 +67,8 @@ docker compose down
 | **Validation / Form** | Flask-WTF, WTForms | Web form doğrulama ve CSRF koruması |
 | **Email** | Flask-Mail, itsdangerous | Hesap doğrulama e-postası ve token üretimi |
 | **Sanitization** | Bleach | Zengin metin XSS riskini azaltma |
-| **Frontend Rendering** | Jinja2 | Server-side template rendering |
-| **Frontend Tooling** | Tailwind CSS, Webpack, Babel | Stil ve JavaScript derleme/watch akışı |
+| **Frontend Rendering** | Jinja2 + SolidJS (cutover mode) | Geçişli render stratejisi ve SPA taşıma |
+| **Frontend Tooling** | Tailwind CSS, Webpack, Babel, Vite, SolidJS | Stil/JS derleme ve Solid build akışı |
 | **Runtime / Deploy** | Gunicorn, Docker, Docker Compose | Üretim sunumu ve container tabanlı çalışma |
 
 ## 3. Veritabanı Tasarımı (Database Design)
@@ -231,6 +231,10 @@ WTF_CSRF_ENABLED=True
 WTF_CSRF_TIME_LIMIT=3600
 CAFES_PER_PAGE=20
 COFFEE_CURRENCY_SYMBOL=£
+
+# Frontend cutover
+FRONTEND_RENDER_MODE=jinja
+SOLID_DIST_DIR=frontend-solid/dist
 ```
 
 ### 7.3 Docker Compose ile Çalıştırma (Önerilen)
@@ -273,9 +277,40 @@ flask --app main run --host=0.0.0.0 --port=5040 --debug
 - Admin: `http://localhost:5040/admin`
 - API: `http://localhost:5040/api/cafes`
 
+### 7.6 Frontend Render Mode (Jinja / Solid)
+
+Uygulama iki render modunda calisabilir:
+
+- `FRONTEND_RENDER_MODE=jinja`: Legacy Jinja template akisi (default)
+- `FRONTEND_RENDER_MODE=solid`: Solid build cikisi (`frontend-solid/dist`) servis edilir
+
+Lokal Solid cutover kontrolu:
+
+```bash
+# Solid build al
+npm run solid:build
+
+# Solid smoke
+FRONTEND_RENDER_MODE=solid flask --app main run --host=0.0.0.0 --port=5040
+npm run solid:smoke -- http://127.0.0.1:5040
+```
+
+Rollback kontrolu:
+
+```bash
+FRONTEND_RENDER_MODE=jinja flask --app main run --host=0.0.0.0 --port=5040
+npm run jinja:smoke -- http://127.0.0.1:5040
+```
+
+Tek komutla dry-run:
+
+```bash
+npm run frontend:dryrun
+```
+
 ## 8. Frontend
 
-Frontend katmanı server-rendered Jinja template yaklaşımıyla çalışır.
+Frontend katmani su anda **hibrit** durumda calisir: legacy Jinja + yeni SolidJS.
 
 **Template Dosyaları (`templates/`)**
 
@@ -290,6 +325,13 @@ Frontend katmanı server-rendered Jinja template yaklaşımıyla çalışır.
 - `static/dist/css/output.css` (derlenmiş çıktı)
 - `static/src/scripts/*.js` (kaynak JS)
 - `static/dist/js/bundle.js` (Webpack bundle)
+
+**Solid Frontend (`frontend-solid/`)**
+
+- `frontend-solid/src/App.tsx` route tanimlari
+- `frontend-solid/src/pages/*` public/auth/admin ekranlari
+- `frontend-solid/src/lib/api.ts` ortak API client (timeout + credential policy)
+- `frontend-solid/dist/` cutover aninda Flask tarafindan `/solid/*` altinda servis edilir
 
 ## 9. Production Notes
 
@@ -315,6 +357,7 @@ Frontend katmanı server-rendered Jinja template yaklaşımıyla çalışır.
 curl -fsS http://localhost:5040/ >/dev/null
 curl -fsS http://localhost:5040/api/cafes >/dev/null
 npm test
+npm run frontend:dryrun
 ```
 
 ## 10. Lisans ve Kullanım Notu

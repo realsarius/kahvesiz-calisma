@@ -1,6 +1,7 @@
 import os
 import re
 import unittest
+from unittest.mock import patch
 
 TEST_DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "test_cafes.db"))
 
@@ -11,6 +12,7 @@ os.environ["WTF_CSRF_ENABLED"] = "True"
 os.environ["AUTO_CREATE_SCHEMA"] = "False"
 
 import main  # noqa: E402
+from kahvesiz_app.auth import hash_password  # noqa: E402
 from kahvesiz_app.extensions import db  # noqa: E402
 from kahvesiz_app.models import Cafe, User  # noqa: E402
 
@@ -24,6 +26,8 @@ class ApiHardeningTests(unittest.TestCase):
     def setUp(self):
         self.app = main.app
         self.client = self.app.test_client()
+        self.admin_password = "Admin123!"
+        self.user_password = "User12345!"
 
         with self.app.app_context():
             db.drop_all()
@@ -32,14 +36,14 @@ class ApiHardeningTests(unittest.TestCase):
             admin_user = User(
                 name="Admin",
                 email="admin@example.com",
-                password="hashed-password",
+                password=hash_password(self.admin_password),
                 is_admin=True,
                 is_confirmed=True,
             )
             regular_user = User(
                 name="User",
                 email="user@example.com",
-                password="hashed-password",
+                password=hash_password(self.user_password),
                 is_admin=False,
                 is_confirmed=True,
             )
@@ -156,6 +160,81 @@ class ApiHardeningTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.get_json()["error"]["code"], "INVALID_CREDENTIALS")
+
+    def test_login_success_returns_200_and_sets_session(self):
+        csrf_token = self._csrf_token()
+        login_response = self.client.post(
+            "/api/login",
+            json={"email": "user@example.com", "password": self.user_password},
+            headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(login_response.status_code, 200)
+        self.assertEqual(login_response.get_json()["error"], None)
+
+        session_response = self.client.get("/api/auth/session")
+        self.assertEqual(session_response.status_code, 200)
+        payload = session_response.get_json()
+        self.assertEqual(payload["error"], None)
+        self.assertEqual(payload["data"]["user"]["email"], "user@example.com")
+        self.assertFalse(payload["data"]["user"]["is_admin"])
+
+    def test_signup_success_returns_201_and_creates_unconfirmed_user(self):
+        csrf_token = self._csrf_token()
+        with patch("kahvesiz_app.routes_api.send_confirmation_email") as send_mail_mock:
+            response = self.client.post(
+                "/api/signup",
+                json={"name": "New User", "email": "new-user@example.com", "password": "StrongPass1"},
+                headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+            )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.get_json()["error"], None)
+        send_mail_mock.assert_called_once_with("new-user@example.com")
+
+        with self.app.app_context():
+            created_user = User.query.filter_by(email="new-user@example.com").first()
+            self.assertIsNotNone(created_user)
+            self.assertFalse(created_user.is_confirmed)
+
+    def test_admin_login_allows_cafe_crud_flow(self):
+        csrf_token = self._csrf_token()
+        login_response = self.client.post(
+            "/api/login",
+            json={"email": "admin@example.com", "password": self.admin_password},
+            headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(login_response.status_code, 200)
+
+        csrf_token = self._csrf_token()
+        create_response = self.client.post(
+            "/api/cafes",
+            json=self._cafe_payload(name="Crud Cafe"),
+            headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(create_response.status_code, 201)
+        self.assertEqual(create_response.get_json()["error"], None)
+
+        with self.app.app_context():
+            cafe = Cafe.query.filter_by(name="Crud Cafe").first()
+            self.assertIsNotNone(cafe)
+            cafe_id = cafe.id
+
+        csrf_token = self._csrf_token()
+        update_response = self.client.put(
+            f"/api/cafes/{cafe_id}",
+            json=self._cafe_payload(name="Crud Cafe Updated"),
+            headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(update_response.get_json()["error"], None)
+
+        csrf_token = self._csrf_token()
+        delete_response = self.client.delete(
+            f"/api/cafes/{cafe_id}",
+            headers={"X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(delete_response.get_json()["error"], None)
 
     def test_contact_api_rejects_missing_fields(self):
         csrf_token = self._csrf_token()

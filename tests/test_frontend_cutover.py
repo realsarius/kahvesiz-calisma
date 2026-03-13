@@ -65,11 +65,15 @@ class FrontendCutoverTests(unittest.TestCase):
         response = self.client.get("/cafes")
         self.assertEqual(response.status_code, 200)
         self.assertIn("solid-cutover-entry", response.get_data(as_text=True))
+        self.assertIn("no-store", response.headers.get("Cache-Control", ""))
         response.close()
 
         asset_response = self.client.get("/solid/assets/app.js")
         self.assertEqual(asset_response.status_code, 200)
         self.assertIn("solid-asset-ok", asset_response.get_data(as_text=True))
+        cache_header = asset_response.headers.get("Cache-Control", "")
+        self.assertIn("max-age=31536000", cache_header)
+        self.assertIn("immutable", cache_header)
         asset_response.close()
 
         index_alias = self.client.get("/index")
@@ -81,6 +85,21 @@ class FrontendCutoverTests(unittest.TestCase):
         self.assertEqual(contact_alias.status_code, 200)
         self.assertIn("solid-cutover-entry", contact_alias.get_data(as_text=True))
         contact_alias.close()
+
+    def test_solid_mode_serves_spa_entry_for_login_and_signup(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        login_page = self.client.get("/login")
+        self.assertEqual(login_page.status_code, 200)
+        self.assertIn("solid-cutover-entry", login_page.get_data(as_text=True))
+        login_page.close()
+
+        signup_page = self.client.get("/signup")
+        self.assertEqual(signup_page.status_code, 200)
+        self.assertIn("solid-cutover-entry", signup_page.get_data(as_text=True))
+        signup_page.close()
 
     def test_solid_entry_includes_guest_auth_bootstrap_payload(self):
         dist_dir = self._make_temp_solid_dist()
@@ -207,6 +226,32 @@ class FrontendCutoverTests(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/", response.headers.get("Location", ""))
         response.close()
+
+    def test_solid_mode_login_signup_redirect_authenticated_user_to_home(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        class FakeUser:
+            is_authenticated = True
+            id = 120
+            name = "Authed User"
+            email = "authed-user@example.com"
+            is_admin = False
+
+        self._login_as(FakeUser.id)
+
+        with patch("main.UserRepository.get_by_id", return_value=FakeUser()):
+            login_response = self.client.get("/login", follow_redirects=False)
+            signup_response = self.client.get("/signup", follow_redirects=False)
+
+        self.assertEqual(login_response.status_code, 302)
+        self.assertIn("/", login_response.headers.get("Location", ""))
+        login_response.close()
+
+        self.assertEqual(signup_response.status_code, 302)
+        self.assertIn("/", signup_response.headers.get("Location", ""))
+        signup_response.close()
 
     def test_contact_route_redirects_to_legacy_page_in_jinja_mode(self):
         self.app.config["FRONTEND_RENDER_MODE"] = "jinja"

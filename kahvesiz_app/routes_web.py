@@ -93,6 +93,7 @@ def register_web_routes(app):
 
         response = make_response(index_html, 200)
         response.headers["Content-Type"] = "text/html; charset=utf-8"
+        response.headers["Cache-Control"] = "no-store"
         return response
 
     def _should_serve_solid_for_path(path):
@@ -141,7 +142,12 @@ def register_web_routes(app):
         if not target_file.exists() or not target_file.is_file():
             abort(404)
 
-        return send_from_directory(str(dist_dir), filename)
+        response = send_from_directory(str(dist_dir), filename)
+        if filename.startswith("assets/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        else:
+            response.headers["Cache-Control"] = "public, max-age=300"
+        return response
 
     @app.route("/logout")
     @login_required
