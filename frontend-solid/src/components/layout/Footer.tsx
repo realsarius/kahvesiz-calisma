@@ -6,13 +6,15 @@ export function Footer() {
   return (
     <footer class="footer">
       <div class="container footer-inner">
-        <p>© {currentYear} Kahvesiz Calisma. Tum haklari saklidir.</p>
         <nav class="footer-links" aria-label="Alt baglantilar">
-          <A href="/about">Hakkinda</A>
+          <A href="/about">Hakkımızda</A>
           <A href="/privacy">Gizlilik</A>
           <A href="/license">Lisans</A>
-          <A href="/contact">Iletisim</A>
+          <A href="/contact">Bize Ulaşın</A>
         </nav>
+        <p>
+          © {currentYear} <A href="/">Kahvesiz Çalışma</A>. Tüm hakları saklıdır.
+        </p>
       </div>
     </footer>
   );

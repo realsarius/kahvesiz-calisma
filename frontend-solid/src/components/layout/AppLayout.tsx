@@ -10,9 +10,11 @@ export function AppLayout(props: AppLayoutProps) {
   return (
     <div class="app-shell">
       <Navbar />
-      <main class="page-content">
-        <div class="container">{props.children}</div>
-      </main>
+      <div class="shell-stage">
+        <div class="shell-glow shell-glow--top" aria-hidden="true" />
+        <main class="page-content">{props.children}</main>
+        <div class="shell-glow shell-glow--bottom" aria-hidden="true" />
+      </div>
       <Footer />
     </div>
   );

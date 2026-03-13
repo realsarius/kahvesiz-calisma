@@ -349,6 +349,12 @@ Frontend katmani su anda **hibrit** durumda calisir: legacy Jinja + yeni SolidJS
 - `frontend-solid/src/lib/api.ts` ortak API client (timeout + credential policy)
 - `frontend-solid/dist/` cutover aninda Flask tarafindan `/solid/*` altinda servis edilir
 
+**Solid UI Notlari**
+
+- Navbar fixed davranisindadir; asagi scroll'da gizlenir, yukari scroll'da tekrar gorunur.
+- Header ve footer blur etkisi icin `backdrop-filter` + Firefox fallback katmani uygulanmistir.
+- `Kafeler` sayfasinda kullanici gorunumu `Tablo` ve `Grid` modlari arasinda degistirebilir.
+
 ## 9. Production Notes
 
 ### 9.1 Sunum ve Çalıştırma
