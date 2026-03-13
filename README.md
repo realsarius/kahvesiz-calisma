@@ -78,7 +78,7 @@ python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ### Altyapı
 
 - `dev` profili: `api-dev`, `legacy-dev`, `db-dev`, `redis-dev`, `frontend-dev`, `nginx-dev`
-- `prod` profili: `api-prod`, `db-prod`, `redis-prod`, `frontend-prod`, `nginx-prod`
+- `prod` profili: `api-prod`, `legacy-prod`, `db-prod`, `redis-prod`, `frontend-prod`, `nginx-prod`
 - `test` profili: `db-test`, `redis-test`
 
 Compose tanımı: [docker-compose.yaml](docker-compose.yaml)
@@ -89,6 +89,12 @@ Dev strangler routing:
 - `/api/*` -> `legacy-dev` (Flask)
 - `/*` -> `frontend-dev` (Vite proxy)
 - `frontend-dev` içindeki Vite proxy hedefi: `nginx-dev` (böylece `/api/v1/*` ve `/api/*` ayrımı korunur)
+
+Prod strangler routing:
+
+- `/api/v1/*` -> `api-prod` (FastAPI)
+- `/api/*` -> `legacy-prod` (Flask)
+- `/*` -> `frontend-prod` (static build)
 
 ## 3. API Yüzeyi (v1)
 
