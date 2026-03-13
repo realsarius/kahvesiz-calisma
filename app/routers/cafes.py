@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Optional, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
@@ -79,9 +79,10 @@ async def list_cafes(
     neighborhood: Optional[str] = Query(default=None),
     wifi: Optional[bool] = Query(default=None),
     noise_level: Optional[str] = Query(default=None),
+    has_outlet: Optional[bool] = Query(default=None),
     db: AsyncSession = Depends(get_db_session),
 ):
-    stmt = (
+    base_stmt = (
         select(
             Cafe,
             Neighborhood.name.label("neighborhood_name"),
@@ -91,15 +92,35 @@ async def list_cafes(
         )
         .join(Neighborhood, Cafe.neighborhood_id == Neighborhood.id, isouter=True)
         .join(CafeAmenity, CafeAmenity.cafe_id == Cafe.id, isouter=True)
-        .where(Cafe.is_active.is_(True), Cafe.deleted_at.is_(None))
     )
+    filters = [Cafe.is_active.is_(True), Cafe.deleted_at.is_(None)]
 
     if neighborhood:
-        stmt = stmt.where(Neighborhood.slug == neighborhood.strip().lower())
+        filters.append(Neighborhood.slug == neighborhood.strip().lower())
     if wifi is not None:
-        stmt = stmt.where(CafeAmenity.wifi_available.is_(wifi))
+        filters.append(CafeAmenity.wifi_available.is_(wifi))
     if noise_level:
-        stmt = stmt.where(CafeAmenity.noise_level == noise_level.strip().lower())
+        filters.append(CafeAmenity.noise_level == noise_level.strip().lower())
+    if has_outlet is not None:
+        has_outlet_exists = exists(
+            select(1).where(
+                CafeSeat.cafe_id == Cafe.id,
+                CafeSeat.has_outlet.is_(True),
+            )
+        )
+        filters.append(has_outlet_exists if has_outlet else ~has_outlet_exists)
+
+    count_stmt = (
+        select(func.count(Cafe.id))
+        .select_from(Cafe)
+        .join(Neighborhood, Cafe.neighborhood_id == Neighborhood.id, isouter=True)
+        .join(CafeAmenity, CafeAmenity.cafe_id == Cafe.id, isouter=True)
+        .where(*filters)
+    )
+    count_result = await db.execute(count_stmt)
+    total_count = int(count_result.scalar_one() or 0)
+
+    stmt = base_stmt.where(*filters)
 
     if cursor:
         cursor_dt, cursor_id = _decode_cursor(cursor)
@@ -122,7 +143,12 @@ async def list_cafes(
         last_cafe = page_rows[-1].Cafe
         next_cursor = _encode_cursor(last_cafe.created_at, last_cafe.id)
 
-    return CafeListResponse(items=items, next_cursor=next_cursor, limit=limit)
+    return CafeListResponse(
+        items=items,
+        next_cursor=next_cursor,
+        limit=limit,
+        total_count=total_count,
+    )
 
 
 @router.get("/{slug}", response_model=CafeDetailResponse)

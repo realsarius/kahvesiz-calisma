@@ -24,6 +24,7 @@ export interface CafeListFilters {
   neighborhood?: string;
   wifi?: boolean | null;
   noiseLevel?: string;
+  hasOutlet?: boolean | null;
   limit?: number;
 }
 
@@ -47,6 +48,7 @@ interface CafesV1ListPayload {
   items: CafeListItemV1[];
   next_cursor: string | null;
   limit: number;
+  total_count: number;
 }
 
 export interface CafeDetailV1 {
@@ -129,6 +131,10 @@ function buildV1ListQuery(filters: CafeListFilters, cursor: string | null) {
     params.set("noise_level", noiseLevel.toLowerCase());
   }
 
+  if (typeof filters.hasOutlet === "boolean") {
+    params.set("has_outlet", filters.hasOutlet ? "true" : "false");
+  }
+
   if (cursor) {
     params.set("cursor", cursor);
   }
@@ -175,12 +181,14 @@ export function useInfiniteCafes(filters: Accessor<CafeListFilters>) {
     neighborhood: (filters().neighborhood ?? "").trim(),
     wifi: filters().wifi ?? null,
     noiseLevel: (filters().noiseLevel ?? "").trim(),
+    hasOutlet: filters().hasOutlet ?? null,
     limit: filters().limit ?? 20,
   }));
 
   const [cursor, setCursor] = createSignal<string | null>(null);
   const [items, setItems] = createSignal<CafeListItemV1[]>([]);
   const [nextCursor, setNextCursor] = createSignal<string | null>(null);
+  const [totalCount, setTotalCount] = createSignal(0);
   const [loadedOnce, setLoadedOnce] = createSignal(false);
 
   createEffect(() => {
@@ -188,6 +196,7 @@ export function useInfiniteCafes(filters: Accessor<CafeListFilters>) {
     setCursor(null);
     setItems([]);
     setNextCursor(null);
+    setTotalCount(0);
     setLoadedOnce(false);
   });
 
@@ -212,6 +221,7 @@ export function useInfiniteCafes(filters: Accessor<CafeListFilters>) {
     }
 
     setNextCursor(payload.next_cursor ?? null);
+    setTotalCount(payload.total_count ?? 0);
     setLoadedOnce(true);
   });
 
@@ -236,6 +246,7 @@ export function useInfiniteCafes(filters: Accessor<CafeListFilters>) {
 
   return {
     items,
+    totalCount,
     hasMore,
     isLoadingInitial,
     isLoadingMore,

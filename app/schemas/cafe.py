@@ -25,6 +25,7 @@ class CafeListResponse(BaseModel):
     items: List[CafeListItem]
     next_cursor: Optional[str] = None
     limit: int
+    total_count: int
 
 
 class CafeAmenityResponse(BaseModel):
