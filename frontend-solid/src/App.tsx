@@ -15,6 +15,7 @@ const ContactPage = lazy(() => import("./pages/ContactPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const SignupPage = lazy(() => import("./pages/SignupPage"));
+const AuthVerifyPage = lazy(() => import("./pages/AuthVerifyPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 export function AppRoot(props: RouteSectionProps): JSX.Element {
@@ -62,6 +63,8 @@ export function AppRoutes() {
       <Route path="/admin" component={AdminPage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/signup" component={SignupPage} />
+      <Route path="/auth/verify" component={AuthVerifyPage} />
+      <Route path="/auth/email-verify" component={AuthVerifyPage} />
       <Route path="*" component={NotFoundPage} />
     </>
   );

@@ -12,6 +12,11 @@ interface LoginResponse {
   message?: string;
 }
 
+interface MagicLinkResponse {
+  message?: string;
+  debug_token?: string | null;
+}
+
 function toErrorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
     if (error.code === "REQUEST_TIMEOUT") {
@@ -52,7 +57,10 @@ export default function LoginPage() {
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [submitting, setSubmitting] = createSignal(false);
+  const [magicLinkSubmitting, setMagicLinkSubmitting] = createSignal(false);
   const [errorMessage, setErrorMessage] = createSignal<string | null>(null);
+  const [magicLinkMessage, setMagicLinkMessage] = createSignal<string | null>(null);
+  const [debugMagicLinkToken, setDebugMagicLinkToken] = createSignal<string | null>(null);
 
   const reason = createMemo(() => new URLSearchParams(location.search).get("reason"));
   const redirectTarget = createMemo(() => sanitizeRedirect(new URLSearchParams(location.search).get("redirect")));
@@ -68,6 +76,8 @@ export default function LoginPage() {
 
     setSubmitting(true);
     setErrorMessage(null);
+    setMagicLinkMessage(null);
+    setDebugMagicLinkToken(null);
 
     try {
       await apiPost<LoginResponse>(
@@ -92,8 +102,39 @@ export default function LoginPage() {
     }
   };
 
+  const requestMagicLink = async () => {
+    const cleanEmail = email().trim();
+    if (!cleanEmail) {
+      setErrorMessage("Magic link göndermek için e-posta alanını doldurun.");
+      return;
+    }
+
+    setMagicLinkSubmitting(true);
+    setErrorMessage(null);
+    setMagicLinkMessage(null);
+    setDebugMagicLinkToken(null);
+
+    try {
+      const response = await apiPost<MagicLinkResponse>(
+        "/api/v1/auth/magic-link",
+        { email: cleanEmail },
+        {
+          retries: 0,
+          timeoutMs: 10_000,
+          emitAuthEvent: false,
+        },
+      );
+      setMagicLinkMessage(response?.message || "Magic link gönderildi.");
+      setDebugMagicLinkToken(response?.debug_token || null);
+    } catch (error) {
+      setErrorMessage(toErrorMessage(error));
+    } finally {
+      setMagicLinkSubmitting(false);
+    }
+  };
+
   return (
-    <PageContainer title="Giriş" subtitle="Session + CSRF uyumlu giriş akışı">
+    <PageContainer title="Giriş" subtitle="Şifresiz (magic link) ve legacy şifreli giriş aynı ekranda sunulur.">
       <Card>
         <Show when={reason() === "session_expired"}>
           <Alert variant="warning" title="Oturum süresi doldu">
@@ -111,6 +152,29 @@ export default function LoginPage() {
           {(value) => <Alert variant="error">{value()}</Alert>}
         </Show>
 
+        <Show when={magicLinkMessage()}>
+          {(value) => (
+            <Alert variant="success" title="Magic link gönderildi">
+              {value()}
+            </Alert>
+          )}
+        </Show>
+
+        <Show when={debugMagicLinkToken()}>
+          {(value) => (
+            <Alert variant="warning" title="Geliştirme kısayolu">
+              E-posta yerine doğrudan test etmek için{" "}
+              <A
+                class="ui-link"
+                href={`/auth/verify?token=${encodeURIComponent(value())}&redirect=${encodeURIComponent(redirectTarget())}`}
+              >
+                bu doğrulama bağlantısını
+              </A>{" "}
+              kullanabilirsiniz.
+            </Alert>
+          )}
+        </Show>
+
         <form class="stack-form" onSubmit={onSubmit}>
           <Input
             id="login-email"
@@ -124,15 +188,25 @@ export default function LoginPage() {
           <Input
             id="login-password"
             type="password"
-            label="Şifre"
+            label="Şifre (legacy)"
             value={password()}
             onInput={(event) => setPassword(event.currentTarget.value)}
             placeholder="Şifreniz"
           />
 
-          <Button type="submit" disabled={submitting()}>
-            {submitting() ? "Giriş yapılıyor..." : "Giriş yap"}
-          </Button>
+          <div class="row-actions">
+            <Button type="submit" disabled={submitting() || magicLinkSubmitting()}>
+              {submitting() ? "Giriş yapılıyor..." : "Şifre ile giriş yap"}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => void requestMagicLink()}
+              disabled={magicLinkSubmitting() || submitting()}
+            >
+              {magicLinkSubmitting() ? "Link gönderiliyor..." : "Magic link gönder"}
+            </Button>
+          </div>
         </form>
 
         <p class="paragraph paragraph--compact">

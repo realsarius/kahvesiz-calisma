@@ -96,6 +96,20 @@ class FrontendCutoverTests(unittest.TestCase):
         self.assertIn("solid-cutover-entry", signup_page.get_data(as_text=True))
         signup_page.close()
 
+    def test_solid_mode_serves_spa_entry_for_auth_verify_routes(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        verify_page = self.client.get("/auth/verify?token=dummy-token")
+        self.assertEqual(verify_page.status_code, 200)
+        self.assertIn("solid-cutover-entry", verify_page.get_data(as_text=True))
+        verify_page.close()
+
+        email_verify_page = self.client.get("/auth/email-verify?token=dummy-token")
+        self.assertEqual(email_verify_page.status_code, 200)
+        self.assertIn("solid-cutover-entry", email_verify_page.get_data(as_text=True))
+        email_verify_page.close()
+
     def test_solid_entry_includes_guest_auth_bootstrap_payload(self):
         dist_dir = self._make_temp_solid_dist()
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
