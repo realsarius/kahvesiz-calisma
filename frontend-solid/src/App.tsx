@@ -53,7 +53,7 @@ export function AppRoutes() {
       <Route path="/" component={HomePage} />
       <Route path="/index" component={HomePage} />
       <Route path="/cafes" component={CafesPage} />
-      <Route path="/cafes/:id" component={CafeDetailPage} />
+      <Route path="/cafes/:slug" component={CafeDetailPage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/license" component={LicensePage} />
