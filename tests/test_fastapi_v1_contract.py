@@ -43,6 +43,13 @@ class _FakeExecuteResult:
     def scalars(self):
         return _FakeScalars(self._scalars)
 
+    def scalar_one(self):
+        if self._scalars:
+            return self._scalars[0]
+        if self._rows:
+            return self._rows[0]
+        raise ValueError("No scalar result present")
+
 
 class _FakeAsyncSession:
     def __init__(self, execute_results=None):
@@ -242,6 +249,7 @@ class FastApiV1ContractTests(unittest.TestCase):
         )
         fake_session = _FakeAsyncSession(
             execute_results=[
+                _FakeExecuteResult(scalars=[2]),
                 _FakeExecuteResult(rows=[row_1, row_2]),
             ]
         )
@@ -253,6 +261,7 @@ class FastApiV1ContractTests(unittest.TestCase):
                 neighborhood="kadikoy",
                 wifi=True,
                 noise_level=None,
+                has_outlet=None,
                 db=fake_session,
             )
         )
@@ -260,6 +269,7 @@ class FastApiV1ContractTests(unittest.TestCase):
         self.assertEqual(len(payload.items), 1)
         self.assertEqual(payload.items[0].slug, "moda-brew")
         self.assertIsNotNone(payload.next_cursor)
+        self.assertEqual(payload.total_count, 2)
 
     def test_cafe_detail_returns_nested_payload(self):
         cafe = SimpleNamespace(

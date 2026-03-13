@@ -88,6 +88,7 @@ Dev strangler routing:
 - `/api/v1/*` -> `api-dev` (FastAPI)
 - `/api/*` -> `legacy-dev` (Flask)
 - `/*` -> `frontend-dev` (Vite proxy)
+- `frontend-dev` içindeki Vite proxy hedefi: `nginx-dev` (böylece `/api/v1/*` ve `/api/*` ayrımı korunur)
 
 ## 3. API Yüzeyi (v1)
 
@@ -109,7 +110,7 @@ Base path: `/api/v1`
 ### Cafes
 
 - `GET /cafes`
-  - Query: `cursor`, `limit`, `neighborhood`, `wifi`, `noise_level`
+  - Query: `cursor`, `limit`, `neighborhood`, `wifi`, `noise_level`, `has_outlet`
   - Cursor tabanlı pagination (`created_at + id`)
 - `GET /cafes/{slug}`
 

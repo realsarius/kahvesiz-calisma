@@ -13,6 +13,7 @@ import { type CafeListFilters, useInfiniteCafes } from "../lib/cafes";
 
 type ViewMode = "table" | "grid";
 type WifiFilterMode = "all" | "true" | "false";
+type OutletFilterMode = "all" | "true" | "false";
 
 function readErrorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
@@ -31,6 +32,8 @@ export default function CafesPage() {
   const [neighborhood, setNeighborhood] = createSignal("");
   const [wifiDraft, setWifiDraft] = createSignal<WifiFilterMode>("all");
   const [wifi, setWifi] = createSignal<WifiFilterMode>("all");
+  const [outletDraft, setOutletDraft] = createSignal<OutletFilterMode>("all");
+  const [outlet, setOutlet] = createSignal<OutletFilterMode>("all");
   const [noiseDraft, setNoiseDraft] = createSignal("");
   const [noise, setNoise] = createSignal("");
   const [viewMode, setViewMode] = createSignal<ViewMode>("table");
@@ -40,6 +43,7 @@ export default function CafesPage() {
     neighborhood: neighborhood(),
     noiseLevel: noise(),
     wifi: wifi() === "all" ? null : wifi() === "true",
+    hasOutlet: outlet() === "all" ? null : outlet() === "true",
     limit: 20,
   }));
 
@@ -49,6 +53,7 @@ export default function CafesPage() {
     event.preventDefault();
     setNeighborhood(neighborhoodDraft().trim().toLowerCase());
     setWifi(wifiDraft());
+    setOutlet(outletDraft());
     setNoise(noiseDraft().trim().toLowerCase());
   };
 
@@ -57,6 +62,8 @@ export default function CafesPage() {
     setNeighborhood("");
     setWifiDraft("all");
     setWifi("all");
+    setOutletDraft("all");
+    setOutlet("all");
     setNoiseDraft("");
     setNoise("");
     cafes.retry();
@@ -133,6 +140,22 @@ export default function CafesPage() {
             </select>
           </div>
 
+          <div class="ui-field">
+            <label class="ui-field__label" for="filter-outlet">
+              Priz filtresi
+            </label>
+            <select
+              id="filter-outlet"
+              class="ui-input ui-select"
+              value={outletDraft()}
+              onChange={(event) => setOutletDraft(event.currentTarget.value as OutletFilterMode)}
+            >
+              <option value="all">Hepsi</option>
+              <option value="true">Sadece priz olanlar</option>
+              <option value="false">Priz olmayanlar</option>
+            </select>
+          </div>
+
           <div class="row-actions">
             <Button type="submit">Filtrele</Button>
             <Button type="button" variant="secondary" onClick={clearSearch}>
@@ -169,7 +192,8 @@ export default function CafesPage() {
               <Card>
                 <div class="cafes-toolbar">
                   <p class="cafes-toolbar__meta">
-                    Görüntülenen <strong>{(cafes.items() ?? []).length}</strong> kafe
+                    Görüntülenen <strong>{(cafes.items() ?? []).length}</strong> / Toplam{" "}
+                    <strong>{cafes.totalCount()}</strong> kafe
                   </p>
                   <div class="view-switch" role="group" aria-label="Görünüm seçimi">
                     <button

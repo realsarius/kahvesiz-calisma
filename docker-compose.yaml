@@ -210,7 +210,7 @@ services:
       - ./frontend-solid:/usr/src/frontend
       - frontend_dev_node_modules:/usr/src/frontend/node_modules
     environment:
-      VITE_API_PROXY_TARGET: http://api-dev:8000
+      VITE_API_PROXY_TARGET: http://nginx-dev:80
     ports:
       - "${FRONTEND_DEV_PORT:-5173}:5173"
     restart: unless-stopped
