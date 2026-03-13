@@ -15,7 +15,9 @@ services:
     build:
       context: .
       dockerfile: docker/api.Dockerfile
-    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    command: >-
+      sh -c "python -m alembic upgrade head &&
+      uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
     environment:
       <<: *api_common_env
       DATABASE_URL: ${DATABASE_URL_DEV:-postgresql+asyncpg://user:pass@db-dev:5432/kahvesiz_dev}
@@ -186,6 +188,8 @@ services:
     volumes:
       - ./frontend-solid:/usr/src/frontend
       - frontend_dev_node_modules:/usr/src/frontend/node_modules
+    environment:
+      VITE_API_PROXY_TARGET: http://api-dev:8000
     ports:
       - "${FRONTEND_DEV_PORT:-5173}:5173"
     restart: unless-stopped

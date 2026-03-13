@@ -1,9 +1,12 @@
 .homePage {
   width: 100%;
   padding-bottom: clamp(3.5rem, 8vw, 6rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2rem, 8vw, 5.5rem);
 }
 
-.homePage > * + * {
+.homePage>*+* {
   margin-top: clamp(3rem, 8vw, 5.5rem);
 }
 
@@ -602,6 +605,7 @@
 }
 
 @media (max-width: 740px) {
+
   .sectionContainer,
   .featuredCafes,
   .searchPreview,

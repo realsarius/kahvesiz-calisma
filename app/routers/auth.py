@@ -218,6 +218,50 @@ async def verify_magic_link(
     )
 
 
+@router.get("/session")
+async def get_session(
+    request: Request,
+    db: AsyncSession = Depends(get_db_session),
+):
+    session_token = (request.cookies.get("session_token") or "").strip()
+    if not session_token:
+        return {"user": None}
+
+    now = _utcnow()
+    session_hash = hash_token(session_token)
+    session_stmt = select(UserSession).where(
+        UserSession.session_token_hash == session_hash,
+        UserSession.expires_at > now,
+    )
+    session_result = await db.execute(session_stmt)
+    session = session_result.scalars().first()
+    if session is None:
+        return {"user": None}
+
+    user_stmt = select(User).where(
+        User.id == session.user_id,
+        User.is_active.is_(True),
+        User.deleted_at.is_(None),
+    )
+    user_result = await db.execute(user_stmt)
+    user = user_result.scalars().first()
+    if user is None:
+        return {"user": None}
+
+    if session.last_active_at is None or (now - session.last_active_at) >= timedelta(minutes=5):
+        session.last_active_at = now
+        await db.commit()
+
+    return {
+        "user": {
+            "id": str(user.id),
+            "name": user.display_name or user.username,
+            "email": user.email,
+            "is_admin": user.role == "admin",
+        }
+    }
+
+
 @router.post("/logout", response_model=LogoutResponse)
 async def logout(
     request: Request,

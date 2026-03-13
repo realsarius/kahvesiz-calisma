@@ -21,7 +21,7 @@
 # DEV stack'i başlat (api + db + redis + frontend + nginx)
 docker compose --profile dev up -d --build
 
-# DEV migration uygula
+# Gerekirse migration'ı manuel tetikle (api-dev zaten açılışta upgrade head çalıştırır)
 docker compose --profile dev run --rm api-dev python -m alembic upgrade head
 
 # Health check
