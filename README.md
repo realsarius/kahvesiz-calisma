@@ -40,6 +40,20 @@ docker compose --profile dev logs -f legacy-dev
 docker compose --profile dev down
 ```
 
+### 1.1.1 Dev seed verisi
+
+```bash
+# Dry-run (yazmadan test)
+docker compose --profile dev run --rm api-dev python scripts/seed_dev_data.py --dry-run
+
+# Gercek seed
+docker compose --profile dev run --rm api-dev python scripts/seed_dev_data.py
+```
+
+Notlar:
+- Script development odaklidir; production benzeri ortamda `--force` olmadan calismaz.
+- Olusturulan veri: 1 admin, birkac kullanici, birkac kafe, bookmark ve ornek review/vote kayitlari.
+
 ### 1.2 Prod (Hetzner) çalıştırma
 
 ```bash
