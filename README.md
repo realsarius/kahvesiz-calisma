@@ -1,371 +1,182 @@
-# Kahvesiz Çalışma API
+# Kahvesiz Çalışma
 
-> Bu repo adı eski olsa da proje, kafe/laptop çalışma deneyimi odaklı bir Flask web + API uygulamasıdır.
+> Durum (13 Mart 2026): Proje Flask tabanından FastAPI + PostgreSQL + Redis mimarisine geçiştedir.
 
 ## İçindekiler
 
-- [0. Hızlı Kurulum](#0-hızlı-kurulum)
-- [1. Kapsam](#1-kapsam)
-- [2. Teknoloji Yığını](#2-teknoloji-yığını-technology-stack)
-- [3. Veritabanı Tasarımı](#3-veritabanı-tasarımı-database-design)
-- [4. API Tasarımı](#4-api-tasarımı-ve-standartlar-api-design)
-- [5. Loglama ve Hata Yönetimi](#5-loglama-i̇zlenebilirlik-ve-hata-yönetimi-observability)
-- [6. Test Stratejisi](#6-test-stratejisi-testing)
-- [7. Kurulum ve Çalıştırma](#7-kurulum-ve-çalıştırma)
-- [8. Frontend](#8-frontend)
-- [9. Production Notes](#9-production-notes)
-- [10. Lisans ve Kullanım Notu](#10-lisans-ve-kullanım-notu)
+- [1. Hızlı Başlangıç](#1-hızlı-başlangıç)
+- [2. Güncel Mimari](#2-güncel-mimari)
+- [3. API Yüzeyi (v1)](#3-api-yüzeyi-v1)
+- [4. Veritabanı ve Migration](#4-veritabanı-ve-migration)
+- [5. Ortam Değişkenleri](#5-ortam-değişkenleri)
+- [6. Frontend (SolidJS)](#6-frontend-solidjs)
+- [7. Test ve Doğrulama](#7-test-ve-doğrulama)
+- [8. Legacy Notları](#8-legacy-notları)
 
-## 0. Hızlı Kurulum
+## 1. Hızlı Başlangıç
 
-### Docker ile (Önerilen)
+### 1.1 Docker Compose (önerilen)
 
 ```bash
-# 1) Uygulamayı container ile başlat
-# (Flask + Tailwind watch + Webpack watch)
+# Stack'i başlat (api + db + redis + nginx)
 docker compose up -d --build
 
-# 2) Logları takip et
-docker compose logs -f flask
+# İlk kurulumda migration uygula
+docker compose run --rm api python -m alembic upgrade head
 
-# 3) Tüm servisleri kapat
+# Health check
+curl -fsS http://127.0.0.1/api/v1/health
+
+# Loglar
+docker compose logs -f api
+
+# Kapat
 docker compose down
 ```
 
-### Erişim Adresleri
+Not: Eski `flask/tailwind/webpack` container'ları daha önce çalıştıysa `docker compose down --remove-orphans` kullanabilirsiniz.
 
-- Web UI (Frontend): <http://localhost:5040>
-- API Base: <http://localhost:5040/api>
-- API Örnek Listeleme: <http://localhost:5040/api/cafes>
-
----
-
-## 1. Kapsam
-
-**Kullanıcı Kimlik Akışı**: Kayıt (`/signup`, `/api/signup`), giriş (`/login`, `/api/login`), çıkış (`/logout`) ve e-posta doğrulama (`/confirm/<token>`) akışları mevcut.
-
-**Rol ve Yetki Yönetimi**: Admin/normal kullanıcı ayrımı var. Admin kullanıcılar kafe CRUD ve moderatör atama/çıkarma işlemlerini yönetebilir.
-
-**Kafe Yönetimi**: Kafe ekleme, güncelleme, silme ve listeleme hem web arayüzünden hem de JSON API üzerinden yapılabilir.
-
-**Moderatör Modeli**: Kullanıcılar belirli kafelere moderatör olarak atanabilir; ilgili kafelerde düzenleme yetkisi kazanırlar.
-
-**Güvenlik Temelleri**:
-
-- Şifreler hashlenerek saklanır (`pbkdf2:sha256`)
-- State-changing isteklerde CSRF koruması aktif
-- Rich text alanı (`details`) `bleach` ile sanitize edilir
-
-## 2. Teknoloji Yığını (Technology Stack)
-
-| Kategori | Teknoloji / Kütüphane | Kullanım Amacı |
-|---|---|---|
-| **Backend Core** | Flask 3 | Web uygulaması ve API katmanı |
-| **Data Access** | SQLAlchemy, Flask-SQLAlchemy | ORM ve veritabanı işlemleri |
-| **Migration** | Alembic, Flask-Migrate | Şema migrasyon altyapısı |
-| **Auth & Session** | Flask-Login, Werkzeug Security | Oturum yönetimi ve parola hash doğrulama |
-| **Validation / Form** | Flask-WTF, WTForms | Web form doğrulama ve CSRF koruması |
-| **Email** | Flask-Mail, itsdangerous | Hesap doğrulama e-postası ve token üretimi |
-| **Sanitization** | Bleach | Zengin metin XSS riskini azaltma |
-| **Frontend Rendering** | Jinja2 + SolidJS (cutover mode) | Geçişli render stratejisi ve SPA taşıma |
-| **Frontend Tooling** | Tailwind CSS, Webpack, Babel, Vite, SolidJS | Stil/JS derleme ve Solid build akışı |
-| **Runtime / Deploy** | Gunicorn, Docker, Docker Compose | Üretim sunumu ve container tabanlı çalışma |
-
-## 3. Veritabanı Tasarımı (Database Design)
-
-### 3.1 Entity Listesi
-
-1. **User**: Kullanıcı bilgileri, rol (`is_admin`), doğrulama durumu (`is_confirmed`) ve zaman alanları.
-2. **Cafe**: Kafe metadata alanları (konum, imkanlar, fiyat, açıklama vb.).
-3. **user_cafe**: User-Cafe many-to-many ilişki tablosu (moderasyon yetkisi için).
-
-### 3.2 Migration ve Şema Yönetimi
-
-Proje `Flask-Migrate` altyapısını içerir; ayrıca geliştirme kolaylığı için `AUTO_CREATE_SCHEMA` desteği bulunur.
-
-- `AUTO_CREATE_SCHEMA=True` olduğunda uygulama açılışında `db.create_all()` çalışır.
-- Üretim/staging için migration tabanlı akış önerilir.
-- Varsayılan veritabanı URI: `sqlite:///cafes.db`.
-- PostgreSQL kullanmak için `SQLALCHEMY_DATABASE_URI` değişkeni override edilmelidir.
-
-## 4. API Tasarımı ve Standartlar (API Design)
-
-Tutarlılık için JSON API cevapları ortak envelope yapısı kullanır:
-
-### 4.1 Response ve Hata Modeli
-
-**Başarılı Cevaplar (Success):**
-
-```json
-{
-  "data": {
-    "cafes": []
-  },
-  "error": null,
-  "meta": {}
-}
-```
-
-**Hata Cevapları (Error):**
-
-```json
-{
-  "data": null,
-  "error": {
-    "message": "Authentication required.",
-    "code": "AUTH_REQUIRED",
-    "details": null
-  },
-  "meta": {}
-}
-```
-
-### 4.2 Endpoint Yüzeyi
-
-**Kafe API**
-
-- `GET /api/cafes`
-- `GET /api/cafes/<int:cafe_id>`
-- `POST /api/cafes` (admin)
-- `PUT /api/cafes/<int:cafe_id>` (admin/moderatör)
-- `DELETE /api/cafes/<int:cafe_id>` (admin)
-
-**Kimlik / Kullanıcı API**
-
-- `POST /api/login`
-- `POST /api/signup`
-- `GET /api/users` (admin)
-
-**Moderasyon Yardımcı Endpointleri**
-
-- `GET /moderated_cafes/<int:user_id>`
-- `DELETE /remove_moderator/<int:user_id>/<int:cafe_id>`
-
-**E-posta Onay Endpointi**
-
-- `GET /confirm/<token>`
-
-### 4.3 Güvenlik Semantiği
-
-- API yazma işlemlerinde CSRF koruması aktiftir (`X-CSRFToken` header).
-- Kimlik doğrulama session/cookie temellidir (JWT kullanılmıyor).
-- Admin kontrolü `api_admin_required`, giriş kontrolü `api_login_required` dekoratörleriyle uygulanır.
-- Rich text payload’lar `bleach` ile sanitize edilir.
-
-### 4.4 Sayfalama Notu
-
-- Web tarafında `/cafes?page=` akışı `CAFES_PER_PAGE` ile paginated çalışır.
-- API tarafında `/api/cafes` şu an tüm sonuçları döner (pagination henüz uygulanmadı).
-
-## 5. Loglama, İzlenebilirlik ve Hata Yönetimi (Observability)
-
-### 5.1 Hata Modeli Standardizasyonu
-
-`success_response` / `error_response` yardımcılarıyla API hata cevabı tek tipte döndürülür.
-
-### 5.2 CSRF Hata Yönetimi
-
-Global CSRF error handler bulunur:
-
-- `/api/*` isteklerinde JSON hata cevabı (`CSRF_ERROR`) döner.
-- Web sayfalarında kullanıcıya flash mesaj gösterilip önceki sayfaya yönlendirilir.
-
-### 5.3 Mevcut Durum ve Geliştirme Alanı
-
-- Structured logging (örn. Serilog benzeri merkezi log altyapısı) henüz yok.
-- Trace/correlation id standartı henüz tanımlı değil.
-- İleri fazda merkezi loglama + request tracing eklenmesi önerilir.
-
-## 6. Test Stratejisi (Testing)
-
-### 6.1 Mevcut Testler
-
-`tests/test_api_hardening.py` içinde şu alanlar doğrulanır:
-
-- Boş kafe listesi cevabı
-- Legacy endpoint’lerin kaldırılmış olması
-- CSRF’siz write isteklerinin reddi
-- Admin olmayan kullanıcının yetki reddi
-- `details` alanı sanitization davranışı
-- Duplicate signup ve invalid login senaryoları
-
-### 6.2 Test Komutları
+### 1.2 Lokal (Docker'sız) FastAPI çalıştırma
 
 ```bash
-# Python unittest (package.json script)
-npm test
-
-# Doğrudan unittest
-python3 -m unittest discover -s tests -p "test_*.py" -v
-```
-
-## 7. Kurulum ve Çalıştırma
-
-### 7.1 Gereksinimler
-
-- Python 3.12+
-- Node.js LTS + npm
-- (Opsiyonel) Docker + Docker Compose
-
-### 7.2 Environment Değişkenleri
-
-`.env` dosyanıza aşağıdaki değerleri ekleyin:
-
-```bash
-# App
-SECRET_KEY=change-me
-SQLALCHEMY_DATABASE_URI=sqlite:///cafes.db
-AUTO_CREATE_SCHEMA=False
-
-# Mail
-MAIL_SERVER=smtp.example.com
-MAIL_PORT=587
-MAIL_USERNAME=your-mail@example.com
-MAIL_PASSWORD=your-password
-MAIL_USE_TLS=True
-MAIL_USE_SSL=False
-
-# UI / Forms
-TINYMCE_API_KEY=
-WTF_CSRF_ENABLED=True
-WTF_CSRF_TIME_LIMIT=3600
-CAFES_PER_PAGE=20
-COFFEE_CURRENCY_SYMBOL=£
-
-# Frontend
-SOLID_DIST_DIR=frontend-solid/dist
-```
-
-### 7.3 Docker Compose ile Çalıştırma (Önerilen)
-
-```bash
-docker compose up -d --build
-```
-
-**Servis Erişim Adresleri:**
-
-| Servis | Port | URL |
-|---|---|---|
-| Flask Web + API | 5040 | <http://localhost:5040> |
-| API Örnek | 5040 | <http://localhost:5040/api/cafes> |
-
-### 7.4 Manuel Kurulum
-
-```bash
-# 1) Python bağımlılıkları
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# 2) Node bağımlılıkları
-npm install
-
-# 3) Frontend asset watch süreçleri
-npx tailwindcss -i ./static/src/css/styles.css -o ./static/dist/css/output.css --watch
-npx webpack --watch
-
-# 4) Uygulamayı başlat
-flask --app main run --host=0.0.0.0 --port=5040 --debug
+python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-### 7.5 Uygulama URL’leri
+- API health: `http://127.0.0.1:8000/api/v1/health`
+- OpenAPI docs: `http://127.0.0.1:8000/docs`
 
-- Home: `http://localhost:5040/`
-- Cafes: `http://localhost:5040/cafes`
-- Login: `http://localhost:5040/login`
-- Admin: `http://localhost:5040/admin`
-- API: `http://localhost:5040/api/cafes`
+## 2. Güncel Mimari
 
-### 7.6 Frontend Smoke ve Dry-Run
+### Backend
 
-Uygulama frontend tarafinda SolidJS cikisini (`frontend-solid/dist`) servis eder.
+- Framework: `FastAPI`
+- ORM: `SQLAlchemy 2.0` (async)
+- Migration: `Alembic`
+- Auth: magic-link tabanlı token + session akışı
 
-Lokal Solid kontrolu:
+### Altyapı
+
+- `api`: FastAPI (internal `:8000`)
+- `db`: PostgreSQL 16 (internal `:5432`)
+- `redis`: Redis 7 (internal `:6379`)
+- `nginx`: Reverse proxy (external `:80`)
+
+Compose tanımı: [docker-compose.yaml](docker-compose.yaml)
+
+## 3. API Yüzeyi (v1)
+
+Base path: `/api/v1`
+
+### Health
+
+- `GET /health`
+
+### Auth
+
+- `POST /auth/register`
+- `POST /auth/magic-link`
+- `POST /auth/verify`
+- `POST /auth/logout`
+
+### Cafes
+
+- `GET /cafes`
+  - Query: `cursor`, `limit`, `neighborhood`, `wifi`, `noise_level`
+  - Cursor tabanlı pagination (`created_at + id`)
+- `GET /cafes/{slug}`
+
+## 4. Veritabanı ve Migration
+
+Alembic revision:
+
+- `20260313_0001` (initial schema)
+
+Kapsanan ana tablolar:
+
+- `users`, `auth_tokens`, `user_sessions`
+- `neighborhoods`, `cafes`, `cafe_amenities`, `cafe_hours`, `cafe_images`, `cafe_seats`
+- `reviews`, `review_votes`, `bookmarks`
+- `pii.user_pii` (KVKK ayrımı)
+
+Migration komutları:
 
 ```bash
-# Solid build al
-npm run solid:build
+# Lokal
+python3 -m alembic upgrade head
 
-# Solid smoke
-flask --app main run --host=0.0.0.0 --port=5040
-npm run solid:smoke -- http://127.0.0.1:5040
+# Docker
+docker compose run --rm api python -m alembic upgrade head
 ```
 
-Gorsel regresyon kontrolu (desktop + mobile):
+## 5. Ortam Değişkenleri
 
-```bash
-npm run solid:visual -- http://127.0.0.1:5040
+Örnek değerler:
+
+```env
+DATABASE_URL=postgresql+asyncpg://user:pass@db:5432/kahvesiz
+REDIS_URL=redis://redis:6379/0
+
+SECRET_KEY=change-me
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+SESSION_EXPIRE_DAYS=30
+MAGIC_LINK_EXPIRE_MINUTES=15
+
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=noreply@kahvesizcalisma.com
+
+ENVIRONMENT=development
+FRONTEND_URL=http://localhost:5173
+ALLOWED_ORIGINS=http://localhost:5173
 ```
 
-Not: Screenshot artefactlari `output/playwright/solid-visual-*` altina yazilir.
+## 6. Frontend (SolidJS)
 
-Component backlog guncelleme:
+Frontend kaynak kodu: `frontend-solid/`
+
+Temel komutlar:
 
 ```bash
-npm run solid:backlog
+# Geliştirme
+npm --prefix frontend-solid run dev
+
+# Production build
+npm --prefix frontend-solid run build
 ```
 
-Not: Cikti `frontend-solid/component-backlog.json` dosyasina yazilir.
+Yeni veri akışı:
 
-Tek komutla dry-run:
+- `CafesPage` -> `/api/v1/cafes` (cursor-based infinite scroll)
+- `CafeDetailPage` -> `/api/v1/cafes/:slug`
 
-```bash
-npm run frontend:dryrun
-```
+## 7. Test ve Doğrulama
 
-## 8. Frontend
-
-Frontend katmani SolidJS tabanlidir ve Flask tarafi `frontend-solid/dist` cikisini sunar.
-
-**Solid Frontend (`frontend-solid/`)**
-
-- `frontend-solid/src/App.tsx` route tanımları
-- `frontend-solid/src/pages/*` public/auth/admin ekranları
-- `frontend-solid/src/lib/api.ts` ortak API client (timeout + credential policy)
-- `frontend-solid/dist/` Flask tarafindan `/solid/*` altinda servis edilir
-
-**Legacy notu**
-
-- `templates/` ve `static/` altinda kalan eski dosyalar geriye donuk yonetim/form akislarini korumak icin repo icinde tutulur.
-- Public sayfalar (`/`, `/cafes`, `/about`, `/privacy`, `/license`, `/contact`, `/login`, `/signup`, `/admin`) Solid SPA olarak servis edilir.
-
-**Solid UI Notlari**
-
-- Navbar fixed davranisindadir; asagi scroll'da gizlenir, yukari scroll'da tekrar gorunur.
-- Header ve footer blur etkisi icin `backdrop-filter` + Firefox fallback katmani uygulanmistir.
-- `Kafeler` sayfasinda kullanici gorunumu `Tablo` ve `Grid` modlari arasinda degistirebilir.
-
-## 9. Production Notes
-
-### 9.1 Sunum ve Çalıştırma
-
-- `Procfile` içinde production process: `web: gunicorn main:app`
-- Production ortamında `debug` kapalı ve güçlü `SECRET_KEY` zorunlu olmalı.
-
-### 9.2 Veritabanı
-
-- Varsayılan SQLite geliştirme içindir.
-- Üretimde PostgreSQL gibi harici bir DB kullanılması önerilir (`SQLALCHEMY_DATABASE_URI`).
-
-### 9.3 Güvenlik Kontrolleri
-
-- `WTF_CSRF_ENABLED=True` bırakılmalı.
-- Mail doğrulama akışı açık olmalı (`MAIL_*` değişkenleri).
-- Admin hesaplarının parolaları güçlü ve benzersiz tutulmalı.
-
-### 9.4 Hızlı Smoke Kontrol
+### Testler
 
 ```bash
-curl -fsS http://localhost:5040/ >/dev/null
-curl -fsS http://localhost:5040/api/cafes >/dev/null
 npm test
-npm run frontend:dryrun
-npm run solid:visual -- http://127.0.0.1:5040
 ```
 
-## 10. Lisans ve Kullanım Notu
+Mevcut test dosyaları:
 
-Bu proje MIT lisansı ile lisanslanmıştır.
+- `tests/test_api_hardening.py` (legacy Flask API güvenlik/regresyon)
+- `tests/test_frontend_cutover.py` (Solid cutover davranışı)
+- `tests/test_fastapi_v1_contract.py` (FastAPI v1 kontrat testleri)
 
-- Lisans metni için kök dizindeki [`LICENSE`](LICENSE) dosyasına bakabilirsiniz.
-- Üçüncü parti kütüphaneler kendi lisans koşullarına tabidir.
+### Sık kullanılan smoke komutları
+
+```bash
+curl -fsS http://127.0.0.1/api/v1/health
+npm --prefix frontend-solid run build
+npm test
+```
+
+## 8. Legacy Notları
+
+- Repo içinde Flask tabanlı legacy modüller halen bulunmaktadır (`main.py`, `kahvesiz_app/*`).
+- Geçiş tamamlanana kadar legacy testleri ve bazı route/senaryolar korunmaktadır.
+- Yeni geliştirme hedefi FastAPI `app/` dizini ve `/api/v1/*` yüzeyidir.
+
