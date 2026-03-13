@@ -626,6 +626,19 @@ def run_seed(pg_url: str, with_reviews: bool, dry_run: bool) -> None:
         conn.close()
 
 
+def database_has_any_data(pg_url: str) -> bool:
+    conn = psycopg2.connect(pg_url)
+    try:
+        with conn.cursor() as cur:
+            for table_name in ("users", "neighborhoods", "cafes", "reviews", "bookmarks"):
+                cur.execute(f"SELECT 1 FROM {table_name} LIMIT 1")
+                if cur.fetchone() is not None:
+                    return True
+        return False
+    finally:
+        conn.close()
+
+
 def parse_args(argv: Iterable[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Seed development data for PostgreSQL.")
     parser.add_argument("--pg-url", default=None, help="PostgreSQL URL (optional).")
@@ -636,6 +649,11 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
         action="store_true",
         help="Skip review and vote seeding.",
     )
+    parser.add_argument(
+        "--if-empty",
+        action="store_true",
+        help="Sadece veritabani bossa seed calistir.",
+    )
     return parser.parse_args(list(argv))
 
 
@@ -644,6 +662,9 @@ def main(argv: Iterable[str]) -> int:
     try:
         pg_url = pick_pg_url(args.pg_url)
         assert_safe_environment(pg_url, force=bool(args.force))
+        if args.if_empty and database_has_any_data(pg_url):
+            print("[ok] veritabani bos degil, seed atlandi (--if-empty).")
+            return 0
         run_seed(
             pg_url=pg_url,
             with_reviews=not bool(args.without_reviews),

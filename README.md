@@ -40,6 +40,10 @@ docker compose --profile dev logs -f legacy-dev
 docker compose --profile dev down
 ```
 
+Not:
+- `api-dev` acilirken `python scripts/seed_dev_data.py --if-empty` calisir.
+- Veritabani bossa otomatik seed atar, doluysa seed adimini atlar.
+
 ### 1.1.1 Dev seed verisi
 
 ```bash

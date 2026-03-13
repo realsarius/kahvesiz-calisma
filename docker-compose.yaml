@@ -17,6 +17,7 @@ services:
       dockerfile: docker/api.Dockerfile
     command: >-
       sh -c "python -m alembic upgrade head &&
+      python scripts/seed_dev_data.py --if-empty &&
       uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
     environment:
       <<: *api_common_env
