@@ -3,9 +3,11 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from requests import RequestException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
 from app.core.config import settings
 from app.core.database import get_db_session
@@ -23,6 +25,7 @@ from app.schemas.auth import (
     VerifyRequest,
     VerifyResponse,
 )
+from app.services.email import render_magic_link_email, send_email_via_resend
 
 
 router = APIRouter()
@@ -131,10 +134,19 @@ async def request_magic_link(
         db.add(auth_token)
         await db.commit()
 
-        if settings.resend_api_key:
-            logger.info("Magic link token hazırlandı, email servisine gönderim bekleniyor: %s", email)
+        subject, html, text = render_magic_link_email(plain_token)
+        try:
+            await run_in_threadpool(
+                send_email_via_resend,
+                email,
+                subject,
+                html,
+                text,
+            )
+        except RequestException:
+            logger.exception("Magic link email gönderimi başarısız oldu: %s", email)
         else:
-            logger.info("RESEND_API_KEY yok, magic link debug token üretildi: %s", email)
+            logger.info("Magic link email gönderim denemesi tamamlandı: %s", email)
 
     return MagicLinkResponse(
         message="Eğer hesap mevcutsa magic link gönderilecektir.",
