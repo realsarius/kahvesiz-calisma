@@ -4,6 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "python3 -m unittest discover -s tests -p \"test_*.py\" -v",
+    "api:dev": "python3 -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000",
+    "db:migrate:up": "python3 -m alembic upgrade head",
     "solid:build": "npm --prefix frontend-solid run build",
     "solid:smoke": "bash ./scripts/smoke-solid-cutover.sh",
     "solid:visual": "bash ./scripts/smoke-solid-visual-regression.sh",

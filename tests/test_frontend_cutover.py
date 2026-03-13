@@ -148,6 +148,15 @@ class FrontendCutoverTests(unittest.TestCase):
         self.assertIn("solid-cutover-entry", response.get_data(as_text=True))
         response.close()
 
+    def test_solid_mode_serves_spa_entry_for_slug_based_cafe_route(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        response = self.client.get("/cafes/moda-brew")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("solid-cutover-entry", response.get_data(as_text=True))
+        response.close()
+
     def test_solid_mode_catchall_does_not_intercept_api_namespace(self):
         dist_dir = self._make_temp_solid_dist()
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)

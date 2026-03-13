@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { FiGrid, FiList } from "solid-icons/fi";
-import { For, Show, createResource, createSignal } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 import { EmptyState } from "../components/states/EmptyState";
 import { ErrorState } from "../components/states/ErrorState";
 import { LoadingState } from "../components/states/LoadingState";
@@ -9,9 +9,10 @@ import { Card } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { PageContainer } from "../components/ui/PageContainer";
 import { ApiRequestError } from "../lib/api";
-import { getCafes } from "../lib/cafes";
+import { type CafeListFilters, useInfiniteCafes } from "../lib/cafes";
 
 type ViewMode = "table" | "grid";
+type WifiFilterMode = "all" | "true" | "false";
 
 function readErrorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
@@ -26,57 +27,135 @@ function readErrorMessage(error: unknown) {
 }
 
 export default function CafesPage() {
-  const [searchDraft, setSearchDraft] = createSignal("");
-  const [search, setSearch] = createSignal("");
+  const [neighborhoodDraft, setNeighborhoodDraft] = createSignal("");
+  const [neighborhood, setNeighborhood] = createSignal("");
+  const [wifiDraft, setWifiDraft] = createSignal<WifiFilterMode>("all");
+  const [wifi, setWifi] = createSignal<WifiFilterMode>("all");
+  const [noiseDraft, setNoiseDraft] = createSignal("");
+  const [noise, setNoise] = createSignal("");
   const [viewMode, setViewMode] = createSignal<ViewMode>("table");
-  const [cafes, { refetch }] = createResource(search, getCafes);
+  let loadMoreSentinel: HTMLDivElement | undefined;
+
+  const filters = createMemo<CafeListFilters>(() => ({
+    neighborhood: neighborhood(),
+    noiseLevel: noise(),
+    wifi: wifi() === "all" ? null : wifi() === "true",
+    limit: 20,
+  }));
+
+  const cafes = useInfiniteCafes(filters);
 
   const onSearchSubmit = (event: SubmitEvent) => {
     event.preventDefault();
-    setSearch(searchDraft());
+    setNeighborhood(neighborhoodDraft().trim().toLowerCase());
+    setWifi(wifiDraft());
+    setNoise(noiseDraft().trim().toLowerCase());
   };
 
   const clearSearch = () => {
-    setSearchDraft("");
-    setSearch("");
-    void refetch();
+    setNeighborhoodDraft("");
+    setNeighborhood("");
+    setWifiDraft("all");
+    setWifi("all");
+    setNoiseDraft("");
+    setNoise("");
+    cafes.retry();
   };
 
+  createEffect(() => {
+    const node = loadMoreSentinel;
+    if (!node || !cafes.hasMore()) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting) {
+          return;
+        }
+        cafes.loadMore();
+      },
+      { rootMargin: "160px 0px 160px 0px" },
+    );
+
+    observer.observe(node);
+    onCleanup(() => observer.disconnect());
+  });
+
   return (
-    <PageContainer title="Kafeler" subtitle="Listeleme verisi /api/cafes endpointinden çekilir.">
+    <PageContainer title="Kafeler" subtitle="Listeleme verisi /api/v1/cafes endpointinden cursor pagination ile çekilir.">
       <Card>
         <form class="search-form" onSubmit={onSearchSubmit}>
-          <Input
-            id="search-cafe-list"
-            label="Kafe ara"
-            value={searchDraft()}
-            onInput={(event) => setSearchDraft(event.currentTarget.value)}
-            placeholder="Örnek: Beşiktaş"
-            hint="Arama kelimesi backend search parametresine iletilir."
-          />
+          <div class="grid-two-columns">
+            <Input
+              id="search-cafe-neighborhood"
+              label="Semt (slug)"
+              value={neighborhoodDraft()}
+              onInput={(event) => setNeighborhoodDraft(event.currentTarget.value)}
+              placeholder="Örnek: kadikoy"
+              hint="Boş bırakırsanız tüm semtler listelenir."
+            />
+
+            <div class="ui-field">
+              <label class="ui-field__label" for="filter-noise-level">
+                Sessizlik seviyesi
+              </label>
+              <select
+                id="filter-noise-level"
+                class="ui-input ui-select"
+                value={noiseDraft()}
+                onChange={(event) => setNoiseDraft(event.currentTarget.value)}
+              >
+                <option value="">Hepsi</option>
+                <option value="silent">silent</option>
+                <option value="quiet">quiet</option>
+                <option value="moderate">moderate</option>
+                <option value="loud">loud</option>
+              </select>
+              <p class="ui-field__hint">Filtre backend’de `noise_level` parametresine gönderilir.</p>
+            </div>
+          </div>
+
+          <div class="ui-field">
+            <label class="ui-field__label" for="filter-wifi">
+              Wi-Fi filtresi
+            </label>
+            <select
+              id="filter-wifi"
+              class="ui-input ui-select"
+              value={wifiDraft()}
+              onChange={(event) => setWifiDraft(event.currentTarget.value as WifiFilterMode)}
+            >
+              <option value="all">Hepsi</option>
+              <option value="true">Sadece Wi-Fi olanlar</option>
+              <option value="false">Sadece Wi-Fi olmayanlar</option>
+            </select>
+          </div>
+
           <div class="row-actions">
-            <Button type="submit">Ara</Button>
+            <Button type="submit">Filtrele</Button>
             <Button type="button" variant="secondary" onClick={clearSearch}>
-              Filtreyi temizle
+              Filtreleri temizle
             </Button>
           </div>
         </form>
       </Card>
 
-      <Show when={!cafes.loading} fallback={<LoadingState title="Kafe listesi yükleniyor" />}>
+      <Show when={!cafes.isLoadingInitial()} fallback={<LoadingState title="Kafe listesi yükleniyor" />}>
         <Show
-          when={!cafes.error}
+          when={!cafes.error() || (cafes.items() ?? []).length > 0}
           fallback={
             <ErrorState
               title="Kafe listesi alınamadı"
-              description={readErrorMessage(cafes.error)}
+              description={readErrorMessage(cafes.error())}
               actionLabel="Tekrar dene"
-              onAction={() => void refetch()}
+              onAction={cafes.retry}
             />
           }
         >
           <Show
-            when={(cafes() ?? []).length > 0}
+            when={(cafes.items() ?? []).length > 0}
             fallback={
               <EmptyState
                 title="Filtreye uygun kafe bulunamadı"
@@ -90,7 +169,7 @@ export default function CafesPage() {
               <Card>
                 <div class="cafes-toolbar">
                   <p class="cafes-toolbar__meta">
-                    Toplam <strong>{(cafes() ?? []).length}</strong> kafe
+                    Görüntülenen <strong>{(cafes.items() ?? []).length}</strong> kafe
                   </p>
                   <div class="view-switch" role="group" aria-label="Görünüm seçimi">
                     <button
@@ -117,39 +196,29 @@ export default function CafesPage() {
                 when={viewMode() === "table"}
                 fallback={
                   <div class="cafe-grid">
-                    <For each={cafes() ?? []}>
+                    <For each={cafes.items() ?? []}>
                       {(cafe) => (
                         <Card class="cafe-grid__card">
                           <div class="cafe-grid__header">
-                            <A class="cafe-grid__title" href={`/cafes/${cafe.id}`}>
+                            <A class="cafe-grid__title" href={`/cafes/${cafe.slug}`}>
                               {cafe.name}
                             </A>
-                            <span class="ui-chip">{cafe.coffee_price || "fiyat yok"}</span>
+                            <span class="ui-chip">⭐ {cafe.avg_rating.toFixed(1)}</span>
                           </div>
-                          <p class="cafe-grid__location">{cafe.location}</p>
+                          <p class="cafe-grid__location">{cafe.neighborhood || "Semt bilgisi yok"}</p>
+                          <p class="cafe-grid__location">{cafe.address}</p>
                           <div class="chip-row">
-                            <span classList={{ "ui-chip": true, "ui-chip--ok": cafe.has_wifi, "ui-chip--no": !cafe.has_wifi }}>
-                              Wi-Fi: {cafe.has_wifi ? "Var" : "Yok"}
-                            </span>
-                            <span
-                              classList={{ "ui-chip": true, "ui-chip--ok": cafe.has_sockets, "ui-chip--no": !cafe.has_sockets }}
-                            >
-                              Priz: {cafe.has_sockets ? "Var" : "Yok"}
-                            </span>
-                            <span
-                              classList={{ "ui-chip": true, "ui-chip--ok": cafe.has_toilet, "ui-chip--no": !cafe.has_toilet }}
-                            >
-                              WC: {cafe.has_toilet ? "Var" : "Yok"}
-                            </span>
                             <span
                               classList={{
                                 "ui-chip": true,
-                                "ui-chip--ok": cafe.can_take_calls,
-                                "ui-chip--no": !cafe.can_take_calls,
+                                "ui-chip--ok": cafe.wifi_available,
+                                "ui-chip--no": !cafe.wifi_available,
                               }}
                             >
-                              Çağrı: {cafe.can_take_calls ? "Uygun" : "Uygun değil"}
+                              Wi-Fi: {cafe.wifi_available ? "Var" : "Yok"}
                             </span>
+                            <span class="ui-chip">Gürültü: {cafe.noise_level || "bilinmiyor"}</span>
+                            <span class="ui-chip">Yorum: {cafe.review_count}</span>
                           </div>
                         </Card>
                       )}
@@ -163,69 +232,68 @@ export default function CafesPage() {
                       <thead>
                         <tr>
                           <th>Kafe</th>
-                          <th>Konum</th>
+                          <th>Semt</th>
+                          <th>Adres</th>
                           <th>Wi-Fi</th>
-                          <th>Priz</th>
-                          <th>WC</th>
-                          <th>Çağrı</th>
-                          <th>Kahve</th>
+                          <th>Gürültü</th>
+                          <th>Puan</th>
+                          <th>Yorum</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <For each={cafes() ?? []}>
+                        <For each={cafes.items() ?? []}>
                           {(cafe) => (
                             <tr>
                               <td>
-                                <A class="cafe-table__name" href={`/cafes/${cafe.id}`}>
+                                <A class="cafe-table__name" href={`/cafes/${cafe.slug}`}>
                                   {cafe.name}
                                 </A>
                               </td>
-                              <td>{cafe.location}</td>
-                              <td>
-                                <span classList={{ "table-badge": true, "table-badge--ok": cafe.has_wifi, "table-badge--no": !cafe.has_wifi }}>
-                                  {cafe.has_wifi ? "Var" : "Yok"}
-                                </span>
-                              </td>
+                              <td>{cafe.neighborhood || "—"}</td>
+                              <td>{cafe.address}</td>
                               <td>
                                 <span
                                   classList={{
                                     "table-badge": true,
-                                    "table-badge--ok": cafe.has_sockets,
-                                    "table-badge--no": !cafe.has_sockets,
+                                    "table-badge--ok": cafe.wifi_available,
+                                    "table-badge--no": !cafe.wifi_available,
                                   }}
                                 >
-                                  {cafe.has_sockets ? "Var" : "Yok"}
+                                  {cafe.wifi_available ? "Var" : "Yok"}
                                 </span>
                               </td>
-                              <td>
-                                <span
-                                  classList={{
-                                    "table-badge": true,
-                                    "table-badge--ok": cafe.has_toilet,
-                                    "table-badge--no": !cafe.has_toilet,
-                                  }}
-                                >
-                                  {cafe.has_toilet ? "Var" : "Yok"}
-                                </span>
-                              </td>
-                              <td>
-                                <span
-                                  classList={{
-                                    "table-badge": true,
-                                    "table-badge--ok": cafe.can_take_calls,
-                                    "table-badge--no": !cafe.can_take_calls,
-                                  }}
-                                >
-                                  {cafe.can_take_calls ? "Uygun" : "Değil"}
-                                </span>
-                              </td>
-                              <td>{cafe.coffee_price || "fiyat yok"}</td>
+                              <td>{cafe.noise_level || "—"}</td>
+                              <td>{cafe.avg_rating.toFixed(1)}</td>
+                              <td>{cafe.review_count}</td>
                             </tr>
                           )}
                         </For>
                       </tbody>
                     </table>
                   </div>
+                </Card>
+              </Show>
+
+              <Show when={cafes.error()}>
+                <ErrorState
+                  title="Sonraki sayfa yüklenemedi"
+                  description={readErrorMessage(cafes.error())}
+                  actionLabel="Tekrar dene"
+                  onAction={cafes.retry}
+                />
+              </Show>
+
+              <Show when={cafes.hasMore()}>
+                <Card>
+                  <div class="cafes-toolbar">
+                    <p class="cafes-toolbar__meta">
+                      {cafes.isLoadingMore() ? "Yeni sonuçlar yükleniyor..." : "Daha fazla sonuç yükleyebilirsiniz."}
+                    </p>
+                    <Button type="button" variant="secondary" onClick={cafes.loadMore} disabled={cafes.isLoadingMore()}>
+                      {cafes.isLoadingMore() ? "Yükleniyor..." : "Daha fazla yükle"}
+                    </Button>
+                  </div>
+                  <div ref={(el) => (loadMoreSentinel = el)} style={{ height: "1px", width: "100%" }} />
                 </Card>
               </Show>
             </>

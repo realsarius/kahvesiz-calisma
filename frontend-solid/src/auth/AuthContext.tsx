@@ -3,9 +3,12 @@ import { createStore } from "solid-js/store";
 import { AUTH_REQUIRED_EVENT, ApiRequestError, apiGet } from "../lib/api";
 
 interface AuthBootstrapUser {
-  id: number;
-  name: string;
+  id: number | string;
+  name?: string;
+  display_name?: string;
+  username?: string;
   email: string;
+  role?: string;
   isAdmin?: boolean;
   is_admin?: boolean;
 }
@@ -15,7 +18,7 @@ interface AuthBootstrapResponse {
 }
 
 export interface AuthUser {
-  id: number;
+  id: number | string;
   name: string;
   email: string;
   isAdmin: boolean;
@@ -58,7 +61,19 @@ function normalizeAuthUser(value: unknown): AuthUser | null {
   }
 
   const user = value as Record<string, unknown>;
-  if (typeof user.id !== "number" || typeof user.name !== "string" || typeof user.email !== "string") {
+  const id = user.id;
+  const isIdValid = typeof id === "number" || typeof id === "string";
+
+  const name =
+    typeof user.name === "string"
+      ? user.name
+      : typeof user.display_name === "string"
+        ? user.display_name
+        : typeof user.username === "string"
+          ? user.username
+          : null;
+
+  if (!isIdValid || !name || typeof user.email !== "string") {
     return null;
   }
 
@@ -67,11 +82,11 @@ function normalizeAuthUser(value: unknown): AuthUser | null {
       ? user.isAdmin
       : typeof user.is_admin === "boolean"
         ? user.is_admin
-        : false;
+        : user.role === "admin";
 
   return {
-    id: user.id,
-    name: user.name,
+    id,
+    name,
     email: user.email,
     isAdmin,
   };
@@ -93,7 +108,7 @@ function readWindowBootstrap() {
 }
 
 async function readEndpointBootstrap() {
-  const endpoint = import.meta.env.VITE_AUTH_BOOTSTRAP_ENDPOINT?.trim() || "/api/auth/session";
+  const endpoint = import.meta.env.VITE_AUTH_BOOTSTRAP_ENDPOINT?.trim() || "/api/v1/auth/session";
 
   try {
     const response = await apiGet<AuthBootstrapResponse | null>(endpoint, {
