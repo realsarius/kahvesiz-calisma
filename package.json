@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "python3 -m unittest discover -s tests -p \"test_*.py\" -v"
+    "test": "python3 -m unittest discover -s tests -p \"test_*.py\" -v",
+    "solid:build": "npm --prefix frontend-solid run build",
+    "solid:smoke": "bash ./scripts/smoke-solid-cutover.sh",
+    "solid:visual": "bash ./scripts/smoke-solid-visual-regression.sh",
+    "solid:backlog": "python3 ./scripts/update-solid-component-backlog.py",
+    "frontend:dryrun": "bash ./scripts/dryrun-frontend-modes.sh"
   },
   "keywords": [],
   "author": "",

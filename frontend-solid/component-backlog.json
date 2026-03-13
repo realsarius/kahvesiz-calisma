@@ -1,0 +1,167 @@
+{
+  "generatedAtUtc": "2026-03-13T09:37:37+00:00",
+  "source": "frontend-solid/src/pages/*.tsx",
+  "totalPages": 11,
+  "componentUsage": [
+    {
+      "component": "Card",
+      "pageCount": 11
+    },
+    {
+      "component": "PageContainer",
+      "pageCount": 11
+    },
+    {
+      "component": "Button",
+      "pageCount": 6
+    },
+    {
+      "component": "Alert",
+      "pageCount": 5
+    },
+    {
+      "component": "Input",
+      "pageCount": 5
+    },
+    {
+      "component": "EmptyState",
+      "pageCount": 4
+    },
+    {
+      "component": "ErrorState",
+      "pageCount": 4
+    },
+    {
+      "component": "LoadingState",
+      "pageCount": 4
+    }
+  ],
+  "pages": [
+    {
+      "page": "AboutPage.tsx",
+      "components": [
+        "Card",
+        "PageContainer"
+      ]
+    },
+    {
+      "page": "AdminPage.tsx",
+      "components": [
+        "Alert",
+        "Button",
+        "Card",
+        "EmptyState",
+        "ErrorState",
+        "Input",
+        "LoadingState",
+        "PageContainer"
+      ]
+    },
+    {
+      "page": "CafeDetailPage.tsx",
+      "components": [
+        "Card",
+        "EmptyState",
+        "ErrorState",
+        "LoadingState",
+        "PageContainer"
+      ]
+    },
+    {
+      "page": "CafesPage.tsx",
+      "components": [
+        "Button",
+        "Card",
+        "EmptyState",
+        "ErrorState",
+        "Input",
+        "LoadingState",
+        "PageContainer"
+      ]
+    },
+    {
+      "page": "ContactPage.tsx",
+      "components": [
+        "Alert",
+        "Button",
+        "Card",
+        "Input",
+        "PageContainer"
+      ]
+    },
+    {
+      "page": "HomePage.tsx",
+      "components": [
+        "Alert",
+        "Button",
+        "Card",
+        "EmptyState",
+        "ErrorState",
+        "LoadingState",
+        "PageContainer"
+      ]
+    },
+    {
+      "page": "LicensePage.tsx",
+      "components": [
+        "Card",
+        "PageContainer"
+      ]
+    },
+    {
+      "page": "LoginPage.tsx",
+      "components": [
+        "Alert",
+        "Button",
+        "Card",
+        "Input",
+        "PageContainer"
+      ]
+    },
+    {
+      "page": "NotFoundPage.tsx",
+      "components": [
+        "Card",
+        "PageContainer"
+      ]
+    },
+    {
+      "page": "PrivacyPage.tsx",
+      "components": [
+        "Card",
+        "PageContainer"
+      ]
+    },
+    {
+      "page": "SignupPage.tsx",
+      "components": [
+        "Alert",
+        "Button",
+        "Card",
+        "Input",
+        "PageContainer"
+      ]
+    }
+  ],
+  "suggestedNextComponents": [
+    {
+      "name": "ConfirmDialog",
+      "status": "planned",
+      "reason": "Admin tarafindaki silme aksiyonlarinda standard onay penceresi gerekir."
+    },
+    {
+      "name": "FormField",
+      "status": "planned",
+      "reason": "Input + label + hata metni tekrarlarini tek bir komponentte toplar."
+    },
+    {
+      "name": "DataTable",
+      "status": "planned",
+      "reason": "Admin listelerinde kolon/siralama/aksiyon yapisini sade bir yapida birlestirir."
+    }
+  ],
+  "notes": [
+    "Bu dosya scripts/update-solid-component-backlog.py ile uretilir.",
+    "Yeni sayfa tasindiginda bu script tekrar calistirilmalidir."
+  ]
+}

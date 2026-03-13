@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 
 from flask import request
-from flask_login import current_user, login_user
+from flask_login import current_user, login_user, logout_user
+from flask_wtf.csrf import generate_csrf
 
 from kahvesiz_app.api_response import error_response, success_response
 from kahvesiz_app.auth import hash_password, send_confirmation_email, verify_password
@@ -13,9 +14,10 @@ from kahvesiz_app.services import CafeService, UserService
 
 
 def register_api_routes(app):
-    @app.route("/remove_moderator/<int:user_id>/<int:cafe_id>", methods=["DELETE"])
-    @api_admin_required
-    def remove_moderator(user_id, cafe_id):
+    def _build_moderated_cafes_payload(user):
+        return {"cafes": [{"id": cafe.id, "name": cafe.name} for cafe in user.moderated_cafes]}
+
+    def _remove_moderator(user_id, cafe_id):
         user = UserRepository.get_by_id(user_id)
         if not user:
             return error_response("User not found", status=404, code="USER_NOT_FOUND")
@@ -33,6 +35,51 @@ def register_api_routes(app):
             )
         return success_response({"success": True}, status=200)
 
+    @app.route("/remove_moderator/<int:user_id>/<int:cafe_id>", methods=["DELETE"])
+    @api_admin_required
+    def remove_moderator(user_id, cafe_id):
+        return _remove_moderator(user_id, cafe_id)
+
+    @app.route("/api/moderators", methods=["POST"])
+    @api_admin_required
+    def api_assign_moderator():
+        data = request.get_json(silent=True) or {}
+        user_id = data.get("user_id")
+        cafe_id = data.get("cafe_id")
+
+        if not user_id or not cafe_id:
+            return error_response(
+                "user_id and cafe_id are required",
+                status=422,
+                code="MISSING_FIELDS",
+                details=["user_id", "cafe_id"],
+            )
+
+        try:
+            user_id = int(user_id)
+            cafe_id = int(cafe_id)
+        except (TypeError, ValueError):
+            return error_response("Invalid moderator assignment payload", status=422, code="INVALID_BODY")
+
+        user = UserRepository.get_by_id(user_id)
+        if not user:
+            return error_response("User not found", status=404, code="USER_NOT_FOUND")
+
+        cafe = CafeRepository.get_by_id(cafe_id)
+        if not cafe:
+            return error_response("Cafe not found", status=404, code="CAFE_NOT_FOUND")
+
+        assigned = ModeratorRepository.assign(user, cafe)
+        if not assigned:
+            return success_response({"assigned": False, "message": "User is already a moderator."}, status=200)
+
+        return success_response({"assigned": True, "message": "Moderator assigned successfully."}, status=201)
+
+    @app.route("/api/moderators/<int:user_id>/<int:cafe_id>", methods=["DELETE"])
+    @api_admin_required
+    def api_remove_moderator(user_id, cafe_id):
+        return _remove_moderator(user_id, cafe_id)
+
     @app.route("/moderated_cafes/<int:user_id>", methods=["GET"])
     @api_login_required
     def get_moderated_cafes(user_id):
@@ -47,8 +94,23 @@ def register_api_routes(app):
         if not user:
             return error_response("User not found", status=404, code="USER_NOT_FOUND")
 
-        cafes = [{"id": cafe.id, "name": cafe.name} for cafe in user.moderated_cafes]
-        return success_response({"cafes": cafes}, status=200)
+        return success_response(_build_moderated_cafes_payload(user), status=200)
+
+    @app.route("/api/moderators/<int:user_id>", methods=["GET"])
+    @api_login_required
+    def api_get_moderated_cafes(user_id):
+        if not current_user.is_admin and current_user.id != user_id:
+            return error_response(
+                "You do not have permission to access this data.",
+                status=403,
+                code="FORBIDDEN",
+            )
+
+        user = UserRepository.get_by_id(user_id)
+        if not user:
+            return error_response("User not found", status=404, code="USER_NOT_FOUND")
+
+        return success_response(_build_moderated_cafes_payload(user), status=200)
 
     @app.route("/api/cafes/<int:cafe_id>", methods=["PUT"])
     @api_login_required
@@ -186,6 +248,31 @@ def register_api_routes(app):
         login_user(user)
         return success_response({"message": "Giriş başarılı!"}, status=200)
 
+    @app.route("/api/csrf-token", methods=["GET"])
+    def api_csrf_token():
+        return success_response({"csrf_token": generate_csrf()}, status=200)
+
+    @app.route("/api/auth/session", methods=["GET"])
+    @api_login_required
+    def api_auth_session():
+        return success_response(
+            {
+                "user": {
+                    "id": current_user.id,
+                    "name": current_user.name,
+                    "email": current_user.email,
+                    "is_admin": bool(current_user.is_admin),
+                }
+            },
+            status=200,
+        )
+
+    @app.route("/api/logout", methods=["POST"])
+    @api_login_required
+    def api_logout():
+        logout_user()
+        return success_response({"message": "Çıkış başarılı."}, status=200)
+
     @app.route("/api/signup", methods=["POST"])
     def api_signup():
         data = request.get_json(silent=True) or {}
@@ -219,6 +306,41 @@ def register_api_routes(app):
             {"message": "Hesabınız başarıyla oluşturuldu! Lütfen e-posta adresinizi doğrulayın."},
             status=201,
         )
+
+    @app.route("/api/contact", methods=["POST"])
+    def api_contact():
+        data = request.get_json(silent=True) or {}
+
+        email = str(data.get("email", "")).strip()
+        subject = str(data.get("subject", "")).strip()
+        message = str(data.get("message", "")).strip()
+
+        missing_fields = []
+        if not email:
+            missing_fields.append("email")
+        if not subject:
+            missing_fields.append("subject")
+        if not message:
+            missing_fields.append("message")
+
+        if missing_fields:
+            return error_response(
+                "Missing fields",
+                status=422,
+                code="MISSING_FIELDS",
+                details=missing_fields,
+            )
+
+        if "@" not in email or "." not in email.split("@")[-1]:
+            return error_response("Geçerli bir e-posta adresi girin.", status=422, code="INVALID_EMAIL")
+
+        if len(subject) < 3:
+            return error_response("Konu en az 3 karakter olmalı.", status=422, code="SUBJECT_TOO_SHORT")
+
+        if len(message) < 10:
+            return error_response("Mesaj en az 10 karakter olmalı.", status=422, code="MESSAGE_TOO_SHORT")
+
+        return success_response({"message": "Mesajınız başarıyla alındı."}, status=200)
 
     @app.route("/api/users", methods=["GET"])
     @api_admin_required
@@ -256,4 +378,3 @@ def register_api_routes(app):
             flash("Hesabınız onaylandı! Şimdi giriş yapabilirsiniz.", "success")
 
         return redirect(url_for("login"))
-

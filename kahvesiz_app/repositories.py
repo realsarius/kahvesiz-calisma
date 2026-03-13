@@ -71,6 +71,8 @@ class ModeratorRepository:
         if cafe not in user.moderated_cafes:
             user.moderated_cafes.append(cafe)
             db.session.commit()
+            return True
+        return False
 
     @staticmethod
     def remove(user, cafe):
@@ -79,4 +81,3 @@ class ModeratorRepository:
             db.session.commit()
             return True
         return False
-

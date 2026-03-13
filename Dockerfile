@@ -30,5 +30,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire project into the container
 COPY . .
 
+# Build Solid frontend bundle for cutover mode
+RUN npm --prefix frontend-solid install && npm --prefix frontend-solid run build
+
 # Expose port 5040 for Flask
 EXPOSE 5040

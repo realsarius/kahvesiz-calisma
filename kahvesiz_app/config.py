@@ -34,5 +34,5 @@ def load_app_config():
         "CAFES_PER_PAGE": get_env_int("CAFES_PER_PAGE", 20),
         "COFFEE_CURRENCY_SYMBOL": os.getenv("COFFEE_CURRENCY_SYMBOL", "£"),
         "AUTO_CREATE_SCHEMA": get_env_bool("AUTO_CREATE_SCHEMA", False),
+        "SOLID_DIST_DIR": os.getenv("SOLID_DIST_DIR", "frontend-solid/dist"),
     }
-

@@ -15,7 +15,6 @@
 - [8. Frontend](#8-frontend)
 - [9. Production Notes](#9-production-notes)
 - [10. Lisans ve Kullanım Notu](#10-lisans-ve-kullanım-notu)
-- [Ek Dokümanlar](#ek-dokümanlar)
 
 ## 0. Hızlı Kurulum
 
@@ -52,6 +51,7 @@ docker compose down
 **Moderatör Modeli**: Kullanıcılar belirli kafelere moderatör olarak atanabilir; ilgili kafelerde düzenleme yetkisi kazanırlar.
 
 **Güvenlik Temelleri**:
+
 - Şifreler hashlenerek saklanır (`pbkdf2:sha256`)
 - State-changing isteklerde CSRF koruması aktif
 - Rich text alanı (`details`) `bleach` ile sanitize edilir
@@ -67,8 +67,8 @@ docker compose down
 | **Validation / Form** | Flask-WTF, WTForms | Web form doğrulama ve CSRF koruması |
 | **Email** | Flask-Mail, itsdangerous | Hesap doğrulama e-postası ve token üretimi |
 | **Sanitization** | Bleach | Zengin metin XSS riskini azaltma |
-| **Frontend Rendering** | Jinja2 | Server-side template rendering |
-| **Frontend Tooling** | Tailwind CSS, Webpack, Babel | Stil ve JavaScript derleme/watch akışı |
+| **Frontend Rendering** | Jinja2 + SolidJS (cutover mode) | Geçişli render stratejisi ve SPA taşıma |
+| **Frontend Tooling** | Tailwind CSS, Webpack, Babel, Vite, SolidJS | Stil/JS derleme ve Solid build akışı |
 | **Runtime / Deploy** | Gunicorn, Docker, Docker Compose | Üretim sunumu ve container tabanlı çalışma |
 
 ## 3. Veritabanı Tasarımı (Database Design)
@@ -231,6 +231,9 @@ WTF_CSRF_ENABLED=True
 WTF_CSRF_TIME_LIMIT=3600
 CAFES_PER_PAGE=20
 COFFEE_CURRENCY_SYMBOL=£
+
+# Frontend
+SOLID_DIST_DIR=frontend-solid/dist
 ```
 
 ### 7.3 Docker Compose ile Çalıştırma (Önerilen)
@@ -273,23 +276,64 @@ flask --app main run --host=0.0.0.0 --port=5040 --debug
 - Admin: `http://localhost:5040/admin`
 - API: `http://localhost:5040/api/cafes`
 
+### 7.6 Frontend Smoke ve Dry-Run
+
+Uygulama frontend tarafinda SolidJS cikisini (`frontend-solid/dist`) servis eder.
+
+Lokal Solid kontrolu:
+
+```bash
+# Solid build al
+npm run solid:build
+
+# Solid smoke
+flask --app main run --host=0.0.0.0 --port=5040
+npm run solid:smoke -- http://127.0.0.1:5040
+```
+
+Gorsel regresyon kontrolu (desktop + mobile):
+
+```bash
+npm run solid:visual -- http://127.0.0.1:5040
+```
+
+Not: Screenshot artefactlari `output/playwright/solid-visual-*` altina yazilir.
+
+Component backlog guncelleme:
+
+```bash
+npm run solid:backlog
+```
+
+Not: Cikti `frontend-solid/component-backlog.json` dosyasina yazilir.
+
+Tek komutla dry-run:
+
+```bash
+npm run frontend:dryrun
+```
+
 ## 8. Frontend
 
-Frontend katmanı server-rendered Jinja template yaklaşımıyla çalışır.
+Frontend katmani SolidJS tabanlidir ve Flask tarafi `frontend-solid/dist` cikisini sunar.
 
-**Template Dosyaları (`templates/`)**
+**Solid Frontend (`frontend-solid/`)**
 
-- `index.html`, `cafes.html`, `cafe_detail.html`
-- `login.html`, `signup.html`
-- `admin_dashboard.html`, `assign_moderator.html`
-- `add_cafe.html`, `update_cafe.html`
+- `frontend-solid/src/App.tsx` route tanımları
+- `frontend-solid/src/pages/*` public/auth/admin ekranları
+- `frontend-solid/src/lib/api.ts` ortak API client (timeout + credential policy)
+- `frontend-solid/dist/` Flask tarafindan `/solid/*` altinda servis edilir
 
-**Statik Kaynaklar (`static/`)**
+**Legacy notu**
 
-- `static/src/css/styles.css` (Tailwind input)
-- `static/dist/css/output.css` (derlenmiş çıktı)
-- `static/src/scripts/*.js` (kaynak JS)
-- `static/dist/js/bundle.js` (Webpack bundle)
+- `templates/` ve `static/` altinda kalan eski dosyalar geriye donuk yonetim/form akislarini korumak icin repo icinde tutulur.
+- Public sayfalar (`/`, `/cafes`, `/about`, `/privacy`, `/license`, `/contact`, `/login`, `/signup`, `/admin`) Solid SPA olarak servis edilir.
+
+**Solid UI Notlari**
+
+- Navbar fixed davranisindadir; asagi scroll'da gizlenir, yukari scroll'da tekrar gorunur.
+- Header ve footer blur etkisi icin `backdrop-filter` + Firefox fallback katmani uygulanmistir.
+- `Kafeler` sayfasinda kullanici gorunumu `Tablo` ve `Grid` modlari arasinda degistirebilir.
 
 ## 9. Production Notes
 
@@ -315,6 +359,8 @@ Frontend katmanı server-rendered Jinja template yaklaşımıyla çalışır.
 curl -fsS http://localhost:5040/ >/dev/null
 curl -fsS http://localhost:5040/api/cafes >/dev/null
 npm test
+npm run frontend:dryrun
+npm run solid:visual -- http://127.0.0.1:5040
 ```
 
 ## 10. Lisans ve Kullanım Notu
@@ -323,7 +369,3 @@ Bu proje MIT lisansı ile lisanslanmıştır.
 
 - Lisans metni için kök dizindeki [`LICENSE`](LICENSE) dosyasına bakabilirsiniz.
 - Üçüncü parti kütüphaneler kendi lisans koşullarına tabidir.
-
-## Ek Dokümanlar
-
-- [Fazlı Checkup Checklist](docs/checkup-fazli-checklist.md)

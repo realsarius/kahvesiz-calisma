@@ -1,15 +1,154 @@
-from flask import current_app, flash, redirect, render_template, request, url_for
+import json
+from pathlib import Path
+
+from flask import (
+    abort,
+    current_app,
+    flash,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 from flask_login import current_user, login_required, login_user, logout_user
+from werkzeug.routing import PathConverter
 
 from forms import CafeForm, ContactForm, UserForm
 from kahvesiz_app.auth import hash_password, send_confirmation_email, verify_password
 from kahvesiz_app.models import User
 from kahvesiz_app.repositories import CafeRepository, ModeratorRepository, UserRepository
 from kahvesiz_app.security import admin_required, user_can_edit_cafe
-from kahvesiz_app.services import CafeService, parse_positive_int
+from kahvesiz_app.services import CafeService
 
 
 def register_web_routes(app):
+    class FrontendPathConverter(PathConverter):
+        regex = r"(?!api(?:/|$))(?!solid(?:/|$))(?!static(?:/|$)).+"
+
+    app.url_map.converters["frontend_path"] = FrontendPathConverter
+
+    solid_exact_paths = {
+        "/",
+        "/index",
+        "/about",
+        "/privacy",
+        "/license",
+        "/contact",
+        "/contact_us",
+        "/login",
+        "/signup",
+        "/admin",
+        "/cafes",
+    }
+
+    def _solid_dist_dir():
+        configured_dist_dir = current_app.config.get("SOLID_DIST_DIR", "frontend-solid/dist")
+        dist_dir = Path(configured_dist_dir)
+        if not dist_dir.is_absolute():
+            dist_dir = Path(current_app.root_path) / dist_dir
+        return dist_dir
+
+    def _solid_auth_bootstrap_payload():
+        if not current_user.is_authenticated:
+            return {"user": None, "isAuthenticated": False}
+
+        return {
+            "user": {
+                "id": current_user.id,
+                "name": current_user.name,
+                "email": current_user.email,
+                "isAdmin": bool(current_user.is_admin),
+            },
+            "isAuthenticated": True,
+        }
+
+    def _json_for_inline_script(payload):
+        raw_json = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        return (
+            raw_json.replace("<", "\\u003c")
+            .replace(">", "\\u003e")
+            .replace("&", "\\u0026")
+            .replace("\u2028", "\\u2028")
+            .replace("\u2029", "\\u2029")
+        )
+
+    def _render_solid_entry(dist_dir):
+        index_file = dist_dir / "index.html"
+        if not index_file.exists() or not index_file.is_file():
+            return None
+
+        index_html = index_file.read_text(encoding="utf-8")
+        bootstrap_payload = _json_for_inline_script(_solid_auth_bootstrap_payload())
+        bootstrap_script = f"<script>window.__KAHVESIZ_AUTH__={bootstrap_payload};</script>"
+
+        if "</head>" in index_html:
+            index_html = index_html.replace("</head>", f"{bootstrap_script}</head>", 1)
+        else:
+            index_html = f"{bootstrap_script}{index_html}"
+
+        response = make_response(index_html, 200)
+        response.headers["Content-Type"] = "text/html; charset=utf-8"
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
+    def _should_serve_solid_for_path(path):
+        normalized = path.rstrip("/") or "/"
+        if normalized in solid_exact_paths:
+            return True
+        return normalized.startswith("/cafes/")
+
+    def _is_solid_catchall_candidate(path):
+        normalized = (path or "").lstrip("/")
+        if not normalized:
+            return False
+
+        blocked_prefixes = ("api/", "solid/", "static/")
+        if normalized.startswith(blocked_prefixes):
+            return False
+
+        blocked_exact = {"favicon.ico", "robots.txt", "sitemap.xml"}
+        if normalized in blocked_exact:
+            return False
+
+        # Asset-like requests (e.g. /foo.js, /image.png) should keep returning 404 instead of SPA entry.
+        last_segment = normalized.rsplit("/", 1)[-1]
+        if "." in last_segment:
+            return False
+
+        return True
+
+    def _maybe_render_solid_entry():
+        if request.method != "GET":
+            return None
+
+        if not _should_serve_solid_for_path(request.path):
+            return None
+
+        dist_dir = _solid_dist_dir()
+        return _render_solid_entry(dist_dir)
+
+    def _require_solid_entry():
+        solid_entry = _render_solid_entry(_solid_dist_dir())
+        if solid_entry is None:
+            abort(503, description="Solid frontend build bulunamadi. 'npm run solid:build' calistirin.")
+        return solid_entry
+
+    @app.route("/solid/<path:filename>")
+    def solid_asset(filename):
+        dist_dir = _solid_dist_dir()
+        target_file = dist_dir / filename
+        if not target_file.exists() or not target_file.is_file():
+            abort(404)
+
+        response = send_from_directory(str(dist_dir), filename)
+        if filename.startswith("assets/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        else:
+            response.headers["Cache-Control"] = "public, max-age=300"
+        return response
+
     @app.route("/logout")
     @login_required
     def logout():
@@ -120,38 +259,46 @@ def register_web_routes(app):
 
     @app.route("/cafes", methods=["GET"])
     def cafes():
-        try:
-            page = parse_positive_int(request.args.get("page", 1), 1)
-            per_page = current_app.config["CAFES_PER_PAGE"]
-            pagination = CafeRepository.paginate(page=page, per_page=per_page)
-            return render_template(
-                "cafes.html",
-                cafes=pagination.items,
-                total_pages=pagination.pages,
-                current_page=page,
-            )
-        except Exception:
-            return render_template("cafes.html", cafes=[], error="An error occurred while retrieving cafes.")
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
+        return _require_solid_entry()
 
     @app.route("/contact_us", methods=["GET", "POST"])
     def contact_us():
+        if request.method == "GET":
+            solid_entry = _maybe_render_solid_entry()
+            if solid_entry:
+                return solid_entry
+
         form = ContactForm()
         if form.validate_on_submit():
             flash("Your message has been sent successfully!", "success")
             return redirect(url_for("contact_us"))
         return render_template("contact_us.html", form=form)
 
+    @app.route("/contact", methods=["GET"])
+    def contact():
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
+        return _require_solid_entry()
+
     @app.route("/cafes/<int:cafe_id>")
     def cafe_detail(cafe_id):
-        cafe = CafeRepository.get_by_id(cafe_id)
-        if not cafe:
-            return render_template("cafe_detail.html", cafe=None, error="Cafe not found.")
-        return render_template("cafe_detail.html", cafe=CafeService.serialize(cafe))
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
+        return _require_solid_entry()
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
         if current_user.is_authenticated:
             return redirect(url_for("home"))
+
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
 
         form = UserForm()
         if form.validate_on_submit():
@@ -174,6 +321,10 @@ def register_web_routes(app):
     def signup():
         if current_user.is_authenticated:
             return redirect(url_for("home"))
+
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
 
         form = UserForm()
         if form.validate_on_submit():
@@ -202,23 +353,50 @@ def register_web_routes(app):
 
     @app.route("/about")
     def about():
-        return render_template("about.html")
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
+        return _require_solid_entry()
 
     @app.route("/privacy")
     def privacy():
-        return render_template("privacy.html")
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
+        return _require_solid_entry()
 
     @app.route("/license")
     def license():
-        return render_template("license.html")
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
+        return _require_solid_entry()
 
     @app.route("/index")
     @app.route("/")
     def home():
-        return render_template("index.html")
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
+        return _require_solid_entry()
 
     @app.route("/admin")
     @login_required
     @admin_required
     def admin_dashboard():
-        return render_template("admin_dashboard.html")
+        solid_entry = _maybe_render_solid_entry()
+        if solid_entry:
+            return solid_entry
+        return _require_solid_entry()
+
+    @app.route("/<frontend_path:path>", methods=["GET"])
+    def solid_frontend_catchall(path):
+        if not _is_solid_catchall_candidate(path):
+            abort(404)
+
+        dist_dir = _solid_dist_dir()
+        solid_entry = _render_solid_entry(dist_dir)
+        if solid_entry is None:
+            abort(503, description="Solid frontend build bulunamadi. 'npm run solid:build' calistirin.")
+
+        return solid_entry
