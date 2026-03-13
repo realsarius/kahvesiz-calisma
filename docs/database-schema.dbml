@@ -1,0 +1,260 @@
+Project kahvesiz_calisma {
+  database_type: 'PostgreSQL'
+  Note: 'Kaynak: alembic/versions/20260313_0001_initial_schema.py + 20260313_0002_indexes_and_triggers.py (13 Mart 2026). Triggerlar: set_updated_at() -> users, pii.user_pii, cafes, cafe_amenities, cafe_seats, reviews. Aggregate trigger: reviews değişimlerinde cafes.avg_rating ve cafes.review_count otomatik güncellenir.'
+}
+
+Table users {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  email varchar(255) [not null]
+  username varchar(50) [not null]
+  display_name varchar(100)
+  role varchar(20) [not null, default: 'user', note: 'user | owner | admin']
+  avatar_url text
+  email_verified_at timestamptz
+  is_active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  deleted_at timestamptz
+
+  indexes {
+    (email) [unique, name: 'uq_users_email']
+    (username) [unique, name: 'uq_users_username']
+    (deleted_at) [name: 'idx_users_deleted', note: 'Partial index: WHERE deleted_at IS NULL']
+  }
+}
+
+Table pii.user_pii {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  user_id uuid [not null]
+  full_name varchar(200)
+  phone varchar(20)
+  birth_date date
+  address_line1 varchar(255)
+  address_line2 varchar(255)
+  city varchar(100)
+  district varchar(100)
+  postal_code varchar(10)
+  country_code char(2) [not null, default: 'TR']
+  consent_given_at timestamptz [not null]
+  consent_ip inet
+  consent_version varchar(20)
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table auth_tokens {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  user_id uuid [not null]
+  token_hash varchar(64) [not null]
+  token_type varchar(30) [not null, note: 'email_verify | magic_link | password_reset']
+  ip_address inet
+  used_at timestamptz
+  expires_at timestamptz [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (token_hash) [unique, name: 'uq_auth_tokens_token_hash']
+    (user_id) [name: 'idx_auth_tokens_user_id']
+    (token_hash) [name: 'idx_auth_tokens_hash', note: 'Partial index: WHERE used_at IS NULL']
+  }
+}
+
+Table user_sessions {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  user_id uuid [not null]
+  session_token_hash varchar(64) [not null]
+  ip_address inet
+  user_agent text
+  last_active_at timestamptz [not null, default: `now()`]
+  expires_at timestamptz [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (session_token_hash) [unique, name: 'uq_user_sessions_session_token_hash']
+    (user_id) [name: 'idx_sessions_user_id']
+    (session_token_hash) [name: 'idx_sessions_token']
+  }
+}
+
+Table neighborhoods {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  name varchar(100) [not null]
+  city varchar(100) [not null]
+  district varchar(100)
+  slug varchar(120) [not null]
+  is_active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (slug) [unique, name: 'uq_neighborhoods_slug']
+  }
+}
+
+Table cafes {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  owner_id uuid
+  neighborhood_id uuid
+  name varchar(200) [not null]
+  slug varchar(220) [not null]
+  description text
+  address text [not null]
+  latitude numeric(10,8) [not null]
+  longitude numeric(11,8) [not null]
+  phone varchar(20)
+  website text
+  instagram varchar(100)
+  google_maps_url text
+  is_verified boolean [not null, default: false]
+  is_active boolean [not null, default: true]
+  status varchar(20) [not null, default: 'pending', note: 'pending | active | closed | rejected']
+  total_capacity integer
+  indoor_capacity integer
+  outdoor_capacity integer
+  avg_rating numeric(3,2) [not null, default: 0]
+  review_count integer [not null, default: 0]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  deleted_at timestamptz
+
+  indexes {
+    (slug) [unique, name: 'uq_cafes_slug']
+    (neighborhood_id, is_active) [name: 'idx_cafes_neighborhood_active']
+    (avg_rating) [name: 'idx_cafes_avg_rating', note: 'Partial index: WHERE is_active = true (DESC)']
+    (created_at) [name: 'idx_cafes_created_at', note: 'Partial index: WHERE is_active = true (DESC)']
+    (created_at, id) [name: 'idx_cafes_cursor', note: 'Partial index: WHERE is_active = true (DESC,DESC)']
+    (deleted_at) [name: 'idx_cafes_deleted', note: 'Partial index: WHERE deleted_at IS NULL']
+  }
+}
+
+Table cafe_amenities {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  cafe_id uuid [not null]
+  wifi_available boolean [not null, default: false]
+  wifi_speed_mbps integer
+  outlet_count integer
+  outlet_accessibility varchar(20) [note: 'all_seats | some_seats | rare | none']
+  noise_level varchar(20) [note: 'silent | quiet | moderate | loud']
+  has_natural_light boolean [not null, default: false]
+  has_ac boolean [not null, default: false]
+  has_heating boolean [not null, default: false]
+  has_parking boolean [not null, default: false]
+  has_accessible_entry boolean [not null, default: false]
+  allows_laptop boolean [not null, default: true]
+  min_spend_try numeric(8,2)
+  has_food boolean [not null, default: false]
+  has_alcohol boolean [not null, default: false]
+  pet_friendly boolean [not null, default: false]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (cafe_id) [unique, name: 'uq_cafe_amenities_cafe_id']
+  }
+}
+
+Table cafe_hours {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  cafe_id uuid [not null]
+  day_of_week smallint [not null, note: '0=Monday ... 6=Sunday']
+  opens_at time
+  closes_at time
+  is_closed boolean [not null, default: false]
+
+  indexes {
+    (cafe_id, day_of_week) [unique, name: 'uq_cafe_hours_cafe_id_day_of_week']
+  }
+}
+
+Table cafe_images {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  cafe_id uuid [not null]
+  uploaded_by uuid
+  url text [not null]
+  alt_text varchar(200)
+  is_primary boolean [not null, default: false]
+  sort_order smallint [not null, default: 0]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (cafe_id) [name: 'idx_cafe_images_cafe_id']
+  }
+}
+
+Table cafe_seats {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  cafe_id uuid [not null]
+  seat_type varchar(30) [not null, note: 'solo_desk | shared_table | sofa | bar | outdoor']
+  total_count integer [not null, default: 0]
+  available_count integer [not null, default: 0]
+  has_outlet boolean [not null, default: false]
+  notes text
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (cafe_id) [name: 'idx_cafe_seats_cafe_id']
+  }
+}
+
+Table reviews {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  user_id uuid
+  cafe_id uuid [not null]
+  rating smallint [not null, note: 'CHECK: rating BETWEEN 1 AND 5']
+  title varchar(200)
+  body text
+  noise_rating smallint [note: 'CHECK: noise_rating BETWEEN 1 AND 5']
+  wifi_rating smallint [note: 'CHECK: wifi_rating BETWEEN 1 AND 5']
+  outlet_rating smallint [note: 'CHECK: outlet_rating BETWEEN 1 AND 5']
+  visited_at date
+  is_verified_visit boolean [not null, default: false]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  deleted_at timestamptz
+
+  indexes {
+    (user_id, cafe_id) [unique, name: 'uq_reviews_user_id_cafe_id']
+    (cafe_id) [name: 'idx_reviews_cafe_id', note: 'Partial index: WHERE deleted_at IS NULL']
+  }
+}
+
+Table review_votes {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  review_id uuid [not null]
+  user_id uuid [not null]
+  vote varchar(10) [not null, note: 'helpful | unhelpful']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (review_id, user_id) [unique, name: 'uq_review_votes_review_id_user_id']
+  }
+}
+
+Table bookmarks {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  user_id uuid [not null]
+  cafe_id uuid [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (user_id, cafe_id) [unique, name: 'uq_bookmarks_user_id_cafe_id']
+  }
+}
+
+Ref: pii.user_pii.user_id > users.id [delete: cascade]
+Ref: auth_tokens.user_id > users.id [delete: cascade]
+Ref: user_sessions.user_id > users.id [delete: cascade]
+
+Ref: cafes.owner_id > users.id [delete: set null]
+Ref: cafes.neighborhood_id > neighborhoods.id [delete: set null]
+
+Ref: cafe_amenities.cafe_id > cafes.id [delete: cascade]
+Ref: cafe_hours.cafe_id > cafes.id [delete: cascade]
+Ref: cafe_images.cafe_id > cafes.id [delete: cascade]
+Ref: cafe_images.uploaded_by > users.id [delete: set null]
+Ref: cafe_seats.cafe_id > cafes.id [delete: cascade]
+
+Ref: reviews.user_id > users.id [delete: set null]
+Ref: reviews.cafe_id > cafes.id [delete: cascade]
+Ref: review_votes.review_id > reviews.id [delete: cascade]
+Ref: review_votes.user_id > users.id [delete: cascade]
+Ref: bookmarks.user_id > users.id [delete: cascade]
+Ref: bookmarks.cafe_id > cafes.id [delete: cascade]

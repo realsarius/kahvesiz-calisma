@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, SmallInteger, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, SmallInteger, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -11,6 +11,7 @@ from app.core.database import Base
 
 class CafeImage(Base):
     __tablename__ = "cafe_images"
+    __table_args__ = (Index("idx_cafe_images_cafe_id", "cafe_id"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     cafe_id: Mapped[uuid.UUID] = mapped_column(
