@@ -11,10 +11,26 @@ from app.schemas.auth import (
     VerifyRequest,
     VerifyResponse,
 )
+from app.schemas.cafe import (
+    CafeAmenityResponse,
+    CafeDetailResponse,
+    CafeHourResponse,
+    CafeImageResponse,
+    CafeListItem,
+    CafeListResponse,
+    CafeSeatResponse,
+)
 from app.schemas.user import UserPIISchema, UserPublicSchema
 
 __all__ = [
     "AuthUserResponse",
+    "CafeAmenityResponse",
+    "CafeDetailResponse",
+    "CafeHourResponse",
+    "CafeImageResponse",
+    "CafeListItem",
+    "CafeListResponse",
+    "CafeSeatResponse",
     "LogoutRequest",
     "LogoutResponse",
     "MagicLinkRequest",
