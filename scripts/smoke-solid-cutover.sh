@@ -39,6 +39,9 @@ echo "[OK] Solid entry on /index alias"
 curl -fsS "${BASE_URL}/contact_us" | rg -q 'id="root"'
 echo "[OK] Solid entry on /contact_us alias"
 
+curl -fsS "${BASE_URL}/new-public-path" | rg -q 'id="root"'
+echo "[OK] Solid catchall entry on unknown public route"
+
 curl -fsS "${BASE_URL}/api/cafes" >/dev/null
 echo "[OK] /api/cafes reachable"
 

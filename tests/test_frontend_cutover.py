@@ -128,6 +128,25 @@ class FrontendCutoverTests(unittest.TestCase):
         self.assertIn("Verimli Çalışma Alanları", response.get_data(as_text=True))
         response.close()
 
+    def test_solid_mode_catchall_serves_spa_entry_for_unknown_frontend_route(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        response = self.client.get("/new-public-path")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("solid-cutover-entry", response.get_data(as_text=True))
+        response.close()
+
+    def test_solid_mode_catchall_does_not_intercept_api_namespace(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        response = self.client.get("/api/unknown-endpoint")
+        self.assertEqual(response.status_code, 404)
+        response.close()
+
     def test_contact_route_redirects_to_legacy_page_in_jinja_mode(self):
         self.app.config["FRONTEND_RENDER_MODE"] = "jinja"
 

@@ -13,6 +13,7 @@ from flask import (
     url_for,
 )
 from flask_login import current_user, login_required, login_user, logout_user
+from werkzeug.routing import PathConverter
 
 from forms import CafeForm, ContactForm, UserForm
 from kahvesiz_app.auth import hash_password, send_confirmation_email, verify_password
@@ -23,6 +24,11 @@ from kahvesiz_app.services import CafeService, parse_positive_int
 
 
 def register_web_routes(app):
+    class FrontendPathConverter(PathConverter):
+        regex = r"(?!api(?:/|$))(?!solid(?:/|$))(?!static(?:/|$)).+"
+
+    app.url_map.converters["frontend_path"] = FrontendPathConverter
+
     solid_exact_paths = {
         "/",
         "/index",
@@ -94,6 +100,18 @@ def register_web_routes(app):
         if normalized in solid_exact_paths:
             return True
         return normalized.startswith("/cafes/")
+
+    def _is_solid_catchall_candidate(path):
+        normalized = (path or "").lstrip("/")
+        if not normalized:
+            return False
+
+        blocked_prefixes = ("api/", "solid/", "static/")
+        if normalized.startswith(blocked_prefixes):
+            return False
+
+        blocked_exact = {"favicon.ico", "robots.txt", "sitemap.xml"}
+        return normalized not in blocked_exact
 
     def _maybe_render_solid_entry():
         if request.method != "GET" or not _is_solid_mode_enabled():
@@ -372,3 +390,18 @@ def register_web_routes(app):
         if solid_entry:
             return solid_entry
         return render_template("admin_dashboard.html")
+
+    @app.route("/<frontend_path:path>", methods=["GET"])
+    def solid_frontend_catchall(path):
+        if not _is_solid_mode_enabled():
+            abort(404)
+
+        if not _is_solid_catchall_candidate(path):
+            abort(404)
+
+        dist_dir = _solid_dist_dir()
+        solid_entry = _render_solid_entry(dist_dir)
+        if solid_entry is None:
+            abort(404)
+
+        return solid_entry
