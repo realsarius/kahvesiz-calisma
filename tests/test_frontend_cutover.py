@@ -66,6 +66,16 @@ class FrontendCutoverTests(unittest.TestCase):
         self.assertIn("solid-asset-ok", asset_response.get_data(as_text=True))
         asset_response.close()
 
+        index_alias = self.client.get("/index")
+        self.assertEqual(index_alias.status_code, 200)
+        self.assertIn("solid-cutover-entry", index_alias.get_data(as_text=True))
+        index_alias.close()
+
+        contact_alias = self.client.get("/contact_us")
+        self.assertEqual(contact_alias.status_code, 200)
+        self.assertIn("solid-cutover-entry", contact_alias.get_data(as_text=True))
+        contact_alias.close()
+
     def test_solid_mode_falls_back_to_jinja_if_dist_missing(self):
         self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = "/tmp/does-not-exist-solid-dist"

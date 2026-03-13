@@ -33,6 +33,12 @@ echo "[OK] Solid JS asset reachable: ${asset_path}"
 curl -fsS "${BASE_URL}/cafes" | rg -q 'id="root"'
 echo "[OK] Solid entry on /cafes"
 
+curl -fsS "${BASE_URL}/index" | rg -q 'id="root"'
+echo "[OK] Solid entry on /index alias"
+
+curl -fsS "${BASE_URL}/contact_us" | rg -q 'id="root"'
+echo "[OK] Solid entry on /contact_us alias"
+
 curl -fsS "${BASE_URL}/api/cafes" >/dev/null
 echo "[OK] /api/cafes reachable"
 

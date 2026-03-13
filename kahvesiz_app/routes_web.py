@@ -19,6 +19,7 @@ def register_web_routes(app):
         "/privacy",
         "/license",
         "/contact",
+        "/contact_us",
         "/login",
         "/signup",
         "/admin",
@@ -196,6 +197,11 @@ def register_web_routes(app):
 
     @app.route("/contact_us", methods=["GET", "POST"])
     def contact_us():
+        if request.method == "GET":
+            solid_entry = _maybe_render_solid_entry()
+            if solid_entry:
+                return solid_entry
+
         form = ContactForm()
         if form.validate_on_submit():
             flash("Your message has been sent successfully!", "success")
