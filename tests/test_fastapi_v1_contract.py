@@ -96,6 +96,7 @@ class FastApiV1ContractTests(unittest.TestCase):
                     username="newuser",
                     display_name="New User",
                 ),
+                SimpleNamespace(client=SimpleNamespace(host="127.0.0.1"), headers={}, cookies={}),
                 fake_session,
             )
         )

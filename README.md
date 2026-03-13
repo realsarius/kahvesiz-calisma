@@ -102,7 +102,9 @@ Base path: `/api/v1`
 - `POST /auth/register`
 - `POST /auth/magic-link`
 - `POST /auth/verify`
+- `GET /auth/verify?token=<plain_token>`
 - `POST /auth/logout`
+- `GET /auth/session`
 
 ### Cafes
 

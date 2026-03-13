@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
@@ -9,6 +9,17 @@ class RegisterRequest(BaseModel):
     email: str
     username: str
     display_name: Optional[str] = None
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    birth_date: Optional[date] = None
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    district: Optional[str] = None
+    postal_code: Optional[str] = None
+    country_code: Optional[str] = "TR"
+    consent_given: bool = True
+    consent_version: Optional[str] = None
 
 
 class MagicLinkRequest(BaseModel):
@@ -21,6 +32,7 @@ class VerifyRequest(BaseModel):
 
 class LogoutRequest(BaseModel):
     session_token: Optional[str] = None
+    logout_all: bool = False
 
 
 class AuthUserResponse(BaseModel):
@@ -38,6 +50,7 @@ class AuthUserResponse(BaseModel):
 class RegisterResponse(BaseModel):
     message: str
     user: AuthUserResponse
+    debug_email_verify_token: Optional[str] = None
 
 
 class MagicLinkResponse(BaseModel):
