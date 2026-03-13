@@ -209,6 +209,32 @@ class ApiHardeningTests(unittest.TestCase):
         self.assertEqual(payload["data"]["user"]["name"], "User")
         self.assertEqual(payload["data"]["user"]["is_admin"], False)
 
+    def test_api_logout_requires_authentication(self):
+        csrf_token = self._csrf_token()
+        response = self.client.post(
+            "/api/logout",
+            json={},
+            headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.get_json()["error"]["code"], "AUTH_REQUIRED")
+
+    def test_api_logout_clears_session(self):
+        self._login_as(self.user_id)
+        csrf_token = self._csrf_token()
+
+        logout_response = self.client.post(
+            "/api/logout",
+            json={},
+            headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(logout_response.status_code, 200)
+        self.assertEqual(logout_response.get_json()["error"], None)
+
+        session_response = self.client.get("/api/auth/session")
+        self.assertEqual(session_response.status_code, 401)
+        self.assertEqual(session_response.get_json()["error"]["code"], "AUTH_REQUIRED")
+
     def test_admin_can_assign_and_remove_moderator_via_api(self):
         with self.app.app_context():
             cafe = Cafe(**self._cafe_payload(name="Moderator Cafe"))

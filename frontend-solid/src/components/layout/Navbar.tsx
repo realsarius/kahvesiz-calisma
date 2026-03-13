@@ -1,6 +1,7 @@
-import { A, useLocation } from "@solidjs/router";
-import { For, Show } from "solid-js";
+import { A, useLocation, useNavigate } from "@solidjs/router";
+import { For, Show, createSignal } from "solid-js";
 import { useAuth } from "../../auth/AuthContext";
+import { apiPost } from "../../lib/api";
 
 interface NavItem {
   href: string;
@@ -24,7 +25,34 @@ function isActive(pathname: string, href: string) {
 
 export function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const auth = useAuth();
+  const [loggingOut, setLoggingOut] = createSignal(false);
+
+  const onLogout = async () => {
+    if (loggingOut()) {
+      return;
+    }
+
+    setLoggingOut(true);
+    try {
+      await apiPost<{ message?: string } | null>(
+        "/api/logout",
+        {},
+        {
+          retries: 0,
+          timeoutMs: 8_000,
+          emitAuthEvent: false,
+        },
+      );
+      auth.clearSession(false);
+      void navigate("/login", { replace: true });
+    } catch {
+      window.location.href = "/logout";
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   return (
     <header class="topbar">
@@ -82,9 +110,9 @@ export function Navbar() {
               </>
             }
           >
-            <a class="nav-link" href="/logout">
-              Logout
-            </a>
+            <button class="nav-link nav-button-link" type="button" onClick={() => void onLogout()} disabled={loggingOut()}>
+              {loggingOut() ? "Cikis..." : "Logout"}
+            </button>
           </Show>
         </div>
       </div>

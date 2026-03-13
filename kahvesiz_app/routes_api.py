@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from flask import request
-from flask_login import current_user, login_user
+from flask_login import current_user, login_user, logout_user
 from flask_wtf.csrf import generate_csrf
 
 from kahvesiz_app.api_response import error_response, success_response
@@ -266,6 +266,12 @@ def register_api_routes(app):
             },
             status=200,
         )
+
+    @app.route("/api/logout", methods=["POST"])
+    @api_login_required
+    def api_logout():
+        logout_user()
+        return success_response({"message": "Çıkış başarılı."}, status=200)
 
     @app.route("/api/signup", methods=["POST"])
     def api_signup():

@@ -111,6 +111,17 @@ code {
   border-color: var(--border);
 }
 
+.nav-button-link {
+  font: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.nav-button-link:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 .session-chip {
   border: 1px solid var(--border);
   border-radius: 8px;
