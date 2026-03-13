@@ -236,5 +236,6 @@ docker compose --profile dev run --rm api-dev \
 ```
 
 Notlar:
-- Script idempotent çalışır; daha önce taşınmış `legacy_cafe_id` satırlarını atlar.
+- Script idempotent çalışır; `users` için email bazlı, `cafes` için `legacy_cafe_id` marker bazlı tekrarları atlar.
+- `user_cafe` ilişkileri `bookmarks` tablosuna taşınır.
 - `DATABASE_URL_DEV` / `DATABASE_URL` otomatik okunur; gerekirse `--pg-url` verilebilir.
