@@ -1,6 +1,17 @@
+import json
 from pathlib import Path
 
-from flask import abort, current_app, flash, redirect, render_template, request, send_from_directory, url_for
+from flask import (
+    abort,
+    current_app,
+    flash,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 from flask_login import current_user, login_required, login_user, logout_user
 
 from forms import CafeForm, ContactForm, UserForm
@@ -36,6 +47,48 @@ def register_web_routes(app):
             dist_dir = Path(current_app.root_path) / dist_dir
         return dist_dir
 
+    def _solid_auth_bootstrap_payload():
+        if not current_user.is_authenticated:
+            return {"user": None, "isAuthenticated": False}
+
+        return {
+            "user": {
+                "id": current_user.id,
+                "name": current_user.name,
+                "email": current_user.email,
+                "isAdmin": bool(current_user.is_admin),
+            },
+            "isAuthenticated": True,
+        }
+
+    def _json_for_inline_script(payload):
+        raw_json = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        return (
+            raw_json.replace("<", "\\u003c")
+            .replace(">", "\\u003e")
+            .replace("&", "\\u0026")
+            .replace("\u2028", "\\u2028")
+            .replace("\u2029", "\\u2029")
+        )
+
+    def _render_solid_entry(dist_dir):
+        index_file = dist_dir / "index.html"
+        if not index_file.exists() or not index_file.is_file():
+            return None
+
+        index_html = index_file.read_text(encoding="utf-8")
+        bootstrap_payload = _json_for_inline_script(_solid_auth_bootstrap_payload())
+        bootstrap_script = f"<script>window.__KAHVESIZ_AUTH__={bootstrap_payload};</script>"
+
+        if "</head>" in index_html:
+            index_html = index_html.replace("</head>", f"{bootstrap_script}</head>", 1)
+        else:
+            index_html = f"{bootstrap_script}{index_html}"
+
+        response = make_response(index_html, 200)
+        response.headers["Content-Type"] = "text/html; charset=utf-8"
+        return response
+
     def _should_serve_solid_for_path(path):
         normalized = path.rstrip("/") or "/"
         if normalized in solid_exact_paths:
@@ -50,11 +103,7 @@ def register_web_routes(app):
             return None
 
         dist_dir = _solid_dist_dir()
-        index_file = dist_dir / "index.html"
-        if not index_file.exists() or not index_file.is_file():
-            return None
-
-        return send_from_directory(str(dist_dir), "index.html")
+        return _render_solid_entry(dist_dir)
 
     @app.route("/solid/<path:filename>")
     def solid_asset(filename):

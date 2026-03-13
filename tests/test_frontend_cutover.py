@@ -3,6 +3,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 TEST_DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "test_cafes_cutover.db"))
 
@@ -33,6 +34,11 @@ class FrontendCutoverTests(unittest.TestCase):
         self.app.config["SOLID_DIST_DIR"] = self.original_dist
         if self.temp_dist_dir and self.temp_dist_dir.exists():
             shutil.rmtree(self.temp_dist_dir, ignore_errors=True)
+
+    def _login_as(self, user_id):
+        with self.client.session_transaction() as session:
+            session["_user_id"] = str(user_id)
+            session["_fresh"] = True
 
     def _make_temp_solid_dist(self):
         self.temp_dist_dir = Path(tempfile.mkdtemp(prefix="solid-dist-"))
@@ -75,6 +81,43 @@ class FrontendCutoverTests(unittest.TestCase):
         self.assertEqual(contact_alias.status_code, 200)
         self.assertIn("solid-cutover-entry", contact_alias.get_data(as_text=True))
         contact_alias.close()
+
+    def test_solid_entry_includes_guest_auth_bootstrap_payload(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("window.__KAHVESIZ_AUTH__", html)
+        self.assertIn('"isAuthenticated":false', html)
+        self.assertIn('"user":null', html)
+        response.close()
+
+    def test_solid_entry_includes_authenticated_user_bootstrap_payload(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        class FakeUser:
+            is_authenticated = True
+            id = 77
+            name = "Cutover User"
+            email = "cutover@example.com"
+            is_admin = False
+
+        self._login_as(FakeUser.id)
+
+        with patch("main.UserRepository.get_by_id", return_value=FakeUser()):
+            response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("window.__KAHVESIZ_AUTH__", html)
+        self.assertIn('"isAuthenticated":true', html)
+        self.assertIn('"email":"cutover@example.com"', html)
+        self.assertIn('"name":"Cutover User"', html)
+        response.close()
 
     def test_solid_mode_falls_back_to_jinja_if_dist_missing(self):
         self.app.config["FRONTEND_RENDER_MODE"] = "solid"
