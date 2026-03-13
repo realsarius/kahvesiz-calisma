@@ -1,25 +1,59 @@
+name: kahvesiz-calisma
+
+x-api-common-env: &api_common_env
+  SECRET_KEY: ${SECRET_KEY:-change-me}
+  ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+  SESSION_EXPIRE_DAYS: ${SESSION_EXPIRE_DAYS:-30}
+  MAGIC_LINK_EXPIRE_MINUTES: ${MAGIC_LINK_EXPIRE_MINUTES:-15}
+  RESEND_API_KEY: ${RESEND_API_KEY:-}
+  RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@kahvesizcalisma.com}
+
 services:
-  api:
+  api-dev:
+    container_name: kc-api-1
+    profiles: [dev]
     build:
       context: .
       dockerfile: docker/api.Dockerfile
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
     environment:
-      DATABASE_URL: postgresql+asyncpg://user:pass@db:5432/kahvesiz
-      REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: change-me
-      ACCESS_TOKEN_EXPIRE_MINUTES: 15
-      SESSION_EXPIRE_DAYS: 30
-      MAGIC_LINK_EXPIRE_MINUTES: 15
+      <<: *api_common_env
+      DATABASE_URL: ${DATABASE_URL_DEV:-postgresql+asyncpg://user:pass@db-dev:5432/kahvesiz_dev}
+      REDIS_URL: ${REDIS_URL_DEV:-redis://redis-dev:6379/0}
       ENVIRONMENT: development
-      FRONTEND_URL: http://localhost:5173
-      ALLOWED_ORIGINS: http://localhost:5173
-      RESEND_API_KEY: ""
-      RESEND_FROM_EMAIL: noreply@kahvesizcalisma.com
+      FRONTEND_URL: ${FRONTEND_URL_DEV:-http://localhost:5173}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS_DEV:-http://localhost:5173,http://localhost}
     depends_on:
-      db:
+      db-dev:
         condition: service_healthy
-      redis:
+      redis-dev:
+        condition: service_healthy
+    expose:
+      - "8000"
+    volumes:
+      - ./:/usr/src/app
+    restart: unless-stopped
+    networks:
+      - app_net
+
+  api-prod:
+    container_name: kc-api-prod-1
+    profiles: [prod]
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${API_WORKERS:-2}
+    environment:
+      <<: *api_common_env
+      DATABASE_URL: ${DATABASE_URL_PROD:-postgresql+asyncpg://user:pass@db-prod:5432/kahvesiz}
+      REDIS_URL: ${REDIS_URL_PROD:-redis://redis-prod:6379/0}
+      ENVIRONMENT: production
+      FRONTEND_URL: ${FRONTEND_URL_PROD:-https://kahvesizcalisma.com}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS_PROD:-https://kahvesizcalisma.com}
+    depends_on:
+      db-prod:
+        condition: service_healthy
+      redis-prod:
         condition: service_healthy
     expose:
       - "8000"
@@ -27,18 +61,20 @@ services:
     networks:
       - app_net
 
-  db:
+  db-dev:
+    container_name: kc-db-1
+    profiles: [dev]
     image: postgres:16
     environment:
-      POSTGRES_DB: kahvesiz
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: ${POSTGRES_DEV_DB:-kahvesiz_dev}
+      POSTGRES_USER: ${POSTGRES_DEV_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_DEV_PASSWORD:-pass}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_dev_data:/var/lib/postgresql/data
     expose:
       - "5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d kahvesiz"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_DEV_USER:-user} -d ${POSTGRES_DEV_DB:-kahvesiz_dev}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -46,11 +82,55 @@ services:
     networks:
       - app_net
 
-  redis:
+  db-prod:
+    container_name: kc-db-prod-1
+    profiles: [prod]
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_PROD_DB:-kahvesiz}
+      POSTGRES_USER: ${POSTGRES_PROD_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PROD_PASSWORD:-pass}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_PROD_USER:-user} -d ${POSTGRES_PROD_DB:-kahvesiz}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app_net
+
+  db-test:
+    container_name: kc-db-test-1
+    profiles: [test]
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_TEST_DB:-kahvesiz_test}
+      POSTGRES_USER: ${POSTGRES_TEST_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-pass}
+    ports:
+      - "127.0.0.1:${POSTGRES_TEST_PORT:-55432}:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_TEST_USER:-user} -d ${POSTGRES_TEST_DB:-kahvesiz_test}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app_net
+
+  redis-dev:
+    container_name: kc-redis-1
+    profiles: [dev]
     image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
-      - redis_data:/data
+      - redis_dev_data:/data
     expose:
       - "6379"
     healthcheck:
@@ -62,22 +142,109 @@ services:
     networks:
       - app_net
 
-  nginx:
+  redis-prod:
+    container_name: kc-redis-prod-1
+    profiles: [prod]
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_prod_data:/data
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app_net
+
+  redis-test:
+    container_name: kc-redis-test-1
+    profiles: [test]
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:${REDIS_TEST_PORT:-56379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app_net
+
+  frontend-dev:
+    container_name: kc-frontend-1
+    profiles: [dev]
+    image: node:20-alpine
+    working_dir: /usr/src/frontend
+    command: >-
+      sh -c "if [ ! -d node_modules ] || [ -z \"$(ls -A node_modules 2>/dev/null)\" ]; then npm ci; fi
+      && npm run dev -- --host 0.0.0.0 --port 5173"
+    volumes:
+      - ./frontend-solid:/usr/src/frontend
+      - frontend_dev_node_modules:/usr/src/frontend/node_modules
+    ports:
+      - "${FRONTEND_DEV_PORT:-5173}:5173"
+    restart: unless-stopped
+    networks:
+      - app_net
+
+  frontend-prod:
+    container_name: kc-frontend-prod-1
+    profiles: [prod]
+    build:
+      context: .
+      dockerfile: docker/frontend.prod.Dockerfile
+    expose:
+      - "80"
+    restart: unless-stopped
+    networks:
+      - app_net
+
+  nginx-dev:
+    container_name: kc-nginx-1
+    profiles: [dev]
     image: nginx:1.27-alpine
     depends_on:
-      api:
+      api-dev:
+        condition: service_started
+      frontend-dev:
         condition: service_started
     ports:
-      - "80:80"
+      - "${NGINX_DEV_PORT:-80}:80"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/dev.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+    networks:
+      - app_net
+
+  nginx-prod:
+    container_name: kc-nginx-prod-1
+    profiles: [prod]
+    image: nginx:1.27-alpine
+    depends_on:
+      api-prod:
+        condition: service_started
+      frontend-prod:
+        condition: service_started
+    ports:
+      - "${NGINX_PROD_PORT:-80}:80"
+    volumes:
+      - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
     networks:
       - app_net
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres_dev_data:
+  postgres_prod_data:
+  postgres_test_data:
+  redis_dev_data:
+  redis_prod_data:
+  frontend_dev_node_modules:
 
 networks:
   app_net:

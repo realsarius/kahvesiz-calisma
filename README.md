@@ -18,25 +18,41 @@
 ### 1.1 Docker Compose (önerilen)
 
 ```bash
-# Stack'i başlat (api + db + redis + nginx)
-docker compose up -d --build
+# DEV stack'i başlat (api + db + redis + frontend + nginx)
+docker compose --profile dev up -d --build
 
-# İlk kurulumda migration uygula
-docker compose run --rm api python -m alembic upgrade head
+# DEV migration uygula
+docker compose --profile dev run --rm api-dev python -m alembic upgrade head
 
 # Health check
 curl -fsS http://127.0.0.1/api/v1/health
 
+# Frontend dev server (direkt)
+# http://127.0.0.1:5173
+# Frontend nginx üstünden
+# http://127.0.0.1
+
 # Loglar
-docker compose logs -f api
+docker compose --profile dev logs -f api-dev
 
 # Kapat
-docker compose down
+docker compose --profile dev down
 ```
 
-Not: Eski `flask/tailwind/webpack` container'ları daha önce çalıştıysa `docker compose down --remove-orphans` kullanabilirsiniz.
+### 1.2 Prod (Hetzner) çalıştırma
 
-### 1.2 Lokal (Docker'sız) FastAPI çalıştırma
+```bash
+# PROD stack'i başlat
+docker compose --profile prod up -d --build
+
+# PROD migration uygula
+docker compose --profile prod run --rm api-prod python -m alembic upgrade head
+
+# Kapat
+docker compose --profile prod down
+```
+
+### 1.3 Lokal (Docker'sız) FastAPI çalıştırma
 
 ```bash
 python3 -m venv .venv
@@ -60,10 +76,9 @@ python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ### Altyapı
 
-- `api`: FastAPI (internal `:8000`)
-- `db`: PostgreSQL 16 (internal `:5432`)
-- `redis`: Redis 7 (internal `:6379`)
-- `nginx`: Reverse proxy (external `:80`)
+- `dev` profili: `api-dev`, `db-dev`, `redis-dev`, `frontend-dev`, `nginx-dev`
+- `prod` profili: `api-prod`, `db-prod`, `redis-prod`, `frontend-prod`, `nginx-prod`
+- `test` profili: `db-test`, `redis-test`
 
 Compose tanımı: [docker-compose.yaml](docker-compose.yaml)
 
@@ -108,8 +123,8 @@ Migration komutları:
 # Lokal
 python3 -m alembic upgrade head
 
-# Docker
-docker compose run --rm api python -m alembic upgrade head
+# Docker (dev)
+docker compose --profile dev run --rm api-dev python -m alembic upgrade head
 ```
 
 ## 5. Ortam Değişkenleri
@@ -117,8 +132,17 @@ docker compose run --rm api python -m alembic upgrade head
 Örnek değerler:
 
 ```env
-DATABASE_URL=postgresql+asyncpg://user:pass@db:5432/kahvesiz
-REDIS_URL=redis://redis:6379/0
+# DEV
+DATABASE_URL_DEV=postgresql+asyncpg://user:pass@db-dev:5432/kahvesiz_dev
+REDIS_URL_DEV=redis://redis-dev:6379/0
+FRONTEND_URL_DEV=http://localhost:5173
+ALLOWED_ORIGINS_DEV=http://localhost:5173,http://localhost
+
+# PROD
+DATABASE_URL_PROD=postgresql+asyncpg://user:pass@db-prod:5432/kahvesiz
+REDIS_URL_PROD=redis://redis-prod:6379/0
+FRONTEND_URL_PROD=https://kahvesizcalisma.com
+ALLOWED_ORIGINS_PROD=https://kahvesizcalisma.com
 
 SECRET_KEY=change-me
 ACCESS_TOKEN_EXPIRE_MINUTES=15
@@ -128,9 +152,10 @@ MAGIC_LINK_EXPIRE_MINUTES=15
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=noreply@kahvesizcalisma.com
 
-ENVIRONMENT=development
-FRONTEND_URL=http://localhost:5173
-ALLOWED_ORIGINS=http://localhost:5173
+# Opsiyonel port override'ları
+FRONTEND_DEV_PORT=5173
+NGINX_DEV_PORT=80
+NGINX_PROD_PORT=80
 ```
 
 ## 6. Frontend (SolidJS)
@@ -146,6 +171,11 @@ npm --prefix frontend-solid run dev
 # Production build
 npm --prefix frontend-solid run build
 ```
+
+Docker ile frontend erişimi:
+
+- `dev` profile: `http://127.0.0.1:5173` (Vite)
+- `dev` nginx: `http://127.0.0.1` (proxy)
 
 Yeni veri akışı:
 
@@ -179,4 +209,3 @@ npm test
 - Repo içinde Flask tabanlı legacy modüller halen bulunmaktadır (`main.py`, `kahvesiz_app/*`).
 - Geçiş tamamlanana kadar legacy testleri ve bazı route/senaryolar korunmaktadır.
 - Yeni geliştirme hedefi FastAPI `app/` dizini ve `/api/v1/*` yüzeyidir.
-
