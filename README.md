@@ -43,6 +43,9 @@ docker compose --profile dev down
 ### 1.2 Prod (Hetzner) çalıştırma
 
 ```bash
+# Preflight (compose, DNS, port, env kontrolü)
+scripts/preflight_prod.sh
+
 # PROD stack'i başlat
 docker compose --profile prod up -d --build
 
