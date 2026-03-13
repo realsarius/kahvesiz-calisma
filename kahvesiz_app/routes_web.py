@@ -111,7 +111,15 @@ def register_web_routes(app):
             return False
 
         blocked_exact = {"favicon.ico", "robots.txt", "sitemap.xml"}
-        return normalized not in blocked_exact
+        if normalized in blocked_exact:
+            return False
+
+        # Asset-like requests (e.g. /foo.js, /image.png) should keep returning 404 instead of SPA entry.
+        last_segment = normalized.rsplit("/", 1)[-1]
+        if "." in last_segment:
+            return False
+
+        return True
 
     def _maybe_render_solid_entry():
         if request.method != "GET" or not _is_solid_mode_enabled():

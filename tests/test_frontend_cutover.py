@@ -147,6 +147,15 @@ class FrontendCutoverTests(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         response.close()
 
+    def test_solid_mode_catchall_does_not_intercept_asset_like_paths(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        response = self.client.get("/missing.js")
+        self.assertEqual(response.status_code, 404)
+        response.close()
+
     def test_contact_route_redirects_to_legacy_page_in_jinja_mode(self):
         self.app.config["FRONTEND_RENDER_MODE"] = "jinja"
 
