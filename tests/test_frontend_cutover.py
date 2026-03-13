@@ -156,6 +156,58 @@ class FrontendCutoverTests(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         response.close()
 
+    def test_solid_mode_admin_route_redirects_unauthenticated_user_to_login(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        response = self.client.get("/admin", follow_redirects=False)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/login", response.headers.get("Location", ""))
+        response.close()
+
+    def test_solid_mode_admin_route_serves_spa_entry_for_admin_user(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        class FakeAdmin:
+            is_authenticated = True
+            id = 91
+            name = "Solid Admin"
+            email = "solid-admin@example.com"
+            is_admin = True
+
+        self._login_as(FakeAdmin.id)
+
+        with patch("main.UserRepository.get_by_id", return_value=FakeAdmin()):
+            response = self.client.get("/admin", follow_redirects=False)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("solid-cutover-entry", response.get_data(as_text=True))
+        response.close()
+
+    def test_solid_mode_admin_route_redirects_non_admin_user_to_home(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
+
+        class FakeUser:
+            is_authenticated = True
+            id = 92
+            name = "Solid User"
+            email = "solid-user@example.com"
+            is_admin = False
+
+        self._login_as(FakeUser.id)
+
+        with patch("main.UserRepository.get_by_id", return_value=FakeUser()):
+            response = self.client.get("/admin", follow_redirects=False)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/", response.headers.get("Location", ""))
+        response.close()
+
     def test_contact_route_redirects_to_legacy_page_in_jinja_mode(self):
         self.app.config["FRONTEND_RENDER_MODE"] = "jinja"
 
