@@ -33,7 +33,7 @@ function toErrorMessage(error: unknown) {
     return error.message;
   }
 
-  return "Beklenmeyen bir hata olustu.";
+  return "Beklenmeyen bir hata oluştu.";
 }
 
 export default function AdminPage() {
@@ -118,7 +118,7 @@ export default function AdminPage() {
       !cafeForm.seats.trim() ||
       !cafeForm.coffee_price.trim()
     ) {
-      setFeedbackError("Kafe formundaki zorunlu alanlar bos birakilamaz.");
+      setFeedbackError("Kafe formundaki zorunlu alanlar boş bırakılamaz.");
       return;
     }
 
@@ -126,10 +126,10 @@ export default function AdminPage() {
     try {
       if (editingCafeId()) {
         await updateCafe(editingCafeId() as number, cafeForm);
-        setFeedbackSuccess("Kafe basariyla guncellendi.");
+        setFeedbackSuccess("Kafe başarıyla güncellendi.");
       } else {
         await createCafe(cafeForm);
-        setFeedbackSuccess("Kafe basariyla eklendi.");
+        setFeedbackSuccess("Kafe başarıyla eklendi.");
       }
 
       resetCafeForm();
@@ -153,7 +153,7 @@ export default function AdminPage() {
   };
 
   const onDeleteCafe = async (id: number) => {
-    if (!window.confirm("Bu kafeyi silmek istediginizden emin misiniz?")) {
+    if (!window.confirm("Bu kafeyi silmek istediğinizden emin misiniz?")) {
       return;
     }
 
@@ -177,14 +177,14 @@ export default function AdminPage() {
     resetFeedback();
 
     if (!selectedUserId() || !selectedCafeId()) {
-      setFeedbackError("Moderator atamak icin kullanici ve kafe secilmelidir.");
+      setFeedbackError("Moderatör atamak için kullanıcı ve kafe seçilmelidir.");
       return;
     }
 
     setAssigningModerator(true);
     try {
       const response = await assignModerator(selectedUserId() as number, selectedCafeId() as number);
-      setFeedbackSuccess(response?.message || "Moderator atama islemi tamamlandi.");
+      setFeedbackSuccess(response?.message || "Moderatör atama işlemi tamamlandı.");
       setSelectedCafeId(null);
       reloadAll();
     } catch (error) {
@@ -203,7 +203,7 @@ export default function AdminPage() {
     resetFeedback();
     try {
       await removeModerator(userId, cafeId);
-      setFeedbackSuccess("Moderator atamasi kaldirildi.");
+      setFeedbackSuccess("Moderatör ataması kaldırıldı.");
       reloadAll();
     } catch (error) {
       setFeedbackError(toErrorMessage(error));
@@ -211,15 +211,15 @@ export default function AdminPage() {
   };
 
   if (auth.state.loading) {
-    return <LoadingState title="Admin paneli yukleniyor" />;
+    return <LoadingState title="Admin paneli yükleniyor" />;
   }
 
   if (!auth.state.isAuthenticated) {
     return (
-      <PageContainer title="Admin" subtitle="Bu alana erisim icin login olmalisiniz.">
+      <PageContainer title="Admin" subtitle="Bu alana erişim için giriş yapmalısınız.">
         <ErrorState
-          title="Kimlik dogrulama gerekli"
-          description="Admin paneline erismek icin aktif bir oturum gereklidir."
+          title="Kimlik doğrulama gerekli"
+          description="Admin paneline erişmek için aktif bir oturum gereklidir."
         />
       </PageContainer>
     );
@@ -227,8 +227,8 @@ export default function AdminPage() {
 
   if (!isAdmin()) {
     return (
-      <PageContainer title="Admin" subtitle="Rol tabanli erisim kontrolu uygulanir.">
-        <ErrorState title="Yetkisiz erisim" description="Bu alana sadece admin kullanicilar erisebilir." />
+      <PageContainer title="Admin" subtitle="Rol tabanlı erişim kontrolü uygulanır.">
+        <ErrorState title="Yetkisiz erişim" description="Bu alana sadece admin kullanıcılar erişebilir." />
       </PageContainer>
     );
   }
@@ -236,7 +236,7 @@ export default function AdminPage() {
   return (
     <PageContainer
       title="Admin paneli"
-      subtitle="Kafe yonetimi ve moderator atama akislari"
+      subtitle="Kafe yönetimi ve moderatör atama akışları"
       actions={
         <Button variant="secondary" onClick={reloadAll}>
           Verileri yenile
@@ -248,13 +248,13 @@ export default function AdminPage() {
 
       <div class="admin-grid">
         <Card
-          title={editingCafeId() ? `Cafe duzenle (#${editingCafeId()})` : "Yeni cafe ekle"}
-          description="Kafe CRUD islemleri"
+          title={editingCafeId() ? `Kafe düzenle (#${editingCafeId()})` : "Yeni kafe ekle"}
+          description="Kafe CRUD işlemleri"
         >
           <form class="stack-form" onSubmit={onCafeSubmit}>
             <Input
               id="admin-cafe-name"
-              label="Cafe adi"
+              label="Kafe adı"
               value={cafeForm.name}
               onInput={(event) => setCafeForm("name", event.currentTarget.value)}
             />
@@ -266,7 +266,7 @@ export default function AdminPage() {
             />
             <Input
               id="admin-img-url"
-              label="Gorsel URL"
+              label="Görsel URL"
               value={cafeForm.img_url}
               onInput={(event) => setCafeForm("img_url", event.currentTarget.value)}
             />
@@ -286,7 +286,7 @@ export default function AdminPage() {
               />
               <Input
                 id="admin-coffee-price"
-                label="Kahve fiyati"
+                label="Kahve fiyatı"
                 value={cafeForm.coffee_price}
                 onInput={(event) => setCafeForm("coffee_price", event.currentTarget.value)}
               />
@@ -299,7 +299,7 @@ export default function AdminPage() {
                   checked={cafeForm.has_wifi}
                   onChange={(event) => setCafeForm("has_wifi", event.currentTarget.checked)}
                 />
-                Wifi var
+                Wi-Fi var
               </label>
               <label class="flag-item">
                 <input
@@ -323,7 +323,7 @@ export default function AdminPage() {
                   checked={cafeForm.can_take_calls}
                   onChange={(event) => setCafeForm("can_take_calls", event.currentTarget.checked)}
                 />
-                Cagri uygun
+                Çağrı uygun
               </label>
             </div>
 
@@ -336,7 +336,7 @@ export default function AdminPage() {
                 class="ui-input ui-textarea"
                 value={cafeForm.details}
                 onInput={(event) => setCafeForm("details", event.currentTarget.value)}
-                placeholder="Cafe detay bilgisi"
+                placeholder="Kafe detay bilgisi"
               />
             </div>
 
@@ -345,24 +345,24 @@ export default function AdminPage() {
                 {submittingCafe()
                   ? "Kaydediliyor..."
                   : editingCafeId()
-                    ? "Cafe guncelle"
-                    : "Cafe ekle"}
+                    ? "Kafe güncelle"
+                    : "Kafe ekle"}
               </Button>
               <Button type="button" variant="ghost" onClick={resetCafeForm}>
-                Formu sifirla
+                Formu sıfırla
               </Button>
             </div>
           </form>
         </Card>
 
-        <Card title="Cafe listesi" description="Secili kayit duzenlenebilir veya silinebilir">
+        <Card title="Kafe listesi" description="Seçili kayıt düzenlenebilir veya silinebilir">
           <form class="search-form" onSubmit={onSearchSubmit}>
             <Input
               id="admin-cafe-search"
               label="Listede ara"
               value={searchDraft()}
               onInput={(event) => setSearchDraft(event.currentTarget.value)}
-              placeholder="Cafe adi veya konum"
+              placeholder="Kafe adı veya konum"
             />
             <div class="row-actions">
               <Button type="submit" size="sm">
@@ -374,19 +374,19 @@ export default function AdminPage() {
             </div>
           </form>
 
-          <Show when={!cafes.loading} fallback={<LoadingState title="Cafe listesi yukleniyor" />}>
+          <Show when={!cafes.loading} fallback={<LoadingState title="Kafe listesi yükleniyor" />}>
             <Show
               when={!cafes.error}
               fallback={
                 <ErrorState
-                  title="Cafe listesi alinamadi"
+                  title="Kafe listesi alınamadı"
                   description={toErrorMessage(cafes.error)}
                   actionLabel="Tekrar dene"
                   onAction={() => void refetchCafes()}
                 />
               }
             >
-              <Show when={(cafes() ?? []).length > 0} fallback={<EmptyState title="Kafe bulunamadi" />}>
+              <Show when={(cafes() ?? []).length > 0} fallback={<EmptyState title="Kafe bulunamadı" />}>
                 <ul class="admin-list">
                   <For each={cafes() ?? []}>
                     {(cafe) => (
@@ -397,7 +397,7 @@ export default function AdminPage() {
                         </div>
                         <div class="row-actions">
                           <Button type="button" size="sm" variant="secondary" onClick={() => startCafeEdit(cafe.id)}>
-                            Duzenle
+                            Düzenle
                           </Button>
                           <Button
                             type="button"
@@ -420,11 +420,11 @@ export default function AdminPage() {
       </div>
 
       <div class="admin-grid">
-        <Card title="Moderator atama" description="Kullaniciyi secili kafeye moderator olarak ata">
+        <Card title="Moderatör atama" description="Kullanıcıyı seçili kafeye moderatör olarak ata">
           <div class="stack-form">
             <div class="ui-field">
               <label class="ui-field__label" for="moderator-user">
-                Kullanici
+                Kullanıcı
               </label>
               <select
                 id="moderator-user"
@@ -432,7 +432,7 @@ export default function AdminPage() {
                 value={selectedUserId() ?? ""}
                 onChange={(event) => setSelectedUserId(Number.parseInt(event.currentTarget.value, 10) || null)}
               >
-                <option value="">Kullanici secin</option>
+                <option value="">Kullanıcı seçin</option>
                 <For each={users() ?? []}>
                   {(user) => (
                     <option value={user.id}>{`${user.name} (${user.email})`}</option>
@@ -443,7 +443,7 @@ export default function AdminPage() {
 
             <div class="ui-field">
               <label class="ui-field__label" for="moderator-cafe">
-                Cafe
+                Kafe
               </label>
               <select
                 id="moderator-cafe"
@@ -451,37 +451,37 @@ export default function AdminPage() {
                 value={selectedCafeId() ?? ""}
                 onChange={(event) => setSelectedCafeId(Number.parseInt(event.currentTarget.value, 10) || null)}
               >
-                <option value="">Cafe secin</option>
+                <option value="">Kafe seçin</option>
                 <For each={cafes() ?? []}>{(cafe) => <option value={cafe.id}>{cafe.name}</option>}</For>
               </select>
             </div>
 
             <Button type="button" disabled={assigningModerator()} onClick={() => void onAssignModerator()}>
-              {assigningModerator() ? "Ataniyor..." : "Moderator ata"}
+              {assigningModerator() ? "Atanıyor..." : "Moderatör ata"}
             </Button>
           </div>
         </Card>
 
-        <Card title="Moderator atama listesi" description="Secili kullanicinin moderator oldugu kafeler">
-          <Show when={!users.loading} fallback={<LoadingState title="Kullanicilar yukleniyor" />}>
+        <Card title="Moderatör atama listesi" description="Seçili kullanıcının moderatör olduğu kafeler">
+          <Show when={!users.loading} fallback={<LoadingState title="Kullanıcılar yükleniyor" />}>
             <Show
               when={!users.error}
               fallback={
                 <ErrorState
-                  title="Kullanicilar alinamadi"
+                  title="Kullanıcılar alınamadı"
                   description={toErrorMessage(users.error)}
                   actionLabel="Tekrar dene"
                   onAction={() => void refetchUsers()}
                 />
               }
             >
-              <Show when={selectedUserId()} fallback={<EmptyState title="Bir kullanici secin" />}>
-                <Show when={!moderatedCafes.loading} fallback={<LoadingState title="Moderator kayitlari yukleniyor" />}>
+              <Show when={selectedUserId()} fallback={<EmptyState title="Bir kullanıcı seçin" />}>
+                <Show when={!moderatedCafes.loading} fallback={<LoadingState title="Moderatör kayıtları yükleniyor" />}>
                   <Show
                     when={!moderatedCafes.error}
                     fallback={
                       <ErrorState
-                        title="Moderator kayitlari alinamadi"
+                        title="Moderatör kayıtları alınamadı"
                         description={toErrorMessage(moderatedCafes.error)}
                         actionLabel="Tekrar dene"
                         onAction={() => void refetchModeratedCafes()}
@@ -490,7 +490,7 @@ export default function AdminPage() {
                   >
                     <Show
                       when={(moderatedCafes() ?? []).length > 0}
-                      fallback={<EmptyState title="Bu kullaniciya ait moderator kaydi yok" />}
+                      fallback={<EmptyState title="Bu kullanıcıya ait moderatör kaydı yok" />}
                     >
                       <ul class="admin-list">
                         <For each={moderatedCafes() ?? []}>
@@ -503,7 +503,7 @@ export default function AdminPage() {
                                 variant="danger"
                                 onClick={() => void onRemoveModerator(item.id)}
                               >
-                                Kaldir
+                                Kaldır
                               </Button>
                             </li>
                           )}
@@ -518,20 +518,20 @@ export default function AdminPage() {
         </Card>
       </div>
 
-      <Card title="Kullanicilar" description="Rol bazli gorunurluk dogrulamasi">
-        <Show when={!users.loading} fallback={<LoadingState title="Kullanicilar yukleniyor" />}>
+      <Card title="Kullanıcılar" description="Rol bazlı görünürlük doğrulaması">
+        <Show when={!users.loading} fallback={<LoadingState title="Kullanıcılar yükleniyor" />}>
           <Show
             when={!users.error}
             fallback={
               <ErrorState
-                title="Kullanicilar alinamadi"
+                title="Kullanıcılar alınamadı"
                 description={toErrorMessage(users.error)}
                 actionLabel="Tekrar dene"
                 onAction={() => void refetchUsers()}
               />
             }
           >
-            <Show when={(users() ?? []).length > 0} fallback={<EmptyState title="Kullanici bulunamadi" />}>
+            <Show when={(users() ?? []).length > 0} fallback={<EmptyState title="Kullanıcı bulunamadı" />}>
               <ul class="admin-list">
                 <For each={users() ?? []}>
                   {(user) => (

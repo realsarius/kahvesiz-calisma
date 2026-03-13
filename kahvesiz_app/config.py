@@ -19,10 +19,6 @@ def get_env_int(name, default):
 
 
 def load_app_config():
-    frontend_render_mode = os.getenv("FRONTEND_RENDER_MODE", "jinja").strip().lower()
-    if frontend_render_mode not in {"jinja", "solid"}:
-        frontend_render_mode = "jinja"
-
     return {
         "SQLALCHEMY_DATABASE_URI": os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///cafes.db"),
         "SECRET_KEY": os.getenv("SECRET_KEY", "dev-secret-key-change-me"),
@@ -38,6 +34,5 @@ def load_app_config():
         "CAFES_PER_PAGE": get_env_int("CAFES_PER_PAGE", 20),
         "COFFEE_CURRENCY_SYMBOL": os.getenv("COFFEE_CURRENCY_SYMBOL", "£"),
         "AUTO_CREATE_SCHEMA": get_env_bool("AUTO_CREATE_SCHEMA", False),
-        "FRONTEND_RENDER_MODE": frontend_render_mode,
         "SOLID_DIST_DIR": os.getenv("SOLID_DIST_DIR", "frontend-solid/dist"),
     }

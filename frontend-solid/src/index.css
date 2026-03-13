@@ -159,9 +159,11 @@ code {
 }
 
 .brand-logo {
-  width: 58px;
-  height: 58px;
+  width: 46px;
+  height: 46px;
   flex: 0 0 auto;
+  color: var(--primary);
+  stroke-width: 1.85px;
 }
 
 .brand-title {
@@ -183,6 +185,7 @@ code {
   position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   text-decoration: none;
   color: #f4f4f5;
   padding: 8px 6px;
@@ -191,6 +194,12 @@ code {
   font-size: clamp(0.9rem, 1.1vw, 1.32rem);
   font-weight: 500;
   transition: color 160ms ease;
+}
+
+.nav-link__icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
 }
 
 .nav-link::after {
@@ -243,6 +252,7 @@ code {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 7px;
   min-height: 40px;
   padding: 0 16px;
   border-radius: 10px;
@@ -253,6 +263,11 @@ code {
   font-weight: 600;
   text-decoration: none;
   transition: background-color 160ms ease, color 160ms ease;
+}
+
+.auth-button__icon {
+  width: 0.92rem;
+  height: 0.92rem;
 }
 
 .auth-button:hover {
@@ -954,10 +969,19 @@ code {
   min-height: 36px;
   min-width: 88px;
   padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   cursor: pointer;
   font-weight: 560;
   font-size: 0.88rem;
   border-right: 1px solid rgba(113, 113, 122, 0.55);
+}
+
+.view-switch__icon {
+  width: 0.9rem;
+  height: 0.9rem;
 }
 
 .view-switch__button:last-child {
@@ -1105,8 +1129,8 @@ code {
 
 @media (max-width: 760px) {
   .brand-logo {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
   }
 
   .brand-title {

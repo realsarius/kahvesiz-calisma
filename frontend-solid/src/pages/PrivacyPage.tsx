@@ -5,43 +5,43 @@ import { PageContainer } from "../components/ui/PageContainer";
 export default function PrivacyPage() {
   return (
     <PageContainer
-      title="Gizlilik politikasi"
-      subtitle="Kahvesiz Calisma icinde islenen kullanici verilerinin kapsam ozeti."
+      title="Gizlilik politikası"
+      subtitle="Kahvesiz Çalışma içinde işlenen kullanıcı verilerinin kapsam özeti."
     >
       <Card>
         <p class="paragraph">
-          Bu metin, uygulama icinde islenen verilerin kapsamini ve kullanim amacini ozetler. Uygulamayi
-          kullanarak bu politikayi kabul etmis sayilirsiniz.
+          Bu metin, uygulama içinde işlenen verilerin kapsamını ve kullanım amacını özetler. Uygulamayı kullanarak
+          bu politikayı kabul etmiş sayılırsınız.
         </p>
 
         <div class="policy-section">
           <p class="policy-section__title">Toplanan veriler</p>
           <ul class="simple-list">
-            <li>Isim ve e-posta adresi</li>
-            <li>Parola hash bilgisi (duz metin parola tutulmaz)</li>
-            <li>Dogrulama ve oturum sureclerine ait teknik veriler</li>
+            <li>İsim ve e-posta adresi</li>
+            <li>Parola hash bilgisi (düz metin parola tutulmaz)</li>
+            <li>Doğrulama ve oturum süreçlerine ait teknik veriler</li>
           </ul>
         </div>
 
         <div class="policy-section">
-          <p class="policy-section__title">Kullanim amaclari</p>
+          <p class="policy-section__title">Kullanım amaçları</p>
           <ul class="simple-list">
-            <li>Hesap olusturma, login ve e-posta dogrulama akislarini yurutmek</li>
-            <li>Kafe iceriklerini ve rol/yetki yonetimini surdurmek</li>
-            <li>Guvenlik ve kotuye kullanim onlemlerini uygulamak</li>
+            <li>Hesap oluşturma, giriş ve e-posta doğrulama akışlarını yürütmek</li>
+            <li>Kafe içeriklerini ve rol/yetki yönetimini sürdürmek</li>
+            <li>Güvenlik ve kötüye kullanım önlemlerini uygulamak</li>
           </ul>
         </div>
 
         <div class="policy-section">
-          <p class="policy-section__title">Saklama ve guvenlik</p>
+          <p class="policy-section__title">Saklama ve güvenlik</p>
           <p class="paragraph paragraph--compact">
-            Veriler uygulamanin calismasi icin gerekli oldugu surece saklanir. Erisim kontrolleri,
-            parola hashleme ve CSRF korumasi gibi mekanizmalar guvenligi destekler.
+            Veriler uygulamanın çalışması için gerekli olduğu sürece saklanır. Erişim kontrolleri, parola hashleme ve
+            CSRF koruması gibi mekanizmalar güvenliği destekler.
           </p>
         </div>
 
         <p class="paragraph paragraph--compact">
-          Talepleriniz icin <A class="ui-link" href="/contact">iletisim</A> sayfasini kullanabilirsiniz.
+          Talepleriniz için <A class="ui-link" href="/contact">iletişim</A> sayfasını kullanabilirsiniz.
         </p>
       </Card>
     </PageContainer>

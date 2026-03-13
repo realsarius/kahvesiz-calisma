@@ -20,7 +20,7 @@ from kahvesiz_app.auth import hash_password, send_confirmation_email, verify_pas
 from kahvesiz_app.models import User
 from kahvesiz_app.repositories import CafeRepository, ModeratorRepository, UserRepository
 from kahvesiz_app.security import admin_required, user_can_edit_cafe
-from kahvesiz_app.services import CafeService, parse_positive_int
+from kahvesiz_app.services import CafeService
 
 
 def register_web_routes(app):
@@ -42,9 +42,6 @@ def register_web_routes(app):
         "/admin",
         "/cafes",
     }
-
-    def _is_solid_mode_enabled():
-        return current_app.config.get("FRONTEND_RENDER_MODE") == "solid"
 
     def _solid_dist_dir():
         configured_dist_dir = current_app.config.get("SOLID_DIST_DIR", "frontend-solid/dist")
@@ -123,7 +120,7 @@ def register_web_routes(app):
         return True
 
     def _maybe_render_solid_entry():
-        if request.method != "GET" or not _is_solid_mode_enabled():
+        if request.method != "GET":
             return None
 
         if not _should_serve_solid_for_path(request.path):
@@ -132,11 +129,14 @@ def register_web_routes(app):
         dist_dir = _solid_dist_dir()
         return _render_solid_entry(dist_dir)
 
+    def _require_solid_entry():
+        solid_entry = _render_solid_entry(_solid_dist_dir())
+        if solid_entry is None:
+            abort(503, description="Solid frontend build bulunamadi. 'npm run solid:build' calistirin.")
+        return solid_entry
+
     @app.route("/solid/<path:filename>")
     def solid_asset(filename):
-        if not _is_solid_mode_enabled():
-            abort(404)
-
         dist_dir = _solid_dist_dir()
         target_file = dist_dir / filename
         if not target_file.exists() or not target_file.is_file():
@@ -262,19 +262,7 @@ def register_web_routes(app):
         solid_entry = _maybe_render_solid_entry()
         if solid_entry:
             return solid_entry
-
-        try:
-            page = parse_positive_int(request.args.get("page", 1), 1)
-            per_page = current_app.config["CAFES_PER_PAGE"]
-            pagination = CafeRepository.paginate(page=page, per_page=per_page)
-            return render_template(
-                "cafes.html",
-                cafes=pagination.items,
-                total_pages=pagination.pages,
-                current_page=page,
-            )
-        except Exception:
-            return render_template("cafes.html", cafes=[], error="An error occurred while retrieving cafes.")
+        return _require_solid_entry()
 
     @app.route("/contact_us", methods=["GET", "POST"])
     def contact_us():
@@ -294,18 +282,14 @@ def register_web_routes(app):
         solid_entry = _maybe_render_solid_entry()
         if solid_entry:
             return solid_entry
-        return redirect(url_for("contact_us"))
+        return _require_solid_entry()
 
     @app.route("/cafes/<int:cafe_id>")
     def cafe_detail(cafe_id):
         solid_entry = _maybe_render_solid_entry()
         if solid_entry:
             return solid_entry
-
-        cafe = CafeRepository.get_by_id(cafe_id)
-        if not cafe:
-            return render_template("cafe_detail.html", cafe=None, error="Cafe not found.")
-        return render_template("cafe_detail.html", cafe=CafeService.serialize(cafe))
+        return _require_solid_entry()
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -372,21 +356,21 @@ def register_web_routes(app):
         solid_entry = _maybe_render_solid_entry()
         if solid_entry:
             return solid_entry
-        return render_template("about.html")
+        return _require_solid_entry()
 
     @app.route("/privacy")
     def privacy():
         solid_entry = _maybe_render_solid_entry()
         if solid_entry:
             return solid_entry
-        return render_template("privacy.html")
+        return _require_solid_entry()
 
     @app.route("/license")
     def license():
         solid_entry = _maybe_render_solid_entry()
         if solid_entry:
             return solid_entry
-        return render_template("license.html")
+        return _require_solid_entry()
 
     @app.route("/index")
     @app.route("/")
@@ -394,7 +378,7 @@ def register_web_routes(app):
         solid_entry = _maybe_render_solid_entry()
         if solid_entry:
             return solid_entry
-        return render_template("index.html")
+        return _require_solid_entry()
 
     @app.route("/admin")
     @login_required
@@ -403,19 +387,16 @@ def register_web_routes(app):
         solid_entry = _maybe_render_solid_entry()
         if solid_entry:
             return solid_entry
-        return render_template("admin_dashboard.html")
+        return _require_solid_entry()
 
     @app.route("/<frontend_path:path>", methods=["GET"])
     def solid_frontend_catchall(path):
-        if not _is_solid_mode_enabled():
-            abort(404)
-
         if not _is_solid_catchall_candidate(path):
             abort(404)
 
         dist_dir = _solid_dist_dir()
         solid_entry = _render_solid_entry(dist_dir)
         if solid_entry is None:
-            abort(404)
+            abort(503, description="Solid frontend build bulunamadi. 'npm run solid:build' calistirin.")
 
         return solid_entry

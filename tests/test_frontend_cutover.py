@@ -25,12 +25,10 @@ class FrontendCutoverTests(unittest.TestCase):
     def setUp(self):
         self.app = main.app
         self.client = self.app.test_client()
-        self.original_mode = self.app.config.get("FRONTEND_RENDER_MODE")
         self.original_dist = self.app.config.get("SOLID_DIST_DIR")
         self.temp_dist_dir = None
 
     def tearDown(self):
-        self.app.config["FRONTEND_RENDER_MODE"] = self.original_mode
         self.app.config["SOLID_DIST_DIR"] = self.original_dist
         if self.temp_dist_dir and self.temp_dist_dir.exists():
             shutil.rmtree(self.temp_dist_dir, ignore_errors=True)
@@ -58,8 +56,6 @@ class FrontendCutoverTests(unittest.TestCase):
 
     def test_solid_mode_serves_spa_entry_and_assets(self):
         dist_dir = self._make_temp_solid_dist()
-
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         response = self.client.get("/cafes")
@@ -88,7 +84,6 @@ class FrontendCutoverTests(unittest.TestCase):
 
     def test_solid_mode_serves_spa_entry_for_login_and_signup(self):
         dist_dir = self._make_temp_solid_dist()
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         login_page = self.client.get("/login")
@@ -103,7 +98,6 @@ class FrontendCutoverTests(unittest.TestCase):
 
     def test_solid_entry_includes_guest_auth_bootstrap_payload(self):
         dist_dir = self._make_temp_solid_dist()
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         response = self.client.get("/")
@@ -116,7 +110,6 @@ class FrontendCutoverTests(unittest.TestCase):
 
     def test_solid_entry_includes_authenticated_user_bootstrap_payload(self):
         dist_dir = self._make_temp_solid_dist()
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         class FakeUser:
@@ -138,18 +131,16 @@ class FrontendCutoverTests(unittest.TestCase):
         self.assertIn('"name":"Cutover User"', html)
         response.close()
 
-    def test_solid_mode_falls_back_to_jinja_if_dist_missing(self):
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
+    def test_solid_mode_returns_503_if_dist_missing(self):
         self.app.config["SOLID_DIST_DIR"] = "/tmp/does-not-exist-solid-dist"
 
         response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("Verimli Çalışma Alanları", response.get_data(as_text=True))
+        self.assertEqual(response.status_code, 503)
+        self.assertIn("Solid frontend build bulunamadi", response.get_data(as_text=True))
         response.close()
 
     def test_solid_mode_catchall_serves_spa_entry_for_unknown_frontend_route(self):
         dist_dir = self._make_temp_solid_dist()
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         response = self.client.get("/new-public-path")
@@ -159,7 +150,6 @@ class FrontendCutoverTests(unittest.TestCase):
 
     def test_solid_mode_catchall_does_not_intercept_api_namespace(self):
         dist_dir = self._make_temp_solid_dist()
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         response = self.client.get("/api/unknown-endpoint")
@@ -168,7 +158,6 @@ class FrontendCutoverTests(unittest.TestCase):
 
     def test_solid_mode_catchall_does_not_intercept_asset_like_paths(self):
         dist_dir = self._make_temp_solid_dist()
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         response = self.client.get("/missing.js")
@@ -177,7 +166,6 @@ class FrontendCutoverTests(unittest.TestCase):
 
     def test_solid_mode_admin_route_redirects_unauthenticated_user_to_login(self):
         dist_dir = self._make_temp_solid_dist()
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         response = self.client.get("/admin", follow_redirects=False)
@@ -187,7 +175,6 @@ class FrontendCutoverTests(unittest.TestCase):
 
     def test_solid_mode_admin_route_serves_spa_entry_for_admin_user(self):
         dist_dir = self._make_temp_solid_dist()
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         class FakeAdmin:
@@ -208,7 +195,6 @@ class FrontendCutoverTests(unittest.TestCase):
 
     def test_solid_mode_admin_route_redirects_non_admin_user_to_home(self):
         dist_dir = self._make_temp_solid_dist()
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         class FakeUser:
@@ -229,7 +215,6 @@ class FrontendCutoverTests(unittest.TestCase):
 
     def test_solid_mode_login_signup_redirect_authenticated_user_to_home(self):
         dist_dir = self._make_temp_solid_dist()
-        self.app.config["FRONTEND_RENDER_MODE"] = "solid"
         self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         class FakeUser:
@@ -253,12 +238,13 @@ class FrontendCutoverTests(unittest.TestCase):
         self.assertIn("/", signup_response.headers.get("Location", ""))
         signup_response.close()
 
-    def test_contact_route_redirects_to_legacy_page_in_jinja_mode(self):
-        self.app.config["FRONTEND_RENDER_MODE"] = "jinja"
+    def test_contact_route_serves_solid_entry(self):
+        dist_dir = self._make_temp_solid_dist()
+        self.app.config["SOLID_DIST_DIR"] = str(dist_dir)
 
         response = self.client.get("/contact", follow_redirects=False)
-        self.assertEqual(response.status_code, 302)
-        self.assertIn("/contact_us", response.headers.get("Location", ""))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("solid-cutover-entry", response.get_data(as_text=True))
         response.close()
 
 

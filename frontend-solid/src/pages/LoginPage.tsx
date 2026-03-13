@@ -15,11 +15,11 @@ interface LoginResponse {
 function toErrorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
     if (error.code === "REQUEST_TIMEOUT") {
-      return "Istek zaman asimina ugradi. Lutfen tekrar deneyin.";
+      return "İstek zaman aşımına uğradı. Lütfen tekrar deneyin.";
     }
 
     if (error.code === "NETWORK_ERROR") {
-      return "Sunucuya baglanilamadi. Ag baglantinizi kontrol edin.";
+      return "Sunucuya bağlanılamadı. Ağ bağlantınızı kontrol edin.";
     }
 
     return error.message;
@@ -29,7 +29,7 @@ function toErrorMessage(error: unknown) {
     return error.message;
   }
 
-  return "Beklenmeyen bir hata olustu.";
+  return "Beklenmeyen bir hata oluştu.";
 }
 
 function sanitizeRedirect(raw: string | null) {
@@ -62,7 +62,7 @@ export default function LoginPage() {
     event.preventDefault();
 
     if (!email().trim() || !password().trim()) {
-      setErrorMessage("E-posta ve sifre alanlari zorunludur.");
+      setErrorMessage("E-posta ve şifre alanları zorunludur.");
       return;
     }
 
@@ -93,17 +93,17 @@ export default function LoginPage() {
   };
 
   return (
-    <PageContainer title="Login" subtitle="Session + CSRF uyumlu login akisi">
+    <PageContainer title="Giriş" subtitle="Session + CSRF uyumlu giriş akışı">
       <Card>
         <Show when={reason() === "session_expired"}>
-          <Alert variant="warning" title="Oturum suresi doldu">
-            Lutfen tekrar login olun.
+          <Alert variant="warning" title="Oturum süresi doldu">
+            Lütfen tekrar giriş yapın.
           </Alert>
         </Show>
 
         <Show when={signedUp()}>
-          <Alert variant="success" title="Kayit tamamlandi">
-            Hesabiniz olusturuldu. E-posta dogrulamasindan sonra login olabilirsiniz.
+          <Alert variant="success" title="Kayıt tamamlandı">
+            Hesabınız oluşturuldu. E-posta doğrulamasından sonra giriş yapabilirsiniz.
           </Alert>
         </Show>
 
@@ -124,19 +124,19 @@ export default function LoginPage() {
           <Input
             id="login-password"
             type="password"
-            label="Sifre"
+            label="Şifre"
             value={password()}
             onInput={(event) => setPassword(event.currentTarget.value)}
-            placeholder="Sifreniz"
+            placeholder="Şifreniz"
           />
 
           <Button type="submit" disabled={submitting()}>
-            {submitting() ? "Giris yapiliyor..." : "Giris yap"}
+            {submitting() ? "Giriş yapılıyor..." : "Giriş yap"}
           </Button>
         </form>
 
         <p class="paragraph paragraph--compact">
-          Hesabiniz yok mu? <A class="ui-link" href="/signup">Kayit olun</A>
+          Hesabınız yok mu? <A class="ui-link" href="/signup">Kayıt olun</A>
         </p>
       </Card>
     </PageContainer>

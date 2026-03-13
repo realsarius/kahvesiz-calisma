@@ -13,9 +13,9 @@ export function EmptyState(props: EmptyStateProps) {
   return (
     <Card>
       <div class="state-block" aria-live="polite">
-        <p class="state-block__title">{props.title ?? "Kayit bulunamadi"}</p>
+        <p class="state-block__title">{props.title ?? "Kayıt bulunamadı"}</p>
         <p class="state-block__description">
-          {props.description ?? "Bu filtreyle eslesen bir sonuc bulunmuyor."}
+          {props.description ?? "Bu filtreyle eşleşen bir sonuç bulunmuyor."}
         </p>
         <Show when={props.onAction && props.actionLabel}>
           <Button variant="secondary" onClick={props.onAction}>

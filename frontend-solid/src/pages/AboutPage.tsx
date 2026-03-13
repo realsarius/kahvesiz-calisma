@@ -5,32 +5,32 @@ import { PageContainer } from "../components/ui/PageContainer";
 const principles = [
   {
     title: "Neden var?",
-    text: "Kafede calisma deneyimi kisiden kisiye degisir. Bu proje, karar surecini deneme-yanilma yerine veri ve topluluk geri bildirimiyle iyilestirir.",
+    text: "Kafede çalışma deneyimi kişiden kişiye değişir. Bu proje, karar sürecini deneme-yanılma yerine veri ve topluluk geri bildirimiyle iyileştirir.",
   },
   {
-    title: "Nasil calisir?",
-    text: "Kullanicilar kafe detaylarini goruntuler, yoneticiler icerik kalitesini korur, moderatorler ilgili kafeleri guncel tutar.",
+    title: "Nasıl çalışır?",
+    text: "Kullanıcılar kafe detaylarını görüntüler, yöneticiler içerik kalitesini korur, moderatörler ilgili kafeleri güncel tutar.",
   },
   {
     title: "Vizyon",
-    text: "Sehir bazli, guvenilir ve surekli guncel bir kafede calisma rehberi olusturmak.",
+    text: "Şehir bazlı, güvenilir ve sürekli güncel bir kafede çalışma rehberi oluşturmak.",
   },
 ];
 
 export default function AboutPage() {
   return (
     <PageContainer
-      title="Hakkimizda"
-      subtitle="Kahvesiz Calisma, laptop ile verimli calismak isteyenler icin topluluk odakli bir platformdur."
+      title="Hakkımızda"
+      subtitle="Kahvesiz Çalışma, laptop ile verimli çalışmak isteyenler için topluluk odaklı bir platformdur."
     >
       <Card>
         <p class="paragraph">
-          Platformda listelenen kafeler; priz, Wi-Fi, sessizlik, cagri uygunlugu ve oturma duzeni gibi
-          calisma deneyimini dogrudan etkileyen olcutlerle paylasilir.
+          Platformda listelenen kafeler; priz, Wi-Fi, sessizlik, çağrı uygunluğu ve oturma düzeni gibi çalışma
+          deneyimini doğrudan etkileyen ölçütlerle paylaşılır.
         </p>
         <p class="paragraph">
-          Boylece kullanicilar kendilerine en uygun mekani daha hizli bulabilir; admin ve moderator
-          rolleri de bilginin guncel kalmasina yardim eder.
+          Böylece kullanıcılar kendilerine en uygun mekanı daha hızlı bulabilir; admin ve moderatör rolleri de
+          bilginin güncel kalmasına yardım eder.
         </p>
       </Card>
 

@@ -1,5 +1,4 @@
 import os
-import re
 import unittest
 from unittest.mock import patch
 
@@ -64,11 +63,14 @@ class ApiHardeningTests(unittest.TestCase):
             session["_fresh"] = True
 
     def _csrf_token(self):
-        response = self.client.get("/")
-        html = response.get_data(as_text=True)
-        match = re.search(r'name="csrf-token" content="([^"]+)"', html)
-        self.assertIsNotNone(match, "CSRF token meta tag bulunamadi")
-        return match.group(1)
+        response = self.client.get("/api/csrf-token")
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(payload["error"], None)
+        token = payload["data"]["csrf_token"]
+        self.assertIsInstance(token, str)
+        self.assertGreater(len(token), 10)
+        return token
 
     @staticmethod
     def _cafe_payload(name="Test Cafe", details="<p>Test</p>"):

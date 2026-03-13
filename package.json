@@ -8,9 +8,7 @@
     "solid:smoke": "bash ./scripts/smoke-solid-cutover.sh",
     "solid:visual": "bash ./scripts/smoke-solid-visual-regression.sh",
     "solid:backlog": "python3 ./scripts/update-solid-component-backlog.py",
-    "frontend:dryrun": "bash ./scripts/dryrun-frontend-modes.sh",
-    "solid:rollback": "echo \"FRONTEND_RENDER_MODE=jinja ayariyla geri donus yapip deploy edin.\"",
-    "jinja:smoke": "bash ./scripts/smoke-jinja-rollback.sh"
+    "frontend:dryrun": "bash ./scripts/dryrun-frontend-modes.sh"
   },
   "keywords": [],
   "author": "",

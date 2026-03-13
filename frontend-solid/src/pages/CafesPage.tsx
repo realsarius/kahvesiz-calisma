@@ -1,4 +1,5 @@
 import { A } from "@solidjs/router";
+import { FiGrid, FiList } from "solid-icons/fi";
 import { For, Show, createResource, createSignal } from "solid-js";
 import { EmptyState } from "../components/states/EmptyState";
 import { ErrorState } from "../components/states/ErrorState";
@@ -62,12 +63,12 @@ export default function CafesPage() {
         </form>
       </Card>
 
-      <Show when={!cafes.loading} fallback={<LoadingState title="Kafe listesi yukleniyor" />}>
+      <Show when={!cafes.loading} fallback={<LoadingState title="Kafe listesi yükleniyor" />}>
         <Show
           when={!cafes.error}
           fallback={
             <ErrorState
-              title="Kafe listesi alinamadi"
+              title="Kafe listesi alınamadı"
               description={readErrorMessage(cafes.error)}
               actionLabel="Tekrar dene"
               onAction={() => void refetch()}
@@ -91,12 +92,13 @@ export default function CafesPage() {
                   <p class="cafes-toolbar__meta">
                     Toplam <strong>{(cafes() ?? []).length}</strong> kafe
                   </p>
-                  <div class="view-switch" role="group" aria-label="Gorunum secimi">
+                  <div class="view-switch" role="group" aria-label="Görünüm seçimi">
                     <button
                       type="button"
                       classList={{ "view-switch__button": true, active: viewMode() === "table" }}
                       onClick={() => setViewMode("table")}
                     >
+                      <FiList class="view-switch__icon" aria-hidden="true" />
                       Tablo
                     </button>
                     <button
@@ -104,6 +106,7 @@ export default function CafesPage() {
                       classList={{ "view-switch__button": true, active: viewMode() === "grid" }}
                       onClick={() => setViewMode("grid")}
                     >
+                      <FiGrid class="view-switch__icon" aria-hidden="true" />
                       Grid
                     </button>
                   </div>

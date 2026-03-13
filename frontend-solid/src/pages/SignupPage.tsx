@@ -14,11 +14,11 @@ interface SignupResponse {
 function toErrorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
     if (error.code === "REQUEST_TIMEOUT") {
-      return "Istek zaman asimina ugradi. Lutfen tekrar deneyin.";
+      return "İstek zaman aşımına uğradı. Lütfen tekrar deneyin.";
     }
 
     if (error.code === "NETWORK_ERROR") {
-      return "Sunucuya baglanilamadi. Ag baglantinizi kontrol edin.";
+      return "Sunucuya bağlanılamadı. Ağ bağlantınızı kontrol edin.";
     }
 
     return error.message;
@@ -28,7 +28,7 @@ function toErrorMessage(error: unknown) {
     return error.message;
   }
 
-  return "Beklenmeyen bir hata olustu.";
+  return "Beklenmeyen bir hata oluştu.";
 }
 
 export default function SignupPage() {
@@ -49,19 +49,19 @@ export default function SignupPage() {
     const cleanEmail = email().trim();
 
     if (!cleanName || !cleanEmail || !password().trim()) {
-      setErrorMessage("Tum alanlar zorunludur.");
+      setErrorMessage("Tüm alanlar zorunludur.");
       setSuccessMessage(null);
       return;
     }
 
     if (password().length < 8) {
-      setErrorMessage("Sifre en az 8 karakter olmali.");
+      setErrorMessage("Şifre en az 8 karakter olmalı.");
       setSuccessMessage(null);
       return;
     }
 
     if (password() !== passwordConfirm()) {
-      setErrorMessage("Sifre tekrar alani eslesmiyor.");
+      setErrorMessage("Şifre tekrar alanı eşleşmiyor.");
       setSuccessMessage(null);
       return;
     }
@@ -85,7 +85,7 @@ export default function SignupPage() {
         },
       );
 
-      setSuccessMessage(response?.message || "Kayit basariyla tamamlandi.");
+      setSuccessMessage(response?.message || "Kayıt başarıyla tamamlandı.");
       setName("");
       setEmail("");
       setPassword("");
@@ -98,7 +98,7 @@ export default function SignupPage() {
   };
 
   return (
-    <PageContainer title="Signup" subtitle="Session + CSRF uyumlu kayit akisi">
+    <PageContainer title="Kayıt ol" subtitle="Session + CSRF uyumlu kayıt akışı">
       <Card>
         <Show when={errorMessage()}>
           {(value) => <Alert variant="error">{value()}</Alert>}
@@ -106,7 +106,7 @@ export default function SignupPage() {
 
         <Show when={successMessage()}>
           {(value) => (
-            <Alert variant="success" title="Kayit tamamlandi">
+            <Alert variant="success" title="Kayıt tamamlandı">
               {value()}
             </Alert>
           )}
@@ -116,7 +116,7 @@ export default function SignupPage() {
           <Input
             id="signup-name"
             type="text"
-            label="Isim"
+            label="İsim"
             value={name()}
             onInput={(event) => setName(event.currentTarget.value)}
             placeholder="Ad Soyad"
@@ -134,7 +134,7 @@ export default function SignupPage() {
           <Input
             id="signup-password"
             type="password"
-            label="Sifre"
+            label="Şifre"
             value={password()}
             onInput={(event) => setPassword(event.currentTarget.value)}
             placeholder="En az 8 karakter"
@@ -143,24 +143,24 @@ export default function SignupPage() {
           <Input
             id="signup-password-confirm"
             type="password"
-            label="Sifre tekrar"
+            label="Şifre tekrar"
             value={passwordConfirm()}
             onInput={(event) => setPasswordConfirm(event.currentTarget.value)}
-            placeholder="Sifrenizi tekrar girin"
+            placeholder="Şifrenizi tekrar girin"
           />
 
           <div class="row-actions">
             <Button type="submit" disabled={submitting()}>
-              {submitting() ? "Kayit yapiliyor..." : "Kayit ol"}
+              {submitting() ? "Kayıt yapılıyor..." : "Kayıt ol"}
             </Button>
             <Button type="button" variant="secondary" onClick={() => void navigate("/login?signup=ok")}>
-              Login sayfasina git
+              Giriş sayfasına git
             </Button>
           </div>
         </form>
 
         <p class="paragraph paragraph--compact">
-          Zaten hesabin var mi? <A class="ui-link" href="/login">Login ol</A>
+          Zaten hesabın var mı? <A class="ui-link" href="/login">Giriş yap</A>
         </p>
       </Card>
     </PageContainer>

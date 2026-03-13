@@ -135,7 +135,7 @@ export async function apiRequest<T>(url: string, options: ApiRequestOptions = {}
         const csrfToken = await getCsrfToken();
         if (!csrfToken) {
           throw new ApiRequestError(
-            "CSRF token bulunamadi. Yazma istegi guvenli sekilde reddedildi.",
+            "CSRF token bulunamadı. Yazma isteği güvenli şekilde reddedildi.",
             419,
             "CSRF_TOKEN_MISSING",
           );
@@ -154,7 +154,7 @@ export async function apiRequest<T>(url: string, options: ApiRequestOptions = {}
       const payload = await parseResponse(response);
 
       if (!response.ok) {
-        const apiError = toApiError(response.status, payload, `HTTP ${response.status} hatasi.`);
+        const apiError = toApiError(response.status, payload, `HTTP ${response.status} hatası.`);
         if (apiError.status === 401 && emitAuthEvent) {
           notifyAuthRequired();
         }
@@ -164,7 +164,7 @@ export async function apiRequest<T>(url: string, options: ApiRequestOptions = {}
       if (isApiEnvelope<T>(payload)) {
         if (payload.error) {
           throw new ApiRequestError(
-            payload.error.message || "API hatasi olustu.",
+            payload.error.message || "API hatası oluştu.",
             response.status,
             payload.error.code || null,
             payload.error.details,
@@ -186,16 +186,16 @@ export async function apiRequest<T>(url: string, options: ApiRequestOptions = {}
       }
 
       if (error instanceof DOMException && error.name === "AbortError") {
-        throw new ApiRequestError("Istek zaman asimina ugradi.", 408, "REQUEST_TIMEOUT");
+        throw new ApiRequestError("İstek zaman aşımına uğradı.", 408, "REQUEST_TIMEOUT");
       }
 
-      throw new ApiRequestError("Ag hatasi olustu.", 0, "NETWORK_ERROR", error);
+      throw new ApiRequestError("Ağ hatası oluştu.", 0, "NETWORK_ERROR", error);
     } finally {
       clearTimeout(timeoutId);
     }
   }
 
-  throw new ApiRequestError("Istek bilinmeyen bir nedenle tamamlanamadi.", 500);
+  throw new ApiRequestError("İstek bilinmeyen bir nedenle tamamlanamadı.", 500);
 }
 
 export function apiGet<T>(url: string, options: Omit<ApiRequestOptions, "method" | "body"> = {}) {

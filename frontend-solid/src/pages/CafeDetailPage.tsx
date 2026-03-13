@@ -11,7 +11,7 @@ import { getCafeById } from "../lib/cafes";
 function readErrorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
     if (error.status === 404) {
-      return "Kafe bulunamadi.";
+      return "Kafe bulunamadı.";
     }
     return error.message;
   }
@@ -33,43 +33,43 @@ export default function CafeDetailPage() {
 
   const [cafe, { refetch }] = createResource(cafeId, async (id) => {
     if (!id || id < 1) {
-      throw new Error("Gecersiz kafe id");
+      throw new Error("Geçersiz kafe id");
     }
     return getCafeById(id);
   });
 
   return (
     <PageContainer
-      title="Cafe detayi"
-      subtitle="Detay verisi /api/cafes/:id endpointinden canli olarak cekilir."
+      title="Kafe detayı"
+      subtitle="Detay verisi /api/cafes/:id endpointinden canlı olarak çekilir."
       actions={
         <A class="ui-button ui-button--secondary ui-button--md" href="/cafes">
-          Listeye don
+          Listeye dön
         </A>
       }
     >
-      <Show when={!cafe.loading} fallback={<LoadingState title="Kafe detayi yukleniyor" />}>
+      <Show when={!cafe.loading} fallback={<LoadingState title="Kafe detayı yükleniyor" />}>
         <Show
           when={!cafe.error}
           fallback={
             <ErrorState
-              title="Kafe detayi alinamadi"
+              title="Kafe detayı alınamadı"
               description={readErrorMessage(cafe.error)}
               actionLabel="Tekrar dene"
               onAction={() => void refetch()}
             />
           }
         >
-          <Switch fallback={<EmptyState title="Kafe bulunamadi" />}>
+          <Switch fallback={<EmptyState title="Kafe bulunamadı" />}>
             <Match when={Boolean(cafe())}>
               <Card>
                 <div class="cafe-detail-grid">
                   <div class="cafe-detail-media">
                     <Show
                       when={cafe()?.img_url}
-                      fallback={<div class="cafe-image-fallback">Gorsel yok</div>}
+                      fallback={<div class="cafe-image-fallback">Görsel yok</div>}
                     >
-                      <img src={cafe()?.img_url || ""} alt={cafe()?.name || "Cafe"} class="cafe-image" />
+                      <img src={cafe()?.img_url || ""} alt={cafe()?.name || "Kafe"} class="cafe-image" />
                     </Show>
                   </div>
 
@@ -81,7 +81,7 @@ export default function CafeDetailPage() {
                       <span class="ui-chip">wifi: {cafe()?.has_wifi ? "var" : "yok"}</span>
                       <span class="ui-chip">priz: {cafe()?.has_sockets ? "var" : "yok"}</span>
                       <span class="ui-chip">wc: {cafe()?.has_toilet ? "var" : "yok"}</span>
-                      <span class="ui-chip">cagri: {cafe()?.can_take_calls ? "uygun" : "uygun degil"}</span>
+                      <span class="ui-chip">çağrı: {cafe()?.can_take_calls ? "uygun" : "uygun değil"}</span>
                       <span class="ui-chip">koltuk: {cafe()?.seats || "bilgi yok"}</span>
                       <span class="ui-chip">{cafe()?.coffee_price || "fiyat yok"}</span>
                     </div>
@@ -92,7 +92,7 @@ export default function CafeDetailPage() {
 
                     <Show when={cafe()?.map_url}>
                       <A class="ui-link" href={cafe()?.map_url || "#"} target="_blank" rel="noreferrer">
-                        Haritada ac
+                        Haritada aç
                       </A>
                     </Show>
                   </div>

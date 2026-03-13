@@ -4,10 +4,10 @@ import { PageContainer } from "../components/ui/PageContainer";
 
 export default function NotFoundPage() {
   return (
-    <PageContainer title="Rota bulunamadi" subtitle="Bu adres frontend-solid icinde tanimli degil.">
+    <PageContainer title="Rota bulunamadı" subtitle="Bu adres frontend-solid içinde tanımlı değil.">
       <Card>
         <A class="ui-link" href="/">
-          Ana sayfaya don
+          Ana sayfaya dön
         </A>
       </Card>
     </PageContainer>

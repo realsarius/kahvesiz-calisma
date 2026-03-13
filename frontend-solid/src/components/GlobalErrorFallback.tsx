@@ -10,13 +10,13 @@ function toMessage(error: unknown) {
     return error.message;
   }
 
-  return "Beklenmeyen bir hata olustu.";
+  return "Beklenmeyen bir hata oluştu.";
 }
 
 export function GlobalErrorFallback(props: GlobalErrorFallbackProps) {
   return (
     <ErrorState
-      title="Uygulama beklenmeyen bir hatayla karsilasti"
+      title="Uygulama beklenmeyen bir hatayla karşılaştı"
       description={toMessage(props.error)}
       actionLabel="Tekrar dene"
       onAction={props.reset}

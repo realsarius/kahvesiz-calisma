@@ -10,11 +10,11 @@ import { sendContactMessage } from "../lib/contact";
 function toErrorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
     if (error.code === "REQUEST_TIMEOUT") {
-      return "Istek zaman asimina ugradi. Lutfen tekrar deneyin.";
+      return "İstek zaman aşımına uğradı. Lütfen tekrar deneyin.";
     }
 
     if (error.code === "NETWORK_ERROR") {
-      return "Sunucuya baglanilamadi. Ag baglantinizi kontrol edin.";
+      return "Sunucuya bağlanılamadı. Ağ bağlantınızı kontrol edin.";
     }
 
     return error.message;
@@ -24,7 +24,7 @@ function toErrorMessage(error: unknown) {
     return error.message;
   }
 
-  return "Beklenmeyen bir hata olustu.";
+  return "Beklenmeyen bir hata oluştu.";
 }
 
 export default function ContactPage() {
@@ -43,7 +43,7 @@ export default function ContactPage() {
     event.preventDefault();
 
     if (!canSubmit()) {
-      setSubmitError("Lutfen tum alanlari doldurun.");
+      setSubmitError("Lütfen tüm alanları doldurun.");
       setIsSubmitted(false);
       return;
     }
@@ -71,20 +71,20 @@ export default function ContactPage() {
   };
 
   return (
-    <PageContainer title="Iletisim" subtitle="Geri bildirim, hata raporu ve oneriler icin iletisim formu.">
+    <PageContainer title="İletişim" subtitle="Geri bildirim, hata raporu ve öneriler için iletişim formu.">
       <div class="grid-two-columns">
-        <Card title="Iletisim notlari">
+        <Card title="İletişim notları">
           <ul class="simple-list">
-            <li>Konu: Teknik destek / Icerik duzeltme / Genel oneri</li>
-            <li>Cevap suresi: Musaitlik durumuna gore</li>
-            <li>Ek bilgiler: Footer linklerinden gizlilik ve lisans sayfalarina ulasabilirsiniz.</li>
+            <li>Konu: Teknik destek / İçerik düzeltme / Genel öneri</li>
+            <li>Cevap süresi: Müsaitlik durumuna göre</li>
+            <li>Ek bilgiler: Footer linklerinden gizlilik ve lisans sayfalarına ulaşabilirsiniz.</li>
           </ul>
         </Card>
 
-        <Card title="Mesaj gonder">
+        <Card title="Mesaj gönder">
           <Show when={isSubmitted()}>
-            <Alert variant="success" title="Mesaj alindi">
-              Mesajiniz basariyla iletildi.
+            <Alert variant="success" title="Mesaj alındı">
+              Mesajınız başarıyla iletildi.
             </Alert>
           </Show>
 
@@ -108,7 +108,7 @@ export default function ContactPage() {
               label="Konu"
               value={subject()}
               onInput={(event) => setSubject(event.currentTarget.value)}
-              placeholder="Kisa konu"
+              placeholder="Kısa konu"
             />
 
             <div class="ui-field">
@@ -120,12 +120,12 @@ export default function ContactPage() {
                 class="ui-input ui-textarea"
                 value={message()}
                 onInput={(event) => setMessage(event.currentTarget.value)}
-                placeholder="Mesajinizi buraya yazin"
+                placeholder="Mesajınızı buraya yazın"
               />
             </div>
 
             <Button type="submit" disabled={submitting()}>
-              {submitting() ? "Gonderiliyor..." : "Mesaji gonder"}
+              {submitting() ? "Gönderiliyor..." : "Mesajı gönder"}
             </Button>
           </form>
         </Card>

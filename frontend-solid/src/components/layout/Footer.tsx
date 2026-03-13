@@ -6,7 +6,7 @@ export function Footer() {
   return (
     <footer class="footer">
       <div class="container footer-inner">
-        <nav class="footer-links" aria-label="Alt baglantilar">
+        <nav class="footer-links" aria-label="Alt bağlantılar">
           <A href="/about">Hakkımızda</A>
           <A href="/privacy">Gizlilik</A>
           <A href="/license">Lisans</A>
