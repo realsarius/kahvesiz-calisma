@@ -295,6 +295,14 @@ FRONTEND_RENDER_MODE=solid flask --app main run --host=0.0.0.0 --port=5040
 npm run solid:smoke -- http://127.0.0.1:5040
 ```
 
+Gorsel regresyon kontrolu (desktop + mobile):
+
+```bash
+npm run solid:visual -- http://127.0.0.1:5040
+```
+
+Not: Screenshot artefactlari `output/playwright/solid-visual-*` altina yazilir.
+
 Rollback kontrolu:
 
 ```bash
@@ -358,6 +366,7 @@ curl -fsS http://localhost:5040/ >/dev/null
 curl -fsS http://localhost:5040/api/cafes >/dev/null
 npm test
 npm run frontend:dryrun
+npm run solid:visual -- http://127.0.0.1:5040
 ```
 
 ## 10. Lisans ve Kullanım Notu
