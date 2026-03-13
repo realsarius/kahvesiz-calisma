@@ -202,6 +202,107 @@ CAFES = [
     },
 ]
 
+IMAGE_POOL = [
+    "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085",
+    "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+    "https://images.unsplash.com/photo-1445116572660-236099ec97a0",
+    "https://images.unsplash.com/photo-1453614512568-c4024d13c247",
+    "https://images.unsplash.com/photo-1414235077428-338989a2e8c0",
+    "https://images.unsplash.com/photo-1498804103079-a6351b050096",
+]
+
+
+def _build_generated_cafes(start_index: int, target_count: int) -> list[dict]:
+    generated: list[dict] = []
+    neighborhoods = ["moda", "besiktas-merkez", "cihangir"]
+    noise_levels = ["silent", "quiet", "moderate", "loud"]
+    outlet_access = ["all_seats", "some_seats", "rare"]
+    seat_types = ["shared_table", "solo_desk", "bar", "sofa", "outdoor"]
+
+    for cafe_no in range(start_index, target_count + 1):
+        slug = f"seed-study-cafe-{cafe_no:02d}"
+        neighborhood_slug = neighborhoods[(cafe_no - 1) % len(neighborhoods)]
+        base_lat = 40.9750 + (((cafe_no * 7) % 45) / 10_000)
+        base_lng = 29.0000 + (((cafe_no * 9) % 80) / 10_000)
+        total_capacity = 24 + (cafe_no % 28)
+        indoor_capacity = total_capacity - (cafe_no % 9)
+        outdoor_capacity = max(total_capacity - indoor_capacity, 0)
+        outlet_count = 6 + (cafe_no % 26)
+        noise_level = noise_levels[cafe_no % len(noise_levels)]
+        wifi_speed = 70 + ((cafe_no * 11) % 170)
+        min_spend = float(80 + (cafe_no % 9) * 15)
+
+        seats: list[tuple[str, int, int, bool, str]] = []
+        for offset in range(3):
+            seat_type = seat_types[(cafe_no + offset) % len(seat_types)]
+            total = 6 + ((cafe_no + offset * 3) % 10)
+            available = max(total - ((cafe_no + offset) % 4), 0)
+            seats.append(
+                (
+                    seat_type,
+                    total,
+                    available,
+                    (offset != 2),
+                    f"{SEED_MARKER} seed seat {offset + 1}",
+                )
+            )
+
+        generated.append(
+            {
+                "name": f"Seed Study Cafe {cafe_no:02d}",
+                "slug": slug,
+                "neighborhood_slug": neighborhood_slug,
+                "owner_email": "admin@kahvesiz.local",
+                "address": f"Seed Sokak No:{10 + cafe_no}, Istanbul",
+                "latitude": round(base_lat, 8),
+                "longitude": round(base_lng, 8),
+                "phone": f"+90 212 100 {cafe_no:02d} {((cafe_no * 3) % 100):02d}",
+                "website": f"https://example.com/{slug}",
+                "google_maps_url": f"https://maps.google.com/?q={round(base_lat, 8)},{round(base_lng, 8)}",
+                "status": "active",
+                "total_capacity": total_capacity,
+                "indoor_capacity": indoor_capacity,
+                "outdoor_capacity": outdoor_capacity,
+                "amenity": {
+                    "wifi_available": True,
+                    "wifi_speed_mbps": wifi_speed,
+                    "outlet_count": outlet_count,
+                    "outlet_accessibility": outlet_access[cafe_no % len(outlet_access)],
+                    "noise_level": noise_level,
+                    "has_natural_light": cafe_no % 2 == 0,
+                    "has_ac": True,
+                    "has_heating": True,
+                    "has_parking": cafe_no % 5 == 0,
+                    "has_accessible_entry": cafe_no % 3 != 0,
+                    "allows_laptop": True,
+                    "min_spend_try": min_spend,
+                    "has_food": cafe_no % 2 == 0,
+                    "has_alcohol": cafe_no % 7 == 0,
+                    "pet_friendly": cafe_no % 4 == 0,
+                },
+                "hours": [
+                    (0, "08:00", "22:00"),
+                    (1, "08:00", "22:00"),
+                    (2, "08:00", "22:00"),
+                    (3, "08:00", "22:00"),
+                    (4, "08:00", "23:00"),
+                    (5, "09:00", "23:00"),
+                    (6, "09:00", "22:00"),
+                ],
+                "images": [
+                    IMAGE_POOL[cafe_no % len(IMAGE_POOL)],
+                    IMAGE_POOL[(cafe_no + 2) % len(IMAGE_POOL)],
+                ],
+                "seats": seats,
+            }
+        )
+
+    return generated
+
+
+if len(CAFES) < 50:
+    CAFES.extend(_build_generated_cafes(start_index=len(CAFES) + 1, target_count=50))
+
 
 REVIEWS = [
     {
@@ -209,7 +310,7 @@ REVIEWS = [
         "cafe_slug": "monk-brew-lab",
         "rating": 5,
         "title": "Calismaya cok uygun",
-        "body": f"{SEED_MARKER} Wifi hizli, priz sorunu yok.",
+        "body": "Wi-Fi hızlı, priz sorunu yok.",
         "noise_rating": 3,
         "wifi_rating": 5,
         "outlet_rating": 5,
@@ -220,7 +321,7 @@ REVIEWS = [
         "cafe_slug": "northlight-study-cafe",
         "rating": 4,
         "title": "Sessiz ve duzenli",
-        "body": f"{SEED_MARKER} Sabah saatlerinde cok verimli.",
+        "body": "Sabah saatlerinde çok verimli.",
         "noise_rating": 4,
         "wifi_rating": 5,
         "outlet_rating": 5,
@@ -231,7 +332,7 @@ REVIEWS = [
         "cafe_slug": "cihangir-corner",
         "rating": 3,
         "title": "Keyifli ama gurultulu",
-        "body": f"{SEED_MARKER} Aksam saatleri biraz kalabalik.",
+        "body": "Akşam saatleri biraz kalabalık.",
         "noise_rating": 2,
         "wifi_rating": 4,
         "outlet_rating": 2,
@@ -354,7 +455,7 @@ def upsert_neighborhood(cur, payload: dict) -> str:
 
 def upsert_cafe(cur, payload: dict, neighborhood_id: str, owner_id: str) -> str:
     now = datetime.now(timezone.utc)
-    description = f"{SEED_MARKER} {payload['name']} dev verisi."
+    description = f"{payload['name']} için geliştirme ortamı örnek verisi."
     cur.execute(
         """
         INSERT INTO cafes (

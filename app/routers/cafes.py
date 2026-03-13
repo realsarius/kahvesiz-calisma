@@ -15,6 +15,8 @@ from app.models.cafe_hour import CafeHour
 from app.models.cafe_image import CafeImage
 from app.models.cafe_seat import CafeSeat
 from app.models.neighborhood import Neighborhood
+from app.models.review import Review
+from app.models.user import User
 from app.schemas.cafe import (
     CafeAmenityResponse,
     CafeDetailResponse,
@@ -22,11 +24,18 @@ from app.schemas.cafe import (
     CafeImageResponse,
     CafeListItem,
     CafeListResponse,
+    CafeReviewResponse,
     CafeSeatResponse,
 )
 
 
 router = APIRouter()
+
+
+def _strip_seed_marker(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    return value.replace("[seed]", "").strip()
 
 
 def _encode_cursor(created_at: datetime, cafe_id: uuid.UUID) -> str:
@@ -193,6 +202,18 @@ async def get_cafe(slug: str, db: AsyncSession = Depends(get_db_session)):
     )
     seat_rows = seats_result.scalars().all()
 
+    reviews_result = await db.execute(
+        select(Review, User.display_name, User.username)
+        .join(User, User.id == Review.user_id, isouter=True)
+        .where(
+            Review.cafe_id == cafe.id,
+            Review.deleted_at.is_(None),
+        )
+        .order_by(Review.created_at.desc())
+        .limit(20)
+    )
+    review_rows = reviews_result.all()
+
     amenity_payload = CafeAmenityResponse(
         wifi_available=bool(amenity.wifi_available) if amenity else False,
         wifi_speed_mbps=amenity.wifi_speed_mbps if amenity else None,
@@ -239,12 +260,24 @@ async def get_cafe(slug: str, db: AsyncSession = Depends(get_db_session)):
         )
         for item in seat_rows
     ]
+    reviews_payload = [
+        CafeReviewResponse(
+            id=row.Review.id,
+            rating=row.Review.rating,
+            title=_strip_seed_marker(row.Review.title),
+            body=_strip_seed_marker(row.Review.body),
+            reviewer_name=row.display_name or row.username or "Anonim kullanıcı",
+            visited_at=row.Review.visited_at,
+            created_at=row.Review.created_at,
+        )
+        for row in review_rows
+    ]
 
     return CafeDetailResponse(
         id=cafe.id,
         name=cafe.name,
         slug=cafe.slug,
-        description=cafe.description,
+        description=_strip_seed_marker(cafe.description),
         address=cafe.address,
         latitude=_to_float(cafe.latitude),
         longitude=_to_float(cafe.longitude),
@@ -266,6 +299,7 @@ async def get_cafe(slug: str, db: AsyncSession = Depends(get_db_session)):
         hours=hours_payload,
         images=images_payload,
         seats=seats_payload,
+        reviews=reviews_payload,
         created_at=cafe.created_at,
         updated_at=cafe.updated_at,
     )

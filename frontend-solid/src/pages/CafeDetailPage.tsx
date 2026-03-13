@@ -1,4 +1,5 @@
 import { A, useParams } from "@solidjs/router";
+import { FiMessageSquare, FiMonitor, FiStar, FiVolume2, FiWifi, FiZap } from "solid-icons/fi";
 import { For, Match, Show, Switch, createMemo, createResource } from "solid-js";
 import { EmptyState } from "../components/states/EmptyState";
 import { ErrorState } from "../components/states/ErrorState";
@@ -21,6 +22,40 @@ function readErrorMessage(error: unknown) {
   }
 
   return "Bilinmeyen hata";
+}
+
+function formatNoiseLevel(level: string | null | undefined) {
+  const key = (level || "").trim().toLowerCase();
+  const labels: Record<string, string> = {
+    silent: "sessiz",
+    quiet: "sakin",
+    moderate: "orta",
+    loud: "yüksek",
+  };
+  return labels[key] || "bilinmiyor";
+}
+
+function formatSeatType(type: string) {
+  const key = (type || "").trim().toLowerCase();
+  const labels: Record<string, string> = {
+    solo_desk: "Tek çalışma masası",
+    shared_table: "Ortak masa",
+    sofa: "Koltuk",
+    bar: "Bar masası",
+    outdoor: "Dış alan",
+  };
+  return labels[key] || type;
+}
+
+function formatCafeStatus(status: string | null | undefined) {
+  const key = (status || "").trim().toLowerCase();
+  const labels: Record<string, string> = {
+    pending: "Beklemede",
+    active: "Aktif",
+    closed: "Kapalı",
+    rejected: "Reddedildi",
+  };
+  return labels[key] || (status || "-");
 }
 
 export default function CafeDetailPage() {
@@ -60,10 +95,25 @@ export default function CafeDetailPage() {
     return days[day] ?? `Gün ${day}`;
   };
 
+  const formatDate = (value: string | null) => {
+    if (!value) {
+      return "";
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return "";
+    }
+    return new Intl.DateTimeFormat("tr-TR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(parsed);
+  };
+
   return (
     <PageContainer
       title="Kafe detayı"
-      subtitle="Detay verisi /api/v1/cafes/:slug endpointinden canlı olarak çekilir."
+      subtitle="Detay verisi canlı olarak veritabanından çekilir."
       actions={
         <A class="ui-button ui-button--secondary ui-button--md" href="/cafes">
           Listeye dön
@@ -102,12 +152,30 @@ export default function CafeDetailPage() {
                     </p>
 
                     <div class="chip-row">
-                      <span class="ui-chip">wifi: {cafe()?.amenities.wifi_available ? "var" : "yok"}</span>
-                      <span class="ui-chip">priz: {(cafe()?.amenities.outlet_count ?? 0) > 0 ? "var" : "yok"}</span>
-                      <span class="ui-chip">gürültü: {cafe()?.amenities.noise_level || "bilinmiyor"}</span>
-                      <span class="ui-chip">puan: {(cafe()?.avg_rating ?? 0).toFixed(1)}</span>
-                      <span class="ui-chip">yorum: {cafe()?.review_count ?? 0}</span>
-                      <span class="ui-chip">laptop: {cafe()?.amenities.allows_laptop ? "uygun" : "uygun değil"}</span>
+                      <span class="ui-chip">
+                        <FiWifi class="ui-chip__icon" />
+                        Wi-Fi: {cafe()?.amenities.wifi_available ? "Var" : "Yok"}
+                      </span>
+                      <span class="ui-chip">
+                        <FiZap class="ui-chip__icon" />
+                        Priz: {(cafe()?.amenities.outlet_count ?? 0) > 0 ? "Var" : "Yok"}
+                      </span>
+                      <span class="ui-chip">
+                        <FiVolume2 class="ui-chip__icon" />
+                        Gürültü: {formatNoiseLevel(cafe()?.amenities.noise_level)}
+                      </span>
+                      <span class="ui-chip">
+                        <FiStar class="ui-chip__icon" />
+                        Puan: {(cafe()?.avg_rating ?? 0).toFixed(1)}
+                      </span>
+                      <span class="ui-chip">
+                        <FiMessageSquare class="ui-chip__icon" />
+                        Yorum: {cafe()?.review_count ?? 0}
+                      </span>
+                      <span class="ui-chip">
+                        <FiMonitor class="ui-chip__icon" />
+                        Laptop: {cafe()?.amenities.allows_laptop ? "Uygun" : "Uygun değil"}
+                      </span>
                     </div>
 
                     <Show when={cafe()?.description}>
@@ -117,7 +185,7 @@ export default function CafeDetailPage() {
                     <dl class="meta-list">
                       <div>
                         <dt>Durum</dt>
-                        <dd>{cafe()?.status}</dd>
+                        <dd>{formatCafeStatus(cafe()?.status)}</dd>
                       </div>
                       <div>
                         <dt>Doğrulanmış</dt>
@@ -168,7 +236,7 @@ export default function CafeDetailPage() {
                       <For each={cafe()?.seats ?? []}>
                         {(seat) => (
                           <li>
-                            {seat.seat_type}: {seat.available_count}/{seat.total_count} boş
+                            {formatSeatType(seat.seat_type)}: {seat.available_count}/{seat.total_count} boş
                           </li>
                         )}
                       </For>
@@ -176,6 +244,39 @@ export default function CafeDetailPage() {
                   </Show>
                 </Card>
               </div>
+
+              <Card>
+                <h3 class="ui-card__title">Son yorumlar</h3>
+                <Show
+                  when={(cafe()?.reviews ?? []).length > 0}
+                  fallback={<p class="paragraph paragraph--compact">Bu kafe için henüz yorum görünmüyor.</p>}
+                >
+                  <ul class="review-list">
+                    <For each={cafe()?.reviews ?? []}>
+                      {(review) => (
+                        <li class="review-list__item">
+                          <div class="review-list__head">
+                            <strong>{review.reviewer_name}</strong>
+                            <span class="review-list__meta">Puan: {review.rating}/5</span>
+                          </div>
+                          <Show when={review.title}>
+                            <p class="review-list__title">{review.title}</p>
+                          </Show>
+                          <Show when={review.body}>
+                            <p class="paragraph paragraph--compact">{review.body}</p>
+                          </Show>
+                          <div class="review-list__meta">
+                            <Show when={review.visited_at}>
+                              <span>Ziyaret: {formatDate(review.visited_at)}</span>
+                            </Show>
+                            <span>Yorum: {formatDate(review.created_at)}</span>
+                          </div>
+                        </li>
+                      )}
+                    </For>
+                  </ul>
+                </Show>
+              </Card>
             </Match>
           </Switch>
         </Show>
