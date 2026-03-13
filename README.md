@@ -220,3 +220,21 @@ npm test
 - Repo içinde Flask tabanlı legacy modüller halen bulunmaktadır (`main.py`, `kahvesiz_app/*`).
 - Geçiş tamamlanana kadar legacy testleri ve bazı route/senaryolar korunmaktadır.
 - Yeni geliştirme hedefi FastAPI `app/` dizini ve `/api/v1/*` yüzeyidir.
+
+### 8.1 SQLite -> PostgreSQL aktarım scripti
+
+Legacy `instance/cafes.db` verisini yeni PostgreSQL şemasına taşımak için:
+
+```bash
+# Dry-run (yazmadan planı gör)
+docker compose --profile dev run --rm api-dev \
+  python scripts/migrate_sqlite_to_postgres.py --dry-run
+
+# Gerçek aktarım
+docker compose --profile dev run --rm api-dev \
+  python scripts/migrate_sqlite_to_postgres.py
+```
+
+Notlar:
+- Script idempotent çalışır; daha önce taşınmış `legacy_cafe_id` satırlarını atlar.
+- `DATABASE_URL_DEV` / `DATABASE_URL` otomatik okunur; gerekirse `--pg-url` verilebilir.
