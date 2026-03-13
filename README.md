@@ -18,7 +18,7 @@
 ### 1.1 Docker Compose (önerilen)
 
 ```bash
-# DEV stack'i başlat (api + db + redis + frontend + nginx)
+# DEV stack'i başlat (api + legacy + db + redis + frontend + nginx)
 docker compose --profile dev up -d --build
 
 # Gerekirse migration'ı manuel tetikle (api-dev zaten açılışta upgrade head çalıştırır)
@@ -34,6 +34,7 @@ curl -fsS http://127.0.0.1/api/v1/health
 
 # Loglar
 docker compose --profile dev logs -f api-dev
+docker compose --profile dev logs -f legacy-dev
 
 # Kapat
 docker compose --profile dev down
@@ -76,11 +77,17 @@ python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ### Altyapı
 
-- `dev` profili: `api-dev`, `db-dev`, `redis-dev`, `frontend-dev`, `nginx-dev`
+- `dev` profili: `api-dev`, `legacy-dev`, `db-dev`, `redis-dev`, `frontend-dev`, `nginx-dev`
 - `prod` profili: `api-prod`, `db-prod`, `redis-prod`, `frontend-prod`, `nginx-prod`
 - `test` profili: `db-test`, `redis-test`
 
 Compose tanımı: [docker-compose.yaml](docker-compose.yaml)
+
+Dev strangler routing:
+
+- `/api/v1/*` -> `api-dev` (FastAPI)
+- `/api/*` -> `legacy-dev` (Flask)
+- `/*` -> `frontend-dev` (Vite proxy)
 
 ## 3. API Yüzeyi (v1)
 
@@ -137,6 +144,7 @@ DATABASE_URL_DEV=postgresql+asyncpg://user:pass@db-dev:5432/kahvesiz_dev
 REDIS_URL_DEV=redis://redis-dev:6379/0
 FRONTEND_URL_DEV=http://localhost:5173
 ALLOWED_ORIGINS_DEV=http://localhost:5173,http://localhost
+LEGACY_SQLALCHEMY_DATABASE_URI=sqlite:///cafes.db
 
 # PROD
 DATABASE_URL_PROD=postgresql+asyncpg://user:pass@db-prod:5432/kahvesiz

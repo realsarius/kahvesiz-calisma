@@ -63,6 +63,27 @@ services:
     networks:
       - app_net
 
+  legacy-dev:
+    container_name: kc-legacy-1
+    profiles: [dev]
+    build:
+      context: .
+      dockerfile: docker/legacy.Dockerfile
+    command: gunicorn --reload -w 2 -b 0.0.0.0:5040 main:app
+    environment:
+      SQLALCHEMY_DATABASE_URI: ${LEGACY_SQLALCHEMY_DATABASE_URI:-sqlite:///cafes.db}
+      SECRET_KEY: ${SECRET_KEY:-change-me}
+      AUTO_CREATE_SCHEMA: ${LEGACY_AUTO_CREATE_SCHEMA:-false}
+      WTF_CSRF_ENABLED: ${LEGACY_WTF_CSRF_ENABLED:-true}
+      SOLID_DIST_DIR: ${LEGACY_SOLID_DIST_DIR:-frontend-solid/dist}
+    expose:
+      - "5040"
+    volumes:
+      - ./:/usr/src/app
+    restart: unless-stopped
+    networks:
+      - app_net
+
   db-dev:
     container_name: kc-db-1
     profiles: [dev]
@@ -214,6 +235,8 @@ services:
     image: nginx:1.27-alpine
     depends_on:
       api-dev:
+        condition: service_started
+      legacy-dev:
         condition: service_started
       frontend-dev:
         condition: service_started
