@@ -10,9 +10,12 @@ services:
       SECRET_KEY: change-me
       ACCESS_TOKEN_EXPIRE_MINUTES: 15
       SESSION_EXPIRE_DAYS: 30
+      MAGIC_LINK_EXPIRE_MINUTES: 15
       ENVIRONMENT: development
       FRONTEND_URL: http://localhost:5173
       ALLOWED_ORIGINS: http://localhost:5173
+      RESEND_API_KEY: ""
+      RESEND_FROM_EMAIL: noreply@kahvesizcalisma.com
     depends_on:
       db:
         condition: service_healthy

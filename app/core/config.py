@@ -19,12 +19,15 @@ class Settings:
     secret_key: str = os.getenv("SECRET_KEY", "change-me")
     access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
     session_expire_days: int = int(os.getenv("SESSION_EXPIRE_DAYS", "30"))
+    magic_link_expire_minutes: int = int(os.getenv("MAGIC_LINK_EXPIRE_MINUTES", "15"))
     frontend_url: str = os.getenv("FRONTEND_URL", "http://localhost:5173")
     allowed_origins: list[str] = field(
         default_factory=lambda: _csv_to_list(
             os.getenv("ALLOWED_ORIGINS", "http://localhost:5173")
         )
     )
+    resend_api_key: str = os.getenv("RESEND_API_KEY", "")
+    resend_from_email: str = os.getenv("RESEND_FROM_EMAIL", "")
 
 
 settings = Settings()
