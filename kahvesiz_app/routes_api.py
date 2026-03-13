@@ -301,6 +301,41 @@ def register_api_routes(app):
             status=201,
         )
 
+    @app.route("/api/contact", methods=["POST"])
+    def api_contact():
+        data = request.get_json(silent=True) or {}
+
+        email = str(data.get("email", "")).strip()
+        subject = str(data.get("subject", "")).strip()
+        message = str(data.get("message", "")).strip()
+
+        missing_fields = []
+        if not email:
+            missing_fields.append("email")
+        if not subject:
+            missing_fields.append("subject")
+        if not message:
+            missing_fields.append("message")
+
+        if missing_fields:
+            return error_response(
+                "Missing fields",
+                status=422,
+                code="MISSING_FIELDS",
+                details=missing_fields,
+            )
+
+        if "@" not in email or "." not in email.split("@")[-1]:
+            return error_response("Geçerli bir e-posta adresi girin.", status=422, code="INVALID_EMAIL")
+
+        if len(subject) < 3:
+            return error_response("Konu en az 3 karakter olmalı.", status=422, code="SUBJECT_TOO_SHORT")
+
+        if len(message) < 10:
+            return error_response("Mesaj en az 10 karakter olmalı.", status=422, code="MESSAGE_TOO_SHORT")
+
+        return success_response({"message": "Mesajınız başarıyla alındı."}, status=200)
+
     @app.route("/api/users", methods=["GET"])
     @api_admin_required
     def get_all_users():

@@ -157,6 +157,32 @@ class ApiHardeningTests(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.get_json()["error"]["code"], "INVALID_CREDENTIALS")
 
+    def test_contact_api_rejects_missing_fields(self):
+        csrf_token = self._csrf_token()
+        response = self.client.post(
+            "/api/contact",
+            json={"email": "hello@example.com", "subject": ""},
+            headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.get_json()["error"]["code"], "MISSING_FIELDS")
+
+    def test_contact_api_accepts_valid_payload(self):
+        csrf_token = self._csrf_token()
+        response = self.client.post(
+            "/api/contact",
+            json={
+                "email": "hello@example.com",
+                "subject": "Deneme konusu",
+                "message": "Bu bir test mesajidir.",
+            },
+            headers={"Content-Type": "application/json", "X-CSRFToken": csrf_token},
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(payload["error"], None)
+        self.assertIn("Mesaj", payload["data"]["message"])
+
     def test_csrf_token_endpoint_returns_token(self):
         response = self.client.get("/api/csrf-token")
         self.assertEqual(response.status_code, 200)

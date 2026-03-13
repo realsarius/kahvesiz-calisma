@@ -4,19 +4,42 @@ import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { PageContainer } from "../components/ui/PageContainer";
+import { ApiRequestError } from "../lib/api";
+import { sendContactMessage } from "../lib/contact";
+
+function toErrorMessage(error: unknown) {
+  if (error instanceof ApiRequestError) {
+    if (error.code === "REQUEST_TIMEOUT") {
+      return "Istek zaman asimina ugradi. Lutfen tekrar deneyin.";
+    }
+
+    if (error.code === "NETWORK_ERROR") {
+      return "Sunucuya baglanilamadi. Ag baglantinizi kontrol edin.";
+    }
+
+    return error.message;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Beklenmeyen bir hata olustu.";
+}
 
 export default function ContactPage() {
   const [email, setEmail] = createSignal("");
   const [subject, setSubject] = createSignal("");
   const [message, setMessage] = createSignal("");
   const [isSubmitted, setIsSubmitted] = createSignal(false);
+  const [submitting, setSubmitting] = createSignal(false);
   const [submitError, setSubmitError] = createSignal<string | null>(null);
 
   const canSubmit = createMemo(() => {
     return email().trim().length > 3 && subject().trim().length > 2 && message().trim().length > 8;
   });
 
-  const onSubmit = (event: SubmitEvent) => {
+  const onSubmit = async (event: SubmitEvent) => {
     event.preventDefault();
 
     if (!canSubmit()) {
@@ -25,8 +48,26 @@ export default function ContactPage() {
       return;
     }
 
+    setSubmitting(true);
     setSubmitError(null);
-    setIsSubmitted(true);
+
+    try {
+      await sendContactMessage({
+        email: email().trim(),
+        subject: subject().trim(),
+        message: message().trim(),
+      });
+
+      setEmail("");
+      setSubject("");
+      setMessage("");
+      setIsSubmitted(true);
+    } catch (error) {
+      setIsSubmitted(false);
+      setSubmitError(toErrorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -43,7 +84,7 @@ export default function ContactPage() {
         <Card title="Mesaj gonder">
           <Show when={isSubmitted()}>
             <Alert variant="success" title="Mesaj alindi">
-              Form alinmis gibi isaretlendi. Backend entegrasyonu bir sonraki adimda tamamlanacak.
+              Mesajiniz basariyla iletildi.
             </Alert>
           </Show>
 
@@ -83,7 +124,9 @@ export default function ContactPage() {
               />
             </div>
 
-            <Button type="submit">Mesaji gonder</Button>
+            <Button type="submit" disabled={submitting()}>
+              {submitting() ? "Gonderiliyor..." : "Mesaji gonder"}
+            </Button>
           </form>
         </Card>
       </div>
