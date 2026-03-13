@@ -303,6 +303,14 @@ npm run solid:visual -- http://127.0.0.1:5040
 
 Not: Screenshot artefactlari `output/playwright/solid-visual-*` altina yazilir.
 
+Component backlog guncelleme:
+
+```bash
+npm run solid:backlog
+```
+
+Not: Cikti `frontend-solid/component-backlog.json` dosyasina yazilir.
+
 Rollback kontrolu:
 
 ```bash
