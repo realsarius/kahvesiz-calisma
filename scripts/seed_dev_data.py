@@ -78,12 +78,50 @@ def _slugify(value: str) -> str:
 
 def _build_generated_users(count: int) -> list[dict]:
     generated: list[dict] = []
+    first_names = [
+        "Ayse",
+        "Mehmet",
+        "Fatma",
+        "Can",
+        "Elif",
+        "Deniz",
+        "Berk",
+        "Zehra",
+        "Merve",
+        "Kaan",
+        "Seda",
+        "Emre",
+        "Ece",
+        "Ali",
+        "Derya",
+        "Onur",
+    ]
+    last_names = [
+        "Yilmaz",
+        "Demir",
+        "Kaya",
+        "Celik",
+        "Sahin",
+        "Aydin",
+        "Arslan",
+        "Ozdemir",
+        "Koc",
+        "Kurt",
+        "Aslan",
+        "Cetin",
+        "Acar",
+        "Polat",
+        "Bulut",
+        "Tas",
+    ]
     for index in range(1, count + 1):
+        first = first_names[(index - 1) % len(first_names)]
+        last = last_names[((index - 1) // len(first_names)) % len(last_names)]
         generated.append(
             {
                 "email": f"devuser{index:03d}@kahvesiz.local",
                 "username": f"devuser{index:03d}",
-                "display_name": f"Dev User {index:03d}",
+                "display_name": f"{first} {last}",
                 "role": "user",
                 "city": "Istanbul",
             }
