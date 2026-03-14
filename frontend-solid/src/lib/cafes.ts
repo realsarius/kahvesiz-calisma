@@ -109,6 +109,15 @@ export interface CafeDetailV1 {
     has_outlet: boolean;
     notes: string | null;
   }>;
+  reviews: Array<{
+    id: string;
+    rating: number;
+    title: string | null;
+    body: string | null;
+    reviewer_name: string;
+    visited_at: string | null;
+    created_at: string;
+  }>;
   created_at: string;
   updated_at: string;
 }

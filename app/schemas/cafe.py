@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import date, datetime, time
 from typing import List, Optional
 from uuid import UUID
 
@@ -68,6 +68,16 @@ class CafeSeatResponse(BaseModel):
     notes: Optional[str] = None
 
 
+class CafeReviewResponse(BaseModel):
+    id: UUID
+    rating: int
+    title: Optional[str] = None
+    body: Optional[str] = None
+    reviewer_name: str
+    visited_at: Optional[date] = None
+    created_at: datetime
+
+
 class CafeDetailResponse(BaseModel):
     id: UUID
     name: str
@@ -94,5 +104,6 @@ class CafeDetailResponse(BaseModel):
     hours: List[CafeHourResponse]
     images: List[CafeImageResponse]
     seats: List[CafeSeatResponse]
+    reviews: List[CafeReviewResponse]
     created_at: datetime
     updated_at: datetime
