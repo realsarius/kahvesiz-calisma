@@ -241,7 +241,8 @@ export default function CafeDetailPage() {
       return false;
     }
 
-    if (auth.state.user?.isAdmin) {
+    const role = (auth.state.user?.role || "").trim().toLowerCase();
+    if (auth.state.user?.isAdmin || role === "moderator" || role === "mod") {
       return true;
     }
 

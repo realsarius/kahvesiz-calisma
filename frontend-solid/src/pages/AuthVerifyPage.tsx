@@ -86,6 +86,7 @@ export default function AuthVerifyPage() {
         id: user.id,
         email: user.email,
         name: user.display_name || user.username || user.email,
+        role: user.role || "user",
         isAdmin: user.role === "admin",
       });
 

@@ -354,6 +354,7 @@ async def get_session(
             "id": str(user.id),
             "name": user.display_name or user.username,
             "email": user.email,
+            "role": user.role,
             "is_admin": user.role == "admin",
         }
     }
