@@ -111,31 +111,41 @@ function readWindowBootstrap() {
 }
 
 async function readEndpointBootstrap() {
-  const endpoint = import.meta.env.VITE_AUTH_BOOTSTRAP_ENDPOINT?.trim() || "/api/v1/auth/session";
+  const configuredEndpoint = import.meta.env.VITE_AUTH_BOOTSTRAP_ENDPOINT?.trim();
+  const endpointCandidates = [
+    configuredEndpoint || "/api/v1/auth/session",
+    "/api/v1/auth/session",
+    "/api/auth/session",
+  ].filter((value, index, list): value is string => Boolean(value) && list.indexOf(value) === index);
 
-  try {
-    const response = await apiGet<AuthBootstrapResponse | null>(endpoint, {
-      retries: 0,
-      emitAuthEvent: false,
-      timeoutMs: 8_000,
-    });
+  for (const endpoint of endpointCandidates) {
+    try {
+      const response = await apiGet<AuthBootstrapResponse | null>(endpoint, {
+        retries: 0,
+        emitAuthEvent: false,
+        timeoutMs: 8_000,
+      });
 
-    const user = normalizeAuthUser(response?.user);
+      const user = normalizeAuthUser(response?.user);
+      if (user) {
+        return {
+          user,
+          isAuthenticated: true,
+        };
+      }
+    } catch (error) {
+      if (error instanceof ApiRequestError && [401, 403, 404].includes(error.status)) {
+        continue;
+      }
 
-    return {
-      user,
-      isAuthenticated: Boolean(user),
-    };
-  } catch (error) {
-    if (error instanceof ApiRequestError && [401, 403, 404].includes(error.status)) {
-      return {
-        user: null,
-        isAuthenticated: false,
-      };
+      throw error;
     }
-
-    throw error;
   }
+
+  return {
+    user: null,
+    isAuthenticated: false,
+  };
 }
 
 export function AuthProvider(props: { children: JSX.Element }) {

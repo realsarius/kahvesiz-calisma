@@ -1,4 +1,4 @@
-import { getCsrfToken } from "./csrf";
+import { getCsrfToken, type CsrfScope } from "./csrf";
 
 export const AUTH_REQUIRED_EVENT = "kahvesiz:auth-required";
 
@@ -60,6 +60,18 @@ function isApiEnvelope<T>(payload: unknown): payload is ApiEnvelope<T> {
 
 function canHaveBody(method: HttpMethod) {
   return method !== "GET";
+}
+
+function resolveCsrfScope(url: string): CsrfScope {
+  try {
+    const requestUrl = new URL(url, window.location.origin);
+    if (requestUrl.pathname.startsWith("/api/v1/")) {
+      return "fastapi";
+    }
+  } catch {
+    // Relative malformed URL durumunda legacy fallback guvenli varsayimdir.
+  }
+  return "legacy";
 }
 
 function toApiError(status: number, responsePayload: unknown, fallbackMessage: string) {
@@ -132,7 +144,8 @@ export async function apiRequest<T>(url: string, options: ApiRequestOptions = {}
       }
 
       if (includeCsrf) {
-        const csrfToken = await getCsrfToken();
+        const csrfScope = resolveCsrfScope(url);
+        const csrfToken = await getCsrfToken({ scope: csrfScope });
         if (!csrfToken) {
           throw new ApiRequestError(
             "CSRF token bulunamadı. Yazma isteği güvenli şekilde reddedildi.",

@@ -1,9 +1,17 @@
 const CSRF_META_SELECTOR = 'meta[name="csrf-token"]';
 const CSRF_SOURCE_PATHS = ["/login", "/signup"];
-const CSRF_ENDPOINTS = ["/api/v1/auth/csrf", "/api/csrf-token"];
+const CSRF_ENDPOINTS_BY_SCOPE = {
+  fastapi: ["/api/v1/auth/csrf"],
+  legacy: ["/api/csrf-token"],
+} as const;
 const CSRF_COOKIE_NAME = "csrf_token";
 
-let cachedToken: string | null = null;
+export type CsrfScope = "fastapi" | "legacy";
+
+const cachedTokens: Record<CsrfScope, string | null> = {
+  fastapi: null,
+  legacy: null,
+};
 
 function readTokenFromMeta() {
   const meta = document.querySelector(CSRF_META_SELECTOR);
@@ -90,41 +98,49 @@ async function fetchTokenFromBackendPages() {
   return null;
 }
 
-export function setCsrfToken(token: string | null) {
-  cachedToken = token?.trim() || null;
+export function setCsrfToken(token: string | null, options: { scope?: CsrfScope } = {}) {
+  const scope = options.scope ?? "fastapi";
+  cachedTokens[scope] = token?.trim() || null;
 }
 
-export async function getCsrfToken(options: { forceRefresh?: boolean } = {}) {
+export async function getCsrfToken(options: { forceRefresh?: boolean; scope?: CsrfScope } = {}) {
   const forceRefresh = options.forceRefresh ?? false;
+  const scope = options.scope ?? "fastapi";
 
-  if (!forceRefresh && cachedToken) {
-    return cachedToken;
+  if (!forceRefresh && cachedTokens[scope]) {
+    return cachedTokens[scope];
   }
 
-  const metaToken = readTokenFromMeta();
-  if (metaToken) {
-    cachedToken = metaToken;
-    return metaToken;
+  if (scope === "legacy") {
+    const metaToken = readTokenFromMeta();
+    if (metaToken) {
+      cachedTokens[scope] = metaToken;
+      return metaToken;
+    }
   }
 
-  const cookieToken = readTokenFromCookie();
-  if (cookieToken) {
-    cachedToken = cookieToken;
-    return cookieToken;
+  if (scope === "fastapi") {
+    const cookieToken = readTokenFromCookie();
+    if (cookieToken) {
+      cachedTokens[scope] = cookieToken;
+      return cookieToken;
+    }
   }
 
-  for (const endpoint of CSRF_ENDPOINTS) {
+  for (const endpoint of CSRF_ENDPOINTS_BY_SCOPE[scope]) {
     const endpointToken = await fetchTokenFromEndpoint(endpoint);
     if (endpointToken) {
-      cachedToken = endpointToken;
+      cachedTokens[scope] = endpointToken;
       return endpointToken;
     }
   }
 
-  const fetchedToken = await fetchTokenFromBackendPages();
-  if (fetchedToken) {
-    cachedToken = fetchedToken;
-    return fetchedToken;
+  if (scope === "legacy") {
+    const fetchedToken = await fetchTokenFromBackendPages();
+    if (fetchedToken) {
+      cachedTokens[scope] = fetchedToken;
+      return fetchedToken;
+    }
   }
 
   return null;
