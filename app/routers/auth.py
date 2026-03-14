@@ -152,7 +152,6 @@ async def _verify_token_and_open_session(
     )
     return VerifyResponse(
         message="Giriş başarılı.",
-        session_token=session_plain,
         session_expires_at=session_expires_at,
         user=_user_to_auth_response(user),
     )

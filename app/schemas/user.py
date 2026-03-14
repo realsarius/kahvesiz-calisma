@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserPublicSchema(BaseModel):
@@ -35,3 +35,17 @@ class UserPIISchema(BaseModel):
     country_code: str
     consent_given_at: datetime
     consent_version: Optional[str] = None
+
+
+class ConsentUpdateRequest(BaseModel):
+    consent_version: str = Field(..., min_length=1, max_length=20)
+    analytics_allowed: bool = False
+    marketing_allowed: bool = False
+
+
+class ConsentUpdateResponse(BaseModel):
+    message: str
+    consent_version: str
+    consent_given_at: datetime
+    analytics_allowed: bool
+    marketing_allowed: bool
