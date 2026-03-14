@@ -244,7 +244,7 @@ async def get_cafe(slug: str, db: AsyncSession = Depends(get_db_session)):
     images_payload = [
         CafeImageResponse(
             url=item.url,
-            alt_text=item.alt_text,
+            alt_text=_strip_seed_marker(item.alt_text),
             is_primary=item.is_primary,
             sort_order=item.sort_order,
         )
@@ -256,7 +256,7 @@ async def get_cafe(slug: str, db: AsyncSession = Depends(get_db_session)):
             total_count=item.total_count,
             available_count=item.available_count,
             has_outlet=item.has_outlet,
-            notes=item.notes,
+            notes=_strip_seed_marker(item.notes),
         )
         for item in seat_rows
     ]
