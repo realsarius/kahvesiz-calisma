@@ -15,6 +15,22 @@ type ViewMode = "table" | "grid";
 type WifiFilterMode = "all" | "true" | "false";
 type OutletFilterMode = "all" | "true" | "false";
 
+const NOISE_OPTIONS = [
+  { value: "silent", label: "Çok sessiz" },
+  { value: "quiet", label: "Sessiz" },
+  { value: "moderate", label: "Orta" },
+  { value: "loud", label: "Gürültülü" },
+] as const;
+
+function formatNoiseLevel(noiseLevel: string | null | undefined) {
+  const normalized = (noiseLevel || "").trim().toLowerCase();
+  const option = NOISE_OPTIONS.find((item) => item.value === normalized);
+  if (option) {
+    return option.label;
+  }
+  return noiseLevel || "Bilinmiyor";
+}
+
 function readErrorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
     return error.message;
@@ -91,13 +107,13 @@ export default function CafesPage() {
   });
 
   return (
-    <PageContainer title="Kafeler" subtitle="Listeleme verisi /api/v1/cafes endpointinden cursor pagination ile çekilir.">
+    <PageContainer title="Kafeler">
       <Card>
         <form class="search-form" onSubmit={onSearchSubmit}>
           <div class="grid-two-columns">
             <Input
               id="search-cafe-neighborhood"
-              label="Semt (slug)"
+              label="Semt"
               value={neighborhoodDraft()}
               onInput={(event) => setNeighborhoodDraft(event.currentTarget.value)}
               placeholder="Örnek: kadikoy"
@@ -115,10 +131,9 @@ export default function CafesPage() {
                 onChange={(event) => setNoiseDraft(event.currentTarget.value)}
               >
                 <option value="">Hepsi</option>
-                <option value="silent">silent</option>
-                <option value="quiet">quiet</option>
-                <option value="moderate">moderate</option>
-                <option value="loud">loud</option>
+                <For each={NOISE_OPTIONS}>
+                  {(option) => <option value={option.value}>{option.label}</option>}
+                </For>
               </select>
               <p class="ui-field__hint">Filtre backend’de `noise_level` parametresine gönderilir.</p>
             </div>
@@ -241,7 +256,7 @@ export default function CafesPage() {
                             >
                               Wi-Fi: {cafe.wifi_available ? "Var" : "Yok"}
                             </span>
-                            <span class="ui-chip">Gürültü: {cafe.noise_level || "bilinmiyor"}</span>
+                            <span class="ui-chip">Gürültü: {formatNoiseLevel(cafe.noise_level)}</span>
                             <span class="ui-chip">Yorum: {cafe.review_count}</span>
                           </div>
                         </Card>
@@ -286,7 +301,7 @@ export default function CafesPage() {
                                   {cafe.wifi_available ? "Var" : "Yok"}
                                 </span>
                               </td>
-                              <td>{cafe.noise_level || "—"}</td>
+                              <td>{formatNoiseLevel(cafe.noise_level)}</td>
                               <td>{cafe.avg_rating.toFixed(1)}</td>
                               <td>{cafe.review_count}</td>
                             </tr>

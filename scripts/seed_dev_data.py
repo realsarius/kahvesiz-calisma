@@ -32,6 +32,10 @@ from typing import Iterable
 
 import psycopg2
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from app.core.pii_protection import protect_user_pii_payload
 
 
@@ -46,37 +50,79 @@ USERS = [
         "username": "admin",
         "display_name": "Kahvesiz Admin",
         "role": "admin",
-        "city": "Istanbul",
+        "city": "İstanbul",
     },
     {
         "email": "zeynep@kahvesiz.local",
         "username": "zeynep",
         "display_name": "Zeynep",
         "role": "user",
-        "city": "Istanbul",
+        "city": "İstanbul",
     },
     {
         "email": "mert@kahvesiz.local",
         "username": "mert",
         "display_name": "Mert",
         "role": "user",
-        "city": "Istanbul",
+        "city": "İstanbul",
     },
     {
         "email": "ayse@kahvesiz.local",
         "username": "ayse",
         "display_name": "Ayse",
         "role": "user",
-        "city": "Istanbul",
+        "city": "İstanbul",
     },
 ]
 
 
 def _slugify(value: str) -> str:
     base = (value or "").strip().lower()
+    base = (
+        base.replace("ç", "c")
+        .replace("ğ", "g")
+        .replace("ı", "i")
+        .replace("ö", "o")
+        .replace("ş", "s")
+        .replace("ü", "u")
+    )
     base = re.sub(r"[^a-z0-9]+", "-", base)
     base = re.sub(r"-{2,}", "-", base).strip("-")
     return base
+
+
+def _turkify_text(value: str) -> str:
+    normalized = value or ""
+    replacements = [
+        ("Istanbul", "İstanbul"),
+        ("istanbul", "İstanbul"),
+        ("Kadikoy", "Kadıköy"),
+        ("kadikoy", "Kadıköy"),
+        ("Besiktas", "Beşiktaş"),
+        ("besiktas", "Beşiktaş"),
+        ("Beyoglu", "Beyoğlu"),
+        ("beyoglu", "Beyoğlu"),
+        ("Sinanpasa", "Sinanpaşa"),
+        ("sinanpasa", "Sinanpaşa"),
+        ("Siraselviler", "Sıraselviler"),
+        ("siraselviler", "Sıraselviler"),
+        ("Cankaya", "Çankaya"),
+        ("cankaya", "Çankaya"),
+        ("Kizilay", "Kızılay"),
+        ("kizilay", "Kızılay"),
+        ("Izmir", "İzmir"),
+        ("izmir", "İzmir"),
+        ("Osmanli", "Osmanlı"),
+        ("osmanli", "Osmanlı"),
+        ("Calisma", "Çalışma"),
+        ("calisma", "çalışma"),
+        ("Kahve Isligi", "Kahve Islığı"),
+        ("Kahve Atolye", "Kahve Atölye"),
+        ("Bahce", "Bahçe"),
+    ]
+    for source, target in replacements:
+        normalized = normalized.replace(source, target)
+    return normalized
 
 
 def _build_generated_users(count: int) -> list[dict]:
@@ -126,7 +172,7 @@ def _build_generated_users(count: int) -> list[dict]:
                 "username": f"devuser{index:03d}",
                 "display_name": f"{first} {last}",
                 "role": "user",
-                "city": "Istanbul",
+                "city": "İstanbul",
             }
         )
     return generated
@@ -136,9 +182,13 @@ USERS.extend(_build_generated_users(GENERATED_USER_COUNT))
 
 
 NEIGHBORHOODS = [
-    {"name": "Moda", "city": "Istanbul", "district": "Kadikoy", "slug": "moda"},
-    {"name": "Besiktas Merkez", "city": "Istanbul", "district": "Besiktas", "slug": "besiktas-merkez"},
-    {"name": "Cihangir", "city": "Istanbul", "district": "Beyoglu", "slug": "cihangir"},
+    {"name": "Moda", "city": "İstanbul", "district": "Kadıköy", "slug": "moda"},
+    {"name": "Beşiktaş Merkez", "city": "İstanbul", "district": "Beşiktaş", "slug": "besiktas-merkez"},
+    {"name": "Cihangir", "city": "İstanbul", "district": "Beyoğlu", "slug": "cihangir"},
+    {"name": "Alsancak", "city": "İzmir", "district": "Konak", "slug": "alsancak"},
+    {"name": "Kordon", "city": "İzmir", "district": "Konak", "slug": "kordon"},
+    {"name": "Kızılay", "city": "Ankara", "district": "Çankaya", "slug": "kizilay"},
+    {"name": "Tunalı", "city": "Ankara", "district": "Çankaya", "slug": "tunali"},
 ]
 
 
@@ -148,7 +198,7 @@ CAFES = [
         "slug": "monk-brew-lab",
         "neighborhood_slug": "moda",
         "owner_email": "admin@kahvesiz.local",
-        "address": "Moda Caddesi No:11, Kadikoy",
+        "address": "Moda Caddesi No:11, Kadıköy",
         "latitude": 40.98341,
         "longitude": 29.02675,
         "phone": "+90 216 000 00 11",
@@ -191,7 +241,7 @@ CAFES = [
         "slug": "northlight-study-cafe",
         "neighborhood_slug": "besiktas-merkez",
         "owner_email": "admin@kahvesiz.local",
-        "address": "Sinanpasa Mah. No:7, Besiktas",
+        "address": "Sinanpaşa Mah. No:7, Beşiktaş",
         "latitude": 41.04322,
         "longitude": 29.00577,
         "phone": "+90 212 000 00 77",
@@ -321,7 +371,7 @@ CAFES = [
         "slug": "ashley-coffee",
         "neighborhood_slug": "besiktas-merkez",
         "owner_email": "admin@kahvesiz.local",
-        "address": "Ihlamurdere Cad. No:23, Besiktas",
+        "address": "Ihlamurdere Cad. No:23, Beşiktaş",
         "latitude": 41.04412,
         "longitude": 29.00748,
         "phone": "+90 212 222 22 22",
@@ -365,7 +415,7 @@ CAFES = [
         "slug": "ayse-kahve-evi",
         "neighborhood_slug": "cihangir",
         "owner_email": "admin@kahvesiz.local",
-        "address": "Siraselviler Sok. No:18, Cihangir",
+        "address": "Sıraselviler Sok. No:18, Cihangir",
         "latitude": 41.03419,
         "longitude": 28.98795,
         "phone": "+90 212 333 33 33",
@@ -430,7 +480,16 @@ def _load_internet_cafe_source() -> list[dict]:
 
 
 def _build_cafes_from_internet_source(rows: list[dict], target_count: int) -> list[dict]:
-    neighborhoods = ["moda", "besiktas-merkez", "cihangir"]
+    neighborhoods = ["moda", "besiktas-merkez", "cihangir", "alsancak", "kordon", "kizilay", "tunali"]
+    neighborhood_meta = {
+        "moda": {"city": "İstanbul", "lat": 40.98, "lng": 29.03, "phone_area": "216"},
+        "besiktas-merkez": {"city": "İstanbul", "lat": 41.04, "lng": 29.00, "phone_area": "212"},
+        "cihangir": {"city": "İstanbul", "lat": 41.03, "lng": 28.99, "phone_area": "212"},
+        "alsancak": {"city": "İzmir", "lat": 38.43, "lng": 27.14, "phone_area": "232"},
+        "kordon": {"city": "İzmir", "lat": 38.44, "lng": 27.13, "phone_area": "232"},
+        "kizilay": {"city": "Ankara", "lat": 39.92, "lng": 32.85, "phone_area": "312"},
+        "tunali": {"city": "Ankara", "lat": 39.91, "lng": 32.86, "phone_area": "312"},
+    }
     noise_levels = ["silent", "quiet", "moderate", "loud"]
     outlet_access = ["all_seats", "some_seats", "rare"]
     seat_types = ["shared_table", "solo_desk", "bar", "sofa", "outdoor"]
@@ -441,7 +500,7 @@ def _build_cafes_from_internet_source(rows: list[dict], target_count: int) -> li
     for index, row in enumerate(rows, start=1):
         if len(generated) >= target_count:
             break
-        name = (row.get("name") or "").strip()
+        name = _turkify_text((row.get("name") or "").strip())
         if not name:
             continue
 
@@ -453,9 +512,13 @@ def _build_cafes_from_internet_source(rows: list[dict], target_count: int) -> li
             suffix += 1
         slug_seen.add(slug)
 
-        latitude = float(row.get("latitude") or 40.98)
-        longitude = float(row.get("longitude") or 29.02)
         neighborhood_slug = neighborhoods[(index - 1) % len(neighborhoods)]
+        meta = neighborhood_meta[neighborhood_slug]
+        latitude = float(row.get("latitude") or meta["lat"])
+        longitude = float(row.get("longitude") or meta["lng"])
+        if meta["city"] != "İstanbul":
+            latitude = float(meta["lat"]) + (((index * 7) % 25) - 12) / 1000
+            longitude = float(meta["lng"]) + (((index * 11) % 25) - 12) / 1000
         total_capacity = 22 + (index % 36)
         indoor_capacity = max(total_capacity - (index % 12), 12)
         outdoor_capacity = max(total_capacity - indoor_capacity, 0)
@@ -480,9 +543,11 @@ def _build_cafes_from_internet_source(rows: list[dict], target_count: int) -> li
             )
 
         website = (row.get("website") or "").strip() or f"https://example.com/{slug}"
-        phone = (row.get("phone") or "").strip() or f"+90 212 9{index % 10}0 {index % 100:02d} {((index * 7) % 100):02d}"
+        phone = (row.get("phone") or "").strip() or f"+90 {meta['phone_area']} 9{index % 10}0 {index % 100:02d} {((index * 7) % 100):02d}"
         instagram = (row.get("instagram") or "").strip() or f"kahvesiz_{_slugify(name)[:20]}"
-        address = (row.get("address") or "").strip() or "Istanbul"
+        address = _turkify_text((row.get("address") or "").strip())
+        if not address or address.lower() in {"istanbul", "i̇stanbul"}:
+            address = meta["city"]
 
         generated.append(
             {
@@ -540,14 +605,18 @@ def _build_cafes_from_internet_source(rows: list[dict], target_count: int) -> li
 
 def _build_generated_cafes(start_index: int, target_count: int) -> list[dict]:
     generated: list[dict] = []
-    neighborhoods = ["moda", "besiktas-merkez", "cihangir"]
+    neighborhoods = ["moda", "besiktas-merkez", "cihangir", "alsancak", "kordon", "kizilay", "tunali"]
     noise_levels = ["silent", "quiet", "moderate", "loud"]
     outlet_access = ["all_seats", "some_seats", "rare"]
     seat_types = ["shared_table", "solo_desk", "bar", "sofa", "outdoor"]
     district_labels = {
-        "moda": "Moda",
-        "besiktas-merkez": "Besiktas",
-        "cihangir": "Cihangir",
+        "moda": {"label": "Moda", "city": "İstanbul", "lat": 40.98, "lng": 29.03, "phone_area": "216"},
+        "besiktas-merkez": {"label": "Beşiktaş", "city": "İstanbul", "lat": 41.04, "lng": 29.00, "phone_area": "212"},
+        "cihangir": {"label": "Cihangir", "city": "İstanbul", "lat": 41.03, "lng": 28.99, "phone_area": "212"},
+        "alsancak": {"label": "Alsancak", "city": "İzmir", "lat": 38.43, "lng": 27.14, "phone_area": "232"},
+        "kordon": {"label": "Kordon", "city": "İzmir", "lat": 38.44, "lng": 27.13, "phone_area": "232"},
+        "kizilay": {"label": "Kızılay", "city": "Ankara", "lat": 39.92, "lng": 32.85, "phone_area": "312"},
+        "tunali": {"label": "Tunalı", "city": "Ankara", "lat": 39.91, "lng": 32.86, "phone_area": "312"},
     }
     brand_pool = [
         "Starbuck Kafe",
@@ -585,10 +654,11 @@ def _build_generated_cafes(start_index: int, target_count: int) -> list[dict]:
 
     for cafe_no in range(start_index, target_count + 1):
         neighborhood_slug = neighborhoods[(cafe_no - 1) % len(neighborhoods)]
-        district_label = district_labels[neighborhood_slug]
+        district_meta = district_labels[neighborhood_slug]
+        district_label = district_meta["label"]
         brand = brand_pool[(cafe_no - start_index) % len(brand_pool)]
         concept = concept_pool[((cafe_no - start_index) // len(brand_pool)) % len(concept_pool)]
-        name = f"{brand} {concept} {district_label}"
+        name = _turkify_text(f"{brand} {concept} {district_label}")
         slug_base = _slugify(name) or f"cafe-{cafe_no}"
         slug = slug_base
         slug_suffix = 2
@@ -597,8 +667,8 @@ def _build_generated_cafes(start_index: int, target_count: int) -> list[dict]:
             slug_suffix += 1
         seen_slugs.add(slug)
 
-        base_lat = 40.9750 + (((cafe_no * 7) % 45) / 10_000)
-        base_lng = 29.0000 + (((cafe_no * 9) % 80) / 10_000)
+        base_lat = float(district_meta["lat"]) + (((cafe_no * 7) % 45) / 10_000)
+        base_lng = float(district_meta["lng"]) + (((cafe_no * 9) % 80) / 10_000)
         total_capacity = 24 + (cafe_no % 28)
         indoor_capacity = total_capacity - (cafe_no % 9)
         outdoor_capacity = max(total_capacity - indoor_capacity, 0)
@@ -628,10 +698,10 @@ def _build_generated_cafes(start_index: int, target_count: int) -> list[dict]:
                 "slug": slug,
                 "neighborhood_slug": neighborhood_slug,
                 "owner_email": "admin@kahvesiz.local",
-                "address": f"{district_label} Caddesi No:{10 + cafe_no}, Istanbul",
+                "address": _turkify_text(f"{district_label} Caddesi No:{10 + cafe_no}, {district_meta['city']}"),
                 "latitude": round(base_lat, 8),
                 "longitude": round(base_lng, 8),
-                "phone": f"+90 212 100 {cafe_no:02d} {((cafe_no * 3) % 100):02d}",
+                "phone": f"+90 {district_meta['phone_area']} 100 {cafe_no:02d} {((cafe_no * 3) % 100):02d}",
                 "website": f"https://example.com/{slug}",
                 "instagram": f"{_slugify(name)[:24]}",
                 "google_maps_url": f"https://maps.google.com/?q={round(base_lat, 8)},{round(base_lng, 8)}",
