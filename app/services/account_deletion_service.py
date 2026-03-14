@@ -46,34 +46,44 @@ async def delete_user_account(
         raise HTTPException(status_code=403, detail="Bu kullanıcıyı silme yetkiniz yok.")
 
     now = _utcnow()
+    original_is_active = target_user.is_active
+    original_deleted_at = target_user.deleted_at
 
     target_user.is_active = False
     target_user.deleted_at = now
 
-    pii_delete_result = await db.execute(
-        delete(UserPII).where(UserPII.user_id == target_user.id)
-    )
-
-    review_anonymize_result = await db.execute(
-        update(Review)
-        .where(Review.user_id == target_user.id)
-        .values(user_id=None, updated_at=now)
-    )
-
-    session_delete_result = await db.execute(
-        delete(UserSession).where(UserSession.user_id == target_user.id)
-    )
-
-    token_revoke_result = await db.execute(
-        update(AuthToken)
-        .where(
-            AuthToken.user_id == target_user.id,
-            AuthToken.used_at.is_(None),
+    try:
+        pii_delete_result = await db.execute(
+            delete(UserPII).where(UserPII.user_id == target_user.id)
         )
-        .values(used_at=now)
-    )
 
-    await db.commit()
+        review_anonymize_result = await db.execute(
+            update(Review)
+            .where(Review.user_id == target_user.id)
+            .values(user_id=None, updated_at=now)
+        )
+
+        session_delete_result = await db.execute(
+            delete(UserSession).where(UserSession.user_id == target_user.id)
+        )
+
+        token_revoke_result = await db.execute(
+            update(AuthToken)
+            .where(
+                AuthToken.user_id == target_user.id,
+                AuthToken.used_at.is_(None),
+            )
+            .values(used_at=now)
+        )
+
+        await db.commit()
+    except Exception:
+        rollback = getattr(db, "rollback", None)
+        if callable(rollback):
+            await rollback()
+        target_user.is_active = original_is_active
+        target_user.deleted_at = original_deleted_at
+        raise
 
     return {
         "user_soft_deleted": True,

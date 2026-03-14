@@ -249,6 +249,23 @@ class ReviewServiceTests(unittest.TestCase):
         self.assertEqual(len(fake_session_for_delete.deleted), 1)
         self.assertEqual(fake_session_for_delete.commits, 1)
 
+    def test_delete_review_vote_forbidden_when_vote_belongs_to_other_user(self):
+        review_id = uuid.uuid4()
+        current_user = SimpleNamespace(id=uuid.uuid4(), role="user")
+        other_vote = SimpleNamespace(id=uuid.uuid4(), review_id=review_id, user_id=uuid.uuid4(), vote="helpful")
+
+        fake_session = _FakeAsyncSession(
+            execute_results=[
+                _FakeExecuteResult(scalars=[]),
+                _FakeExecuteResult(scalars=[other_vote]),
+            ]
+        )
+
+        with self.assertRaises(HTTPException) as exc:
+            self._run(review_service.delete_review_vote(review_id, current_user, fake_session))
+
+        self.assertEqual(exc.exception.status_code, 403)
+
 
 if __name__ == "__main__":
     unittest.main()

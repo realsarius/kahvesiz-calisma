@@ -8,12 +8,9 @@ export default defineConfig(({ command }) => ({
   plugins: [solid()],
   server: {
     port: 5173,
+    allowedHosts: ["localhost", "127.0.0.1", "nginx-dev"],
     proxy: {
       "/api": apiProxyTarget,
-      "/login": apiProxyTarget,
-      "/signup": apiProxyTarget,
-      "/logout": apiProxyTarget,
-      "/confirm": apiProxyTarget,
     },
   },
 }));

@@ -346,6 +346,12 @@ async def delete_review_vote(
     vote_result = await db.execute(vote_stmt)
     vote = vote_result.scalars().first()
     if vote is None:
+        other_vote_result = await db.execute(
+            select(ReviewVote).where(ReviewVote.review_id == review_id)
+        )
+        other_vote = other_vote_result.scalars().first()
+        if other_vote is not None:
+            raise HTTPException(status_code=403, detail="Başkasının oyunu geri çekemezsiniz.")
         raise HTTPException(status_code=404, detail="Geri çekilecek oy bulunamadı.")
 
     await db.delete(vote)

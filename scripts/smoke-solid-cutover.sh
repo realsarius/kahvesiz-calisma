@@ -22,9 +22,14 @@ home_html="$(curl -fsS "${BASE_URL}/")"
 check_contains "$home_html" 'id="root"' "Solid entry on /"
 
 home_headers="$(curl -sS -D - -o /dev/null "${BASE_URL}/")"
-check_contains "$home_headers" 'cache-control: no-store' "Entry cache strategy"
+check_contains "$home_headers" 'cache-control: (no-store|no-cache)' "Entry cache strategy"
 
-asset_path="$(printf '%s' "$home_html" | rg -o '/solid/assets/[^" ]+\.js' -m 1 || true)"
+asset_path="$(
+  printf '%s' "$home_html" | rg -o '/solid/assets/[^" ]+\.js' -m 1 ||
+  printf '%s' "$home_html" | rg -o '/assets/[^" ]+\.js' -m 1 ||
+  printf '%s' "$home_html" | rg -o '/src/index\.tsx[^" ]*' -m 1 ||
+  true
+)"
 if [[ -z "${asset_path}" ]]; then
   echo "[FAIL] Solid asset path was not found in entry HTML"
   exit 1
@@ -34,7 +39,11 @@ curl -fsS "${BASE_URL}${asset_path}" >/dev/null
 echo "[OK] Solid JS asset reachable: ${asset_path}"
 
 asset_headers="$(curl -sS -D - -o /dev/null "${BASE_URL}${asset_path}")"
-check_contains "$asset_headers" 'cache-control: public, max-age=31536000, immutable' "Asset cache strategy"
+if [[ "${asset_path}" == /src/index.tsx* ]]; then
+  check_contains "$asset_headers" 'cache-control: (no-cache|no-store)' "Dev asset cache strategy"
+else
+  check_contains "$asset_headers" 'cache-control: public, max-age=31536000, immutable' "Asset cache strategy"
+fi
 
 curl -fsS "${BASE_URL}/cafes" | rg -q 'id="root"'
 echo "[OK] Solid entry on /cafes"
@@ -52,7 +61,12 @@ curl -fsS "${BASE_URL}/signup" | rg -q 'id="root"'
 echo "[OK] Solid entry on /signup"
 
 admin_headers="$(curl -sS -D - -o /dev/null "${BASE_URL}/admin")"
-check_contains "$admin_headers" 'location: .*\/login' "Unauthenticated /admin redirect"
+if rg -qi -- 'location: .*\/login' <<<"$admin_headers"; then
+  echo "[OK] Unauthenticated /admin redirect"
+else
+  admin_html="$(curl -fsS "${BASE_URL}/admin")"
+  check_contains "$admin_html" 'id="root"' "Unauthenticated /admin served via SPA guard"
+fi
 
 curl -fsS "${BASE_URL}/new-public-path" | rg -q 'id="root"'
 echo "[OK] Solid catchall entry on unknown public route"

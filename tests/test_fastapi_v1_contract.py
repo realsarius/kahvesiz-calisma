@@ -197,6 +197,52 @@ class FastApiV1ContractTests(unittest.TestCase):
         self.assertEqual(fake_session.commits, 1)
         self.assertGreaterEqual(len(fake_session.added), 1)
         self.assertIn("set-cookie", {key.lower() for key in response.headers.keys()})
+        self.assertFalse(hasattr(payload, "session_token"))
+
+    def test_verify_rejects_deleted_user_with_401(self):
+        plain_token = "token-for-deleted-user"
+        token_hash = hash_token(plain_token)
+        fake_token = SimpleNamespace(
+            id=uuid.uuid4(),
+            user_id=uuid.uuid4(),
+            token_hash=token_hash,
+            token_type="magic_link",
+            used_at=None,
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=10),
+        )
+        deleted_user = SimpleNamespace(
+            id=fake_token.user_id,
+            email="deleted@example.com",
+            username="deleted-user",
+            display_name="Deleted User",
+            role="user",
+            is_active=False,
+            email_verified_at=None,
+            deleted_at=datetime.now(timezone.utc),
+        )
+        fake_session = _FakeAsyncSession(
+            execute_results=[
+                _FakeExecuteResult(scalars=[fake_token]),
+                _FakeExecuteResult(scalars=[deleted_user]),
+            ]
+        )
+        request = SimpleNamespace(
+            client=SimpleNamespace(host="127.0.0.1"),
+            headers={"user-agent": "unittest"},
+            cookies={},
+        )
+        response = Response()
+
+        with self.assertRaises(HTTPException) as exc:
+            self._run(
+                verify_magic_link(
+                    VerifyRequest(token=plain_token),
+                    request,
+                    response,
+                    fake_session,
+                )
+            )
+        self.assertEqual(exc.exception.status_code, 401)
 
     def test_logout_requires_token(self):
         fake_session = _FakeAsyncSession()
