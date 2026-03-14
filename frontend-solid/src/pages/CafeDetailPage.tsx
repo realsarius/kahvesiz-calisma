@@ -113,7 +113,7 @@ export default function CafeDetailPage() {
   return (
     <PageContainer
       title="Kafe detayı"
-      subtitle="Detay verisi canlı olarak veritabanından çekilir."
+      subtitle="Kafe detayları, çalışma saatleri ve yorumlar burada listelenir."
       actions={
         <A class="ui-button ui-button--secondary ui-button--md" href="/cafes">
           Listeye dön
