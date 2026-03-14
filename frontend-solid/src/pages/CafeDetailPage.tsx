@@ -112,8 +112,7 @@ export default function CafeDetailPage() {
 
   return (
     <PageContainer
-      title="Kafe detayı"
-      subtitle="Kafe detayları, çalışma saatleri ve yorumlar burada listelenir."
+      title={cafe()?.name || "Kafe"}
       actions={
         <A class="ui-button ui-button--secondary ui-button--md" href="/cafes">
           Listeye dön
@@ -146,7 +145,6 @@ export default function CafeDetailPage() {
                   </div>
 
                   <div class="cafe-detail-main">
-                    <p class="cafe-detail-name">{cafe()?.name}</p>
                     <p class="cafe-detail-location">
                       {(cafe()?.neighborhood ? `${cafe()?.neighborhood} • ` : "") + (cafe()?.address ?? "")}
                     </p>
