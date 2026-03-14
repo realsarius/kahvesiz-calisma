@@ -12,6 +12,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.core.config import settings
 from app.core.database import get_db_session
+from app.core.pii_protection import protect_user_pii_payload
 from app.core.security import generate_plain_token, hash_token
 from app.middleware.csrf import (
     CSRF_COOKIE_NAME,
@@ -194,16 +195,28 @@ async def register_user(
         role="user",
         is_active=True,
     )
+    protected_pii = protect_user_pii_payload(
+        user.id,
+        {
+            "full_name": (payload.full_name or "").strip() or None,
+            "phone": (payload.phone or "").strip() or None,
+            "address_line1": (payload.address_line1 or "").strip() or None,
+            "address_line2": (payload.address_line2 or "").strip() or None,
+            "city": (payload.city or "").strip() or None,
+            "district": (payload.district or "").strip() or None,
+            "postal_code": (payload.postal_code or "").strip() or None,
+        },
+    )
     user_pii = UserPII(
         user_id=user.id,
-        full_name=(payload.full_name or "").strip() or None,
-        phone=(payload.phone or "").strip() or None,
+        full_name=protected_pii.get("full_name"),
+        phone=protected_pii.get("phone"),
         birth_date=payload.birth_date,
-        address_line1=(payload.address_line1 or "").strip() or None,
-        address_line2=(payload.address_line2 or "").strip() or None,
-        city=(payload.city or "").strip() or None,
-        district=(payload.district or "").strip() or None,
-        postal_code=(payload.postal_code or "").strip() or None,
+        address_line1=protected_pii.get("address_line1"),
+        address_line2=protected_pii.get("address_line2"),
+        city=protected_pii.get("city"),
+        district=protected_pii.get("district"),
+        postal_code=protected_pii.get("postal_code"),
         country_code=country_code,
         consent_given_at=now,
         consent_ip=consent_ip,
