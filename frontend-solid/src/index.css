@@ -759,6 +759,114 @@ code {
   font-weight: 620;
 }
 
+.review-list__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.review-vote-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.review-vote-button {
+  min-height: 32px;
+  border: 1px solid rgba(113, 113, 122, 0.8);
+  border-radius: 8px;
+  background: rgba(24, 24, 27, 0.66);
+  color: #f4f4f5;
+  padding: 0 10px;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.review-vote-button:hover {
+  background: rgba(39, 39, 42, 0.82);
+}
+
+.review-vote-button.active {
+  border-color: rgba(196, 172, 216, 0.88);
+  background: rgba(52, 39, 71, 0.74);
+}
+
+.review-vote-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.review-form {
+  display: grid;
+  gap: 10px;
+}
+
+.review-stars {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.review-stars__button {
+  min-height: 34px;
+  min-width: 48px;
+  border: 1px solid rgba(113, 113, 122, 0.8);
+  border-radius: 8px;
+  background: rgba(24, 24, 27, 0.66);
+  color: #f4f4f5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+
+.review-stars__button.active {
+  border-color: rgba(196, 172, 216, 0.88);
+  background: rgba(52, 39, 71, 0.74);
+}
+
+.review-stars__button:hover {
+  background: rgba(39, 39, 42, 0.82);
+}
+
+.detail-tabs {
+  display: inline-flex;
+  border: 1px solid rgba(113, 113, 122, 0.62);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.detail-tabs__button {
+  min-height: 38px;
+  border: 0;
+  border-right: 1px solid rgba(113, 113, 122, 0.62);
+  background: rgba(24, 24, 27, 0.6);
+  color: #e4e4e7;
+  padding: 0 14px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 550;
+}
+
+.detail-tabs__button:last-child {
+  border-right: 0;
+}
+
+.detail-tabs__button.active {
+  background: rgba(49, 40, 64, 0.86);
+  color: #f4f4f5;
+}
+
+.detail-tabs__button:hover {
+  background: rgba(39, 39, 42, 0.84);
+}
+
 .admin-list {
   list-style: none;
   margin: 0;
@@ -1327,5 +1435,27 @@ code {
 
   .view-switch__button {
     flex: 1;
+  }
+
+  .review-list__actions {
+    align-items: stretch;
+  }
+
+  .review-vote-group {
+    width: 100%;
+  }
+
+  .review-vote-button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .detail-tabs {
+    width: 100%;
+  }
+
+  .detail-tabs__button {
+    flex: 1;
+    justify-content: center;
   }
 }

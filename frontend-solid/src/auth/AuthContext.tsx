@@ -21,6 +21,7 @@ export interface AuthUser {
   id: number | string;
   name: string;
   email: string;
+  role: string;
   isAdmin: boolean;
 }
 
@@ -83,11 +84,13 @@ function normalizeAuthUser(value: unknown): AuthUser | null {
       : typeof user.is_admin === "boolean"
         ? user.is_admin
         : user.role === "admin";
+  const role = typeof user.role === "string" && user.role.trim() ? user.role.trim() : isAdmin ? "admin" : "user";
 
   return {
     id,
     name,
     email: user.email,
+    role,
     isAdmin,
   };
 }

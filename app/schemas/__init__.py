@@ -21,6 +21,7 @@ from app.schemas.cafe import (
     CafeSeatResponse,
 )
 from app.schemas.user import UserPIISchema, UserPublicSchema
+from app.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse, VoteCreate
 
 __all__ = [
     "AuthUserResponse",
@@ -37,8 +38,12 @@ __all__ = [
     "MagicLinkResponse",
     "RegisterRequest",
     "RegisterResponse",
+    "ReviewCreate",
+    "ReviewListResponse",
+    "ReviewResponse",
     "UserPIISchema",
     "UserPublicSchema",
     "VerifyRequest",
     "VerifyResponse",
+    "VoteCreate",
 ]

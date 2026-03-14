@@ -56,7 +56,8 @@ docker compose --profile dev run --rm api-dev python scripts/seed_dev_data.py
 
 Notlar:
 - Script development odaklidir; production benzeri ortamda `--force` olmadan calismaz.
-- Olusturulan veri: 1 admin, birkac kullanici, birkac kafe, bookmark ve ornek review/vote kayitlari.
+- Olusturulan veri: 1 admin, birkac kullanici, birkac kafe, bookmark ve 1-5 puan dagilimli ornek review/vote kayitlari.
+- Review seed tekrar calistirildiginda duplicate uretmez (idempotent).
 
 ### 1.2 Prod (Hetzner) çalıştırma
 
