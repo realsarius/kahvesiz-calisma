@@ -5,6 +5,7 @@ from app.models.cafe_hour import CafeHour
 from app.models.cafe_image import CafeImage
 from app.models.cafe_seat import CafeSeat
 from app.models.cafe import Cafe
+from app.models.cafe_moderator import CafeModerator
 from app.models.neighborhood import Neighborhood
 from app.models.review import Review
 from app.models.review_vote import ReviewVote
@@ -25,4 +26,5 @@ __all__ = [
     "User",
     "UserPII",
     "UserSession",
+    "CafeModerator",
 ]

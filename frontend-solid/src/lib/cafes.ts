@@ -2,24 +2,26 @@ import { type Accessor, createEffect, createMemo, createResource, createSignal }
 import { apiGet } from "./api";
 
 export interface CafeSummary {
-  id: number;
+  id: string;
   name: string;
-  map_url: string;
-  img_url: string;
-  location: string;
+  map_url: string | null;
+  img_url: string | null;
+  location: string | null;
   has_sockets: boolean;
   has_toilet: boolean;
   has_wifi: boolean;
   can_take_calls: boolean;
-  seats: string;
-  coffee_price: string;
+  seats: string | null;
+  coffee_price: string | null;
   details: string | null;
+  created_at: string;
+  updated_at: string;
+  slug: string;
 }
 
 interface CafesPayload {
   cafes: CafeSummary[];
 }
-
 export interface CafeListFilters {
   neighborhood?: string;
   wifi?: boolean | null;
@@ -153,8 +155,12 @@ function buildV1ListQuery(filters: CafeListFilters, cursor: string | null) {
 
 export async function getCafes(search = "") {
   const query = search.trim();
-  const suffix = query ? `?search=${encodeURIComponent(query)}` : "";
-  const payload = await apiGet<CafesPayload | null>(`/api/cafes${suffix}`);
+  const params = new URLSearchParams();
+  if (query) {
+    params.set("search", query);
+  }
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const payload = await apiGet<CafesPayload | null>(`/api/v1/admin/cafes${suffix}`);
   return payload?.cafes ?? [];
 }
 

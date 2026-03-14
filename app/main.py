@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from app.core.config import settings
 from app.middleware.csrf import ensure_csrf_cookie_for_request, validate_csrf_request
-from app.routers import auth, cafes, health, reviews, users
+from app.routers import admin, auth, cafes, health, reviews, users
 
 
 def create_app() -> FastAPI:
@@ -19,6 +19,7 @@ def create_app() -> FastAPI:
     app.include_router(cafes.router, prefix="/api/v1/cafes", tags=["cafes"])
     app.include_router(reviews.router, prefix="/api/v1", tags=["reviews"])
     app.include_router(users.router, prefix="/api/v1", tags=["users"])
+    app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 
     @app.middleware("http")
     async def csrf_middleware(request, call_next):

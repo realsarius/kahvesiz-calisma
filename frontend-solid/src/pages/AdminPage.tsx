@@ -43,12 +43,12 @@ export default function AdminPage() {
   const [searchDraft, setSearchDraft] = createSignal("");
   const [searchQuery, setSearchQuery] = createSignal("");
 
-  const [editingCafeId, setEditingCafeId] = createSignal<number | null>(null);
+  const [editingCafeId, setEditingCafeId] = createSignal<string | null>(null);
   const [submittingCafe, setSubmittingCafe] = createSignal(false);
-  const [busyCafeId, setBusyCafeId] = createSignal<number | null>(null);
+  const [busyCafeId, setBusyCafeId] = createSignal<string | null>(null);
 
-  const [selectedUserId, setSelectedUserId] = createSignal<number | null>(null);
-  const [selectedCafeId, setSelectedCafeId] = createSignal<number | null>(null);
+  const [selectedUserId, setSelectedUserId] = createSignal<string | null>(null);
+  const [selectedCafeId, setSelectedCafeId] = createSignal<string | null>(null);
   const [assigningModerator, setAssigningModerator] = createSignal(false);
 
   const [feedbackError, setFeedbackError] = createSignal<string | null>(null);
@@ -141,7 +141,7 @@ export default function AdminPage() {
     }
   };
 
-  const startCafeEdit = (id: number) => {
+  const startCafeEdit = (id: string) => {
     const target = (cafes() ?? []).find((item) => item.id === id);
     if (!target) {
       return;
@@ -152,7 +152,7 @@ export default function AdminPage() {
     resetFeedback();
   };
 
-  const onDeleteCafe = async (id: number) => {
+  const onDeleteCafe = async (id: string) => {
     if (!window.confirm("Bu kafeyi silmek istediğinizden emin misiniz?")) {
       return;
     }
@@ -183,7 +183,7 @@ export default function AdminPage() {
 
     setAssigningModerator(true);
     try {
-      const response = await assignModerator(selectedUserId() as number, selectedCafeId() as number);
+      const response = await assignModerator(selectedUserId()!, selectedCafeId()!);
       setFeedbackSuccess(response?.message || "Moderatör atama işlemi tamamlandı.");
       setSelectedCafeId(null);
       reloadAll();
@@ -430,7 +430,10 @@ export default function AdminPage() {
                 id="moderator-user"
                 class="ui-input ui-select"
                 value={selectedUserId() ?? ""}
-                onChange={(event) => setSelectedUserId(Number.parseInt(event.currentTarget.value, 10) || null)}
+                onChange={(event) => {
+                  const value = event.currentTarget.value.trim();
+                  setSelectedUserId(value ? value : null);
+                }}
               >
                 <option value="">Kullanıcı seçin</option>
                 <For each={users() ?? []}>
@@ -449,7 +452,10 @@ export default function AdminPage() {
                 id="moderator-cafe"
                 class="ui-input ui-select"
                 value={selectedCafeId() ?? ""}
-                onChange={(event) => setSelectedCafeId(Number.parseInt(event.currentTarget.value, 10) || null)}
+                onChange={(event) => {
+                  const value = event.currentTarget.value.trim();
+                  setSelectedCafeId(value ? value : null);
+                }}
               >
                 <option value="">Kafe seçin</option>
                 <For each={cafes() ?? []}>{(cafe) => <option value={cafe.id}>{cafe.name}</option>}</For>
@@ -542,7 +548,9 @@ export default function AdminPage() {
                       </div>
                       <div class="chip-row">
                         <span class="ui-chip">{user.is_admin ? "admin" : "user"}</span>
-                        <span class="ui-chip">{user.is_confirmed ? "confirmed" : "pending"}</span>
+                        <span class="ui-chip">
+                          {new Date(user.created_at).toLocaleDateString("tr-TR")}
+                        </span>
                       </div>
                     </li>
                   )}
