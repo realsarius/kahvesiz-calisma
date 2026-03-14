@@ -13,6 +13,12 @@ from starlette.concurrency import run_in_threadpool
 from app.core.config import settings
 from app.core.database import get_db_session
 from app.core.security import generate_plain_token, hash_token
+from app.middleware.csrf import (
+    CSRF_COOKIE_NAME,
+    clear_csrf_cookie,
+    generate_csrf_token,
+    set_csrf_cookie,
+)
 from app.models.auth import AuthToken, UserSession
 from app.models.user import User
 from app.models.user_pii import UserPII
@@ -150,6 +156,7 @@ async def _verify_token_and_open_session(
         samesite="lax",
         max_age=settings.session_expire_days * 24 * 60 * 60,
     )
+    set_csrf_cookie(response, generate_csrf_token())
     return VerifyResponse(
         message="Giriş başarılı.",
         session_expires_at=session_expires_at,
@@ -314,6 +321,18 @@ async def verify_magic_link_get(
     return await _verify_token_and_open_session(token, request, response, db)
 
 
+@router.get("/csrf")
+async def get_csrf_token(
+    request: Request,
+    response: Response,
+):
+    csrf_token = (request.cookies.get(CSRF_COOKIE_NAME) or "").strip()
+    if not csrf_token:
+        csrf_token = generate_csrf_token()
+        set_csrf_cookie(response, csrf_token)
+    return {"csrf_token": csrf_token}
+
+
 @router.get("/session")
 async def get_session(
     request: Request,
@@ -387,4 +406,5 @@ async def logout(
         await db.delete(session)
     await db.commit()
     response.delete_cookie("session_token")
+    clear_csrf_cookie(response)
     return LogoutResponse(message="Çıkış yapıldı.")

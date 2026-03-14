@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
+from app.middleware.csrf import clear_csrf_cookie
 from app.models.user_pii import UserPII
 from app.schemas.user import ConsentUpdateRequest, ConsentUpdateResponse
 from app.services import account_deletion_service, review_service
@@ -37,6 +38,7 @@ async def delete_my_account(
 
     response = Response(status_code=status.HTTP_204_NO_CONTENT)
     response.delete_cookie("session_token")
+    clear_csrf_cookie(response)
     return response
 
 
