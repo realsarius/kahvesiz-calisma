@@ -62,7 +62,6 @@ class MagicLinkResponse(BaseModel):
 
 class VerifyResponse(BaseModel):
     message: str
-    session_token: str
     session_expires_at: datetime
     user: AuthUserResponse
 

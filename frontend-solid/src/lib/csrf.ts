@@ -1,12 +1,24 @@
 const CSRF_META_SELECTOR = 'meta[name="csrf-token"]';
 const CSRF_SOURCE_PATHS = ["/login", "/signup"];
-const CSRF_ENDPOINT = "/api/csrf-token";
+const CSRF_ENDPOINTS = ["/api/v1/auth/csrf", "/api/csrf-token"];
+const CSRF_COOKIE_NAME = "csrf_token";
 
 let cachedToken: string | null = null;
 
 function readTokenFromMeta() {
   const meta = document.querySelector(CSRF_META_SELECTOR);
   const token = meta?.getAttribute("content")?.trim();
+  return token || null;
+}
+
+function readTokenFromCookie() {
+  const cookies = document.cookie.split(";").map((item) => item.trim());
+  const prefix = `${CSRF_COOKIE_NAME}=`;
+  const hit = cookies.find((item) => item.startsWith(prefix));
+  if (!hit) {
+    return null;
+  }
+  const token = decodeURIComponent(hit.slice(prefix.length)).trim();
   return token || null;
 }
 
@@ -24,9 +36,9 @@ function extractTokenFromHtml(html: string) {
   return null;
 }
 
-async function fetchTokenFromEndpoint() {
+async function fetchTokenFromEndpoint(path: string) {
   try {
-    const response = await fetch(CSRF_ENDPOINT, {
+    const response = await fetch(path, {
       method: "GET",
       credentials: "include",
       headers: {
@@ -39,10 +51,11 @@ async function fetchTokenFromEndpoint() {
     }
 
     const payload = (await response.json()) as {
+      csrf_token?: string;
       data?: { csrf_token?: string };
     };
 
-    const token = payload?.data?.csrf_token?.trim();
+    const token = payload?.csrf_token?.trim() || payload?.data?.csrf_token?.trim();
     return token || null;
   } catch {
     return null;
@@ -94,10 +107,18 @@ export async function getCsrfToken(options: { forceRefresh?: boolean } = {}) {
     return metaToken;
   }
 
-  const endpointToken = await fetchTokenFromEndpoint();
-  if (endpointToken) {
-    cachedToken = endpointToken;
-    return endpointToken;
+  const cookieToken = readTokenFromCookie();
+  if (cookieToken) {
+    cachedToken = cookieToken;
+    return cookieToken;
+  }
+
+  for (const endpoint of CSRF_ENDPOINTS) {
+    const endpointToken = await fetchTokenFromEndpoint(endpoint);
+    if (endpointToken) {
+      cachedToken = endpointToken;
+      return endpointToken;
+    }
   }
 
   const fetchedToken = await fetchTokenFromBackendPages();

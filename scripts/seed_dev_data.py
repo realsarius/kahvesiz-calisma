@@ -25,11 +25,14 @@ import os
 import random
 import re
 import sys
+import uuid
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
 import psycopg2
+
+from app.core.pii_protection import protect_user_pii_payload
 
 
 SEED_MARKER = "[seed]"
@@ -790,6 +793,14 @@ def upsert_user(cur, payload: dict) -> str:
         ),
     )
     user_id = str(cur.fetchone()[0])
+    user_uuid = uuid.UUID(user_id)
+    protected_pii = protect_user_pii_payload(
+        user_uuid,
+        {
+            "full_name": payload["display_name"],
+            "city": payload["city"],
+        },
+    )
 
     # Keep one PII row per user in dev.
     cur.execute(
@@ -804,7 +815,7 @@ def upsert_user(cur, payload: dict) -> str:
             updated_at = now()
         WHERE user_id = %s
         """,
-        (payload["display_name"], payload["city"], now, user_id),
+        (protected_pii.get("full_name"), protected_pii.get("city"), now, user_id),
     )
     if cur.rowcount == 0:
         cur.execute(
@@ -815,7 +826,7 @@ def upsert_user(cur, payload: dict) -> str:
             )
             VALUES (%s, %s, %s, 'TR', %s, 'dev-seed-v1', now(), now())
             """,
-            (user_id, payload["display_name"], payload["city"], now),
+            (user_id, protected_pii.get("full_name"), protected_pii.get("city"), now),
         )
     return user_id
 

@@ -192,11 +192,11 @@ class FastApiV1ContractTests(unittest.TestCase):
         )
 
         self.assertEqual(payload.message, "Giriş başarılı.")
-        self.assertIsNotNone(payload.session_token)
         self.assertIsNotNone(fake_token.used_at)
         self.assertIsNotNone(fake_user.email_verified_at)
         self.assertEqual(fake_session.commits, 1)
         self.assertGreaterEqual(len(fake_session.added), 1)
+        self.assertIn("set-cookie", {key.lower() for key in response.headers.keys()})
 
     def test_logout_requires_token(self):
         fake_session = _FakeAsyncSession()

@@ -28,6 +28,8 @@ class Settings:
     )
     resend_api_key: str = os.getenv("RESEND_API_KEY", "")
     resend_from_email: str = os.getenv("RESEND_FROM_EMAIL", "")
+    kvkk_encryption_key: str = os.getenv("KVKK_ENCRYPTION_KEY", "")
+    kvkk_hash_pepper: str = os.getenv("KVKK_HASH_PEPPER", "")
 
 
 settings = Settings()
