@@ -421,3 +421,144 @@ async def logout(
     response.delete_cookie("session_token")
     clear_csrf_cookie(response)
     return LogoutResponse(message="Çıkış yapıldı.")
+
+
+@router.post("/bridge-session")
+async def bridge_session(
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Create a FastAPI session from an active legacy (Flask) session.
+
+    The endpoint forwards the caller's cookies to the legacy
+    ``/api/auth/session`` endpoint (reachable via the nginx-dev container)
+    to verify the legacy session.  When valid it looks up (or auto-creates)
+    the corresponding FastAPI user and issues a ``session_token`` cookie so
+    that FastAPI-only endpoints (e.g. admin panel) work seamlessly.
+    """
+
+    import httpx
+
+    # If the caller already has a valid FastAPI session, skip.
+    existing_session_token = (request.cookies.get("session_token") or "").strip()
+    if existing_session_token:
+        session_hash = hash_token(existing_session_token)
+        stmt = select(UserSession).where(
+            UserSession.session_token_hash == session_hash,
+            UserSession.expires_at > _utcnow(),
+        )
+        result = await db.execute(stmt)
+        if result.scalars().first() is not None:
+            return {"message": "FastAPI oturumu zaten mevcut."}
+
+    # Forward cookies to legacy session endpoint via nginx.
+    cookie_header = request.headers.get("cookie", "")
+    if not cookie_header:
+        raise HTTPException(status_code=401, detail="Legacy oturum cookie'si bulunamadı.")
+
+    legacy_base_url = "http://nginx-dev:80"
+    try:
+        async with httpx.AsyncClient(base_url=legacy_base_url, timeout=5.0) as client:
+            legacy_resp = await client.get(
+                "/api/auth/session",
+                headers={"cookie": cookie_header},
+            )
+    except Exception:
+        logger.exception("Legacy session doğrulaması sırasında bağlantı hatası.")
+        raise HTTPException(status_code=502, detail="Legacy servisine bağlanılamadı.")
+
+    if legacy_resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Legacy oturum geçersiz.")
+
+    try:
+        legacy_payload = legacy_resp.json()
+    except Exception:
+        raise HTTPException(status_code=502, detail="Legacy yanıtı ayrıştırılamadı.")
+
+    # The legacy response may be wrapped in {'data': {'user': {...}}} or {'user': {...}}.
+    legacy_data = legacy_payload.get("data", legacy_payload) if isinstance(legacy_payload, dict) else {}
+    legacy_user = legacy_data.get("user") if isinstance(legacy_data, dict) else None
+    if not legacy_user or not isinstance(legacy_user, dict):
+        raise HTTPException(status_code=401, detail="Legacy oturumda kullanıcı bilgisi bulunamadı.")
+
+    legacy_email = (legacy_user.get("email") or "").strip().lower()
+    legacy_name = (legacy_user.get("name") or "").strip()
+    legacy_is_admin = bool(legacy_user.get("is_admin", False))
+
+    if not legacy_email:
+        raise HTTPException(status_code=401, detail="Legacy kullanıcısında email bilgisi yok.")
+
+    # Find or create the corresponding FastAPI user.
+    user_stmt = select(User).where(User.email == legacy_email)
+    user_result = await db.execute(user_stmt)
+    user = user_result.scalars().first()
+
+    if user is None:
+        user = User(
+            id=uuid.uuid4(),
+            email=legacy_email,
+            username=legacy_email.split("@")[0],
+            display_name=legacy_name or None,
+            role="admin" if legacy_is_admin else "user",
+            is_active=True,
+            email_verified_at=_utcnow(),
+        )
+        db.add(user)
+        try:
+            await db.commit()
+            await db.refresh(user)
+        except IntegrityError:
+            await db.rollback()
+            # Username collision — retry lookup.
+            user_result = await db.execute(select(User).where(User.email == legacy_email))
+            user = user_result.scalars().first()
+            if user is None:
+                raise HTTPException(status_code=500, detail="Kullanıcı eşleştirilemedi.")
+    else:
+        # Sync role from legacy if needed.
+        target_role = "admin" if legacy_is_admin else "user"
+        if user.role != target_role:
+            user.role = target_role
+            await db.commit()
+
+    if not user.is_active or user.deleted_at is not None:
+        raise HTTPException(status_code=403, detail="Kullanıcı aktif değil.")
+
+    # Create a FastAPI session.
+    now = _utcnow()
+    session_plain = generate_plain_token()
+    session_expires_at = now + timedelta(days=settings.session_expire_days)
+    ip_address = _get_client_ip(request)
+    user_agent = _get_user_agent(request)
+    session = UserSession(
+        user_id=user.id,
+        session_token_hash=hash_token(session_plain),
+        ip_address=ip_address,
+        user_agent=user_agent,
+        last_active_at=now,
+        expires_at=session_expires_at,
+    )
+    db.add(session)
+    await db.commit()
+
+    response.set_cookie(
+        key="session_token",
+        value=session_plain,
+        httponly=True,
+        secure=settings.environment == "production",
+        samesite="lax",
+        max_age=settings.session_expire_days * 24 * 60 * 60,
+    )
+    set_csrf_cookie(response, generate_csrf_token())
+
+    return {
+        "message": "FastAPI oturumu oluşturuldu.",
+        "user": {
+            "id": str(user.id),
+            "email": user.email,
+            "name": user.display_name or user.username,
+            "role": user.role,
+            "is_admin": user.role == "admin",
+        },
+    }

@@ -401,7 +401,15 @@ export default function CafeDetailPage() {
                     </div>
 
                     <Show when={cafe()?.description}>
-                      <section class="details-block" innerHTML={cafe()?.description || ""} />
+                      <section class="details-block">
+                        <For each={(cafe()?.description || "").split("\n")}>
+                          {(paragraph) => (
+                            <Show when={paragraph.trim()}>
+                              <p>{paragraph}</p>
+                            </Show>
+                          )}
+                        </For>
+                      </section>
                     </Show>
 
                     <dl class="meta-list">

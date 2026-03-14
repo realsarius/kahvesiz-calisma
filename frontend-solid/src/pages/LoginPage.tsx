@@ -93,6 +93,19 @@ export default function LoginPage() {
         },
       );
 
+      // Create a FastAPI session so admin endpoints work.
+      try {
+        await apiPost("/api/v1/auth/bridge-session", {}, {
+          retries: 0,
+          timeoutMs: 5_000,
+          includeCsrf: false,
+          emitAuthEvent: false,
+        });
+      } catch {
+        // Bridge failure is non-blocking; legacy session still works.
+        console.warn("FastAPI bridge-session oluşturulamadı.");
+      }
+
       await auth.bootstrap();
       void navigate(redirectTarget(), { replace: true });
     } catch (error) {

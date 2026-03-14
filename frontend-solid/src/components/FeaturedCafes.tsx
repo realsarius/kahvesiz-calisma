@@ -1,94 +1,24 @@
 import { A } from "@solidjs/router";
-import { For, createSignal } from "solid-js";
+import { For, Show, createResource } from "solid-js";
+import { getCafesPageV1 } from "../lib/cafes";
 import styles from "./homeSections.module.css";
 
-type NoiseLevel = "quiet" | "moderate" | "loud";
-
-type Cafe = {
-  name: string;
-  neighborhood: string;
-  rating: number;
-  wifi: boolean;
-  outlets: boolean;
-  noiseLevel: NoiseLevel;
-  imageUrl: string;
-};
-
-const noiseLabel: Record<NoiseLevel, string> = {
+const noiseLabel: Record<string, string> = {
+  silent: "Çok Sessiz",
   quiet: "Sessiz",
   moderate: "Orta",
   loud: "Hareketli",
 };
 
-const noiseIcon: Record<NoiseLevel, string> = {
+const noiseIcon: Record<string, string> = {
+  silent: "S0",
   quiet: "S1",
   moderate: "S2",
   loud: "S3",
 };
 
 export function FeaturedCafes() {
-  const [cafes] = createSignal<Cafe[]>([
-    {
-      name: "Mola Defteri",
-      neighborhood: "Kadikoy",
-      rating: 4.9,
-      wifi: true,
-      outlets: true,
-      noiseLevel: "quiet",
-      imageUrl:
-        "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=960&q=80",
-    },
-    {
-      name: "Pusula Coffee Lab",
-      neighborhood: "Besiktas",
-      rating: 4.7,
-      wifi: true,
-      outlets: true,
-      noiseLevel: "moderate",
-      imageUrl:
-        "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=960&q=80",
-    },
-    {
-      name: "Sessiz Cephe",
-      neighborhood: "Sisli",
-      rating: 4.8,
-      wifi: true,
-      outlets: false,
-      noiseLevel: "quiet",
-      imageUrl:
-        "https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=960&q=80",
-    },
-    {
-      name: "Atolye Masa",
-      neighborhood: "Uskudar",
-      rating: 4.6,
-      wifi: true,
-      outlets: true,
-      noiseLevel: "moderate",
-      imageUrl:
-        "https://images.unsplash.com/photo-1513267048331-5611cad62e41?auto=format&fit=crop&w=960&q=80",
-    },
-    {
-      name: "Dingin Fincan",
-      neighborhood: "Kadikoy",
-      rating: 4.5,
-      wifi: true,
-      outlets: false,
-      noiseLevel: "quiet",
-      imageUrl:
-        "https://images.unsplash.com/photo-1521012012373-6a85bade18da?auto=format&fit=crop&w=960&q=80",
-    },
-    {
-      name: "Northlight Brew",
-      neighborhood: "Besiktas",
-      rating: 4.7,
-      wifi: true,
-      outlets: true,
-      noiseLevel: "loud",
-      imageUrl:
-        "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=960&q=80",
-    },
-  ]);
+  const [data] = createResource(() => getCafesPageV1({ limit: 6 }));
 
   return (
     <section
@@ -99,7 +29,7 @@ export function FeaturedCafes() {
       <header class={styles.featuredHeader}>
         <div>
           <h2 id="featured-cafes-title" class={styles.sectionHeader}>
-            One Cikan Kafeler
+            Öne Çıkan Kafeler
           </h2>
           <p class={styles.sectionSubtle}>Bu hafta en cok tercih edilen calisma dostu mekanlar.</p>
         </div>
@@ -109,36 +39,60 @@ export function FeaturedCafes() {
       </header>
 
       <div class={styles.cafeScroller} aria-label="One cikan kafeler kaydirma listesi">
-        <For each={cafes()}>
-          {(cafe) => (
-            <article class={styles.cafeCard} aria-label={`${cafe.name} kafe karti`}>
-              <img class={styles.cafeImage} src={cafe.imageUrl} alt={`${cafe.name} ic mekani`} loading="lazy" />
-              <div class={styles.cafeBody}>
-                <div class={styles.metaRow}>
-                  <h3 class={styles.cafeName}>{cafe.name}</h3>
-                  <span class={styles.rating}>{cafe.rating.toFixed(1)}*</span>
-                </div>
-                <div class={styles.metaRow}>
-                  <span class={styles.badge}>{cafe.neighborhood}</span>
-                </div>
-                <div class={styles.featureList}>
-                  <span class={styles.featureChip}>
-                    <span aria-hidden="true">W</span>
-                    {cafe.wifi ? "Wi-Fi var" : "Wi-Fi yok"}
-                  </span>
-                  <span class={styles.featureChip}>
-                    <span aria-hidden="true">P</span>
-                    {cafe.outlets ? "Priz var" : "Priz sinirli"}
-                  </span>
-                  <span class={styles.featureChip}>
-                    <span aria-hidden="true">{noiseIcon[cafe.noiseLevel]}</span>
-                    {noiseLabel[cafe.noiseLevel]}
-                  </span>
-                </div>
-              </div>
-            </article>
+        <Show when={data.loading}>
+            <div style={{ padding: "2rem", color: "var(--text-muted)" }}>Kafeler yükleniyor...</div>
+        </Show>
+        
+        <Show when={data.error}>
+            <div style={{ padding: "2rem", color: "var(--text-muted)" }}>Kafeler yüklenirken bir hata oluştu.</div>
+        </Show>
+        
+        <Show when={data()}>
+          {(payload) => (
+            <For each={payload().items}>
+              {(cafe, i) => {
+                // Determine a nice placeholder image deterministic to the cafe index
+                const imagePool = [
+                  "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=640&q=80",
+                  "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=640&q=80",
+                  "https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=640&q=80",
+                  "https://images.unsplash.com/photo-1513267048331-5611cad62e41?auto=format&fit=crop&w=640&q=80",
+                  "https://images.unsplash.com/photo-1521012012373-6a85bade18da?auto=format&fit=crop&w=640&q=80",
+                  "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=640&q=80"
+                ];
+                const coverImage = imagePool[i() % imagePool.length];
+                const noise = cafe.noise_level || "moderate";
+
+                return (
+                  <article class={styles.cafeCard} aria-label={`${cafe.name} kafe karti`}>
+                    <A href={`/cafes/${cafe.slug}`} style={{ "text-decoration": "none", color: "inherit", display: "flex", "flex-direction": "column", height: "100%" }}>
+                      <img class={styles.cafeImage} src={coverImage} alt={`${cafe.name} ic mekani`} loading="lazy" />
+                      <div class={styles.cafeBody} style={{ flex: 1 }}>
+                        <div class={styles.metaRow}>
+                          <h3 class={styles.cafeName} style={{ margin: 0 }}>{cafe.name}</h3>
+                          <span class={styles.rating}>{cafe.avg_rating.toFixed(1)}*</span>
+                        </div>
+                        <div class={styles.metaRow} style={{ "margin-bottom": "auto" }}>
+                          <span class={styles.badge}>{cafe.neighborhood || "Bilinmiyor"}</span>
+                        </div>
+                        <div class={styles.featureList} style={{ "margin-top": "1rem" }}>
+                          <span class={styles.featureChip}>
+                            <span aria-hidden="true">W</span>
+                            {cafe.wifi_available ? "Wi-Fi var" : "Wi-Fi yok"}
+                          </span>
+                          <span class={styles.featureChip}>
+                            <span aria-hidden="true">{noiseIcon[noise]}</span>
+                            {noiseLabel[noise]}
+                          </span>
+                        </div>
+                      </div>
+                    </A>
+                  </article>
+                );
+              }}
+            </For>
           )}
-        </For>
+        </Show>
       </div>
     </section>
   );

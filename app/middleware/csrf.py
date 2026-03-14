@@ -19,6 +19,7 @@ EXEMPT_PATHS = {
     "/api/v1/auth/magic-link",
     "/api/v1/auth/verify",
     "/api/v1/auth/csrf",
+    "/api/v1/auth/bridge-session",
 }
 
 
