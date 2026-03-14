@@ -696,6 +696,48 @@ REVIEW_TEMPLATES = [
     ("Tekrar gelirim", "Konum kolay, kahve kalitesi ve calisma kosullari dengeli."),
 ]
 
+REVIEW_PROFILE_RATING_PATTERNS: dict[str, tuple[int, ...]] = {
+    "odakli_ogrenci": (5, 4, 5, 3, 4),
+    "uzaktan_calisan": (4, 5, 4, 3, 2),
+    "hizli_ziyaretci": (3, 2, 4, 1, 3),
+    "elestirel_degerlendirici": (2, 1, 3, 2, 4),
+    "sosyal_kafe_gezgini": (4, 3, 5, 2, 4),
+}
+
+REVIEW_PROFILE_NOTES: dict[str, str] = {
+    "odakli_ogrenci": "Uzun sureli calisma seanslari icin tercih ettim.",
+    "uzaktan_calisan": "Online toplantilar ve odak calismasi icin kullandim.",
+    "hizli_ziyaretci": "Kisa sureli mola ve hizli calisma icin geldim.",
+    "elestirel_degerlendirici": "Deneyimi farkli acilardan degerlendirdim.",
+    "sosyal_kafe_gezgini": "Ortam enerjisi ve sosyallesme dengesi benim icin onemliydi.",
+}
+
+
+def _clamp_rating(value: int) -> int:
+    return max(1, min(5, int(value)))
+
+
+def _pick_review_profile(email: str) -> str:
+    profile_names = sorted(REVIEW_PROFILE_RATING_PATTERNS.keys())
+    if not profile_names:
+        return "odakli_ogrenci"
+    stable_hash = sum(ord(ch) for ch in email)
+    return profile_names[stable_hash % len(profile_names)]
+
+
+def _pick_profile_rating(profile: str, cafe_index: int, review_index: int) -> int:
+    pattern = REVIEW_PROFILE_RATING_PATTERNS.get(profile) or (4, 3, 5, 2, 1)
+    value = pattern[(cafe_index + review_index) % len(pattern)]
+    return _clamp_rating(value)
+
+
+def _derive_sub_ratings(base_rating: int, cafe_index: int, review_index: int) -> tuple[int, int, int]:
+    # Sub skorlar ana puana yakin olsun; 1-5 araliginda sabitlenir.
+    noise_rating = _clamp_rating(base_rating + (((cafe_index + review_index) % 3) - 1))
+    wifi_rating = _clamp_rating(base_rating + (((cafe_index * 2 + review_index) % 3) - 1))
+    outlet_rating = _clamp_rating(base_rating + (((cafe_index + review_index * 2) % 3) - 1))
+    return noise_rating, wifi_rating, outlet_rating
+
 
 def pick_pg_url(explicit_url: str | None) -> str:
     for candidate in (
@@ -990,7 +1032,11 @@ def seed_reviews(cur, user_ids: dict[str, str], cafe_ids: dict[str, str]) -> Non
         for review_index, reviewer_email in enumerate(picked_reviewers):
             user_id = user_ids[reviewer_email]
             template_title, template_body = REVIEW_TEMPLATES[(cafe_index + review_index) % len(REVIEW_TEMPLATES)]
-            rating = rng.randint(3, 5)
+            profile = _pick_review_profile(reviewer_email)
+            rating = _pick_profile_rating(profile, cafe_index, review_index)
+            noise_rating, wifi_rating, outlet_rating = _derive_sub_ratings(rating, cafe_index, review_index)
+            profile_note = REVIEW_PROFILE_NOTES.get(profile, "")
+            review_body = f"{template_body} {profile_note}".strip()
             visited = date(
                 2026,
                 (cafe_index % 12) + 1,
@@ -1024,10 +1070,10 @@ def seed_reviews(cur, user_ids: dict[str, str], cafe_ids: dict[str, str]) -> Non
                     cafe_id,
                     rating,
                     template_title,
-                    template_body,
-                    rng.randint(2, 5),
-                    rng.randint(3, 5),
-                    rng.randint(2, 5),
+                    review_body,
+                    noise_rating,
+                    wifi_rating,
+                    outlet_rating,
                     visited,
                 ),
             )
