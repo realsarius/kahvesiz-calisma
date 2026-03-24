@@ -15,7 +15,6 @@
 - [8. Frontend (SolidJS)](#8-frontend-solidjs)
 - [9. Production Notes](#9-production-notes)
 - [10. License](#10-license)
-- [Additional Documentation](#additional-documentation)
 
 ## 0. Quick Start
 
@@ -516,14 +515,3 @@ psql $DATABASE_URL < legacy_dump_converted.sql
 ## 10. License
 
 This project is licensed under the [MIT License](LICENSE).
-
-## Additional Documentation
-
-- [Decision Log & Migration Roadmap](docs/decisions-and-roadmap.md)
-- [Architecture and Database Plan](docs/architecture-plan.md)
-- [Security & KVKK Implementation Plan](docs/guvenlik-kvkk-fazli-uygulama-plani.md)
-- [SolidJS Frontend Migration Plan](docs/solidjs-frontend-gecis-plani.md)
-- [Review System Plan](docs/review-sistemi-fazli-plan.md)
-- [Homepage Section Plan](docs/homepage-solid-sections-plan.md)
-- [Security Checklist](docs/checkup-fazli-checklist.md)
-- [Database Schema DBML](docs/database-schema.dbml)

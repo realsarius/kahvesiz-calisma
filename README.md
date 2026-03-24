@@ -15,7 +15,6 @@
 - [8. Frontend (SolidJS)](#8-frontend-solidjs)
 - [9. Production Notları](#9-production-notları)
 - [10. Lisans](#10-lisans)
-- [Ek Dokümanlar](#ek-dokümanlar)
 
 ## 0. Hızlı Kurulum
 
@@ -516,14 +515,3 @@ psql $DATABASE_URL < legacy_dump_converted.sql
 ## 10. Lisans
 
 Bu proje [MIT License](LICENSE) ile lisanslanmıştır.
-
-## Ek Dokümanlar
-
-- [Karar Dokümanı & Geçiş Roadmap](docs/decisions-and-roadmap.md)
-- [Mimari ve Veritabanı Planı](docs/architecture-plan.md)
-- [Güvenlik & KVKK Uygulama Planı](docs/guvenlik-kvkk-fazli-uygulama-plani.md)
-- [SolidJS Frontend Geçiş Planı](docs/solidjs-frontend-gecis-plani.md)
-- [Yorum Sistemi Planı](docs/review-sistemi-fazli-plan.md)
-- [Ana Sayfa Section Planı](docs/homepage-solid-sections-plan.md)
-- [Güvenlik Checklist](docs/checkup-fazli-checklist.md)
-- [Veritabanı Şema DBML](docs/database-schema.dbml)
